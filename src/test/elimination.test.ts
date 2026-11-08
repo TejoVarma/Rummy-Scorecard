@@ -135,6 +135,25 @@ describe('elimination domain tests', () => {
       const eligible = getEligibleForReEntryPlayers(rounds, seats, { ...DEFAULT_RULES, allowReEntry: false });
       expect(eligible).toEqual([]);
     });
+
+    it('returns empty when a player eliminated in the round has already re-entered in that round', () => {
+      const rounds: RoundRecord[] = [
+        {
+          roundNumber: 1,
+          dealerPlayerId: 'p1',
+          scores: {} as any,
+          cumulativeScores: { p1: 40, p2: 50, p3: 51 }, // p3 re-entered with score 51!
+          seatsSnapshot: seats,
+          playersSnapshot: {} as any,
+          eliminatedInRound: ['p3'],
+          reEnteredInRound: ['p3'], // already re-entered!
+          timestamp: 1000,
+        },
+      ];
+
+      const eligible = getEligibleForReEntryPlayers(rounds, seats, DEFAULT_RULES);
+      expect(eligible).toEqual([]);
+    });
   });
 
   describe('getDropStatus and getRemainingDrops', () => {

@@ -88,6 +88,11 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
     if (!scorecardCaptureRef.current || isSharingImage) return;
     setIsSharingImage(true);
 
+    const safeShareTitle = title.replace(/[\r\n]/g, ' ').trim();
+    const poolInfo = entryAmount > 0 ? ` | Prize Pool: ₹${totalPoolAmount}` : '';
+    const summary = `🎴 *Rummy Scorecard: ${safeShareTitle}*\nPool: ${rules.poolLimit}${poolInfo} | Rounds: ${rounds.length}\n` +
+      seats.map(id => `${players[id]?.name}: ${latestScores[id] ?? 0} pts`).join('\n');
+
     try {
       const { toBlob } = await import('html-to-image');
       const rootStyles = getComputedStyle(document.documentElement);
@@ -104,11 +109,6 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
       const safeTitle = title.trim().replace(/[^a-zA-Z0-9_-]/g, '_') || 'scorecard';
       const fileName = `${safeTitle}-round-${rounds.length}.png`;
       const file = new File([blob], fileName, { type: 'image/png' });
-
-      const safeShareTitle = title.replace(/[\r\n]/g, ' ').trim();
-      const poolInfo = entryAmount > 0 ? ` | Prize Pool: ₹${totalPoolAmount}` : '';
-      const summary = `🎴 *Rummy Scorecard: ${safeShareTitle}*\nPool: ${rules.poolLimit}${poolInfo} | Rounds: ${rounds.length}\n` +
-        seats.map(id => `${players[id]?.name}: ${latestScores[id] ?? 0} pts`).join('\n');
 
       if (typeof navigator !== 'undefined' && navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
@@ -134,10 +134,6 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
       if (err?.name !== 'AbortError') {
         // Fallback to text share
         if (navigator.share) {
-          const safeShareTitle = title.replace(/[\r\n]/g, ' ').trim();
-          const poolInfo = entryAmount > 0 ? ` | Prize Pool: ₹${totalPoolAmount}` : '';
-          const summary = `🎴 *Rummy Scorecard: ${safeShareTitle}*\nPool: ${rules.poolLimit}${poolInfo} | Rounds: ${rounds.length}\n` +
-            seats.map(id => `${players[id]?.name}: ${latestScores[id] ?? 0} pts`).join('\n');
           navigator.share({ title: `${safeShareTitle} Scorecard`, text: summary }).catch(() => {});
         }
       }

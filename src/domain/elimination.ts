@@ -185,8 +185,17 @@ export function getEligibleForReEntryPlayers(
     return [];
   }
 
-  // Only players who were eliminated specifically in this last round
+  // Only players who:
+  // 1. were eliminated specifically in this last round
+  // 2. have NOT already re-entered in this round
+  // 3. are currently still eliminated (score >= poolLimit)
   const eliminatedInLastRound = lastRound.eliminatedInRound || [];
+  const alreadyReEntered = new Set(lastRound.reEnteredInRound || []);
 
-  return eliminatedInLastRound.filter(id => seats.includes(id));
+  return eliminatedInLastRound.filter(
+    id =>
+      seats.includes(id) &&
+      !alreadyReEntered.has(id) &&
+      isEliminated(latestScores[id] ?? 0, rules.poolLimit)
+  );
 }

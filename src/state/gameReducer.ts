@@ -163,7 +163,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         newStatus = 'completed';
       } else if (activeIds.size === 0) {
         // Tie-breaker: if all players cross pool limit in the same round, lowest cumulative score wins
-        winnerId = state.seats
+        winnerId = restoredSeats
           .slice()
           .sort((a, b) => (newCumulative[a] ?? 0) - (newCumulative[b] ?? 0))[0];
         newStatus = 'completed';
@@ -209,6 +209,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       const player = state.players[playerId];
       if (!player) return state;
+
+      // Guard: Cannot re-enter if player has already re-entered in this round
+      if (lastRound.reEnteredInRound?.includes(playerId)) return state;
+
+      // Guard: Cannot re-enter if player is already active / not eliminated
+      if (!isEliminated(lastRound.cumulativeScores[playerId] ?? 0, state.rules.poolLimit)) return state;
 
       const currentDealerId = state.seats[state.currentDealerIndex];
 

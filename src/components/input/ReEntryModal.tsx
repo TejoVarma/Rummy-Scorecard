@@ -1,0 +1,98 @@
+import React, { useState } from 'react';
+import { GameState, PlayerId } from '../../domain/types';
+import { Modal } from '../common/Modal';
+import { calculateReEntryScore, isEliminated } from '../../domain/elimination';
+import { RotateCw, Crown, AlertCircle } from 'lucide-react';
+
+interface ReEntryModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  state: GameState;
+  reEnteringPlayerId: PlayerId | null;
+  onConfirmReEntry: (playerId: PlayerId, customScore?: number) => void;
+}
+
+export const ReEntryModal: React.FC<ReEntryModalProps> = ({
+  isOpen,
+  onClose,
+  state,
+  reEnteringPlayerId,
+  onConfirmReEntry,
+}) => {
+  if (!reEnteringPlayerId) return null;
+
+  const { players, seats, rules, rounds, currentDealerIndex } = state;
+  const player = players[reEnteringPlayerId];
+  const currentDealerId = seats[currentDealerIndex];
+  const dealerPlayer = players[currentDealerId];
+
+  const lastRound = rounds[rounds.length - 1];
+  const latestScores = lastRound ? lastRound.cumulativeScores : {};
+
+  // Active player scores
+  const activeScores = seats
+    .filter(id => id !== reEnteringPlayerId && !isEliminated(latestScores[id] ?? 0, rules.poolLimit))
+    .map(id => latestScores[id] ?? 0);
+
+  const highestActive = activeScores.length > 0 ? Math.max(...activeScores) : 0;
+  const calculatedScore = calculateReEntryScore(activeScores, rules);
+
+  const [scoreInput, setScoreInput] = useState<string>(String(calculatedScore));
+
+  const handleConfirm = () => {
+    const finalScore = parseInt(scoreInput, 10) || calculatedScore;
+    onConfirmReEntry(reEnteringPlayerId, finalScore);
+    onClose();
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Player Re-Entry">
+      <div className="space-y-4">
+        {/* Info Box */}
+        <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30 space-y-2">
+          <div className="flex items-center gap-2 text-blue-300 font-bold text-sm">
+            <RotateCw className="w-4 h-4 animate-spin" />
+            Re-entering: {player?.name}
+          </div>
+          <p className="text-xs opacity-80 leading-relaxed">
+            Highest score among active players is <span className="font-mono font-bold text-white">{highestActive}</span>.
+            Standard re-entry formula sets their score to <span className="font-mono font-bold text-amber-300">{calculatedScore}</span> (Highest + 1).
+          </p>
+        </div>
+
+        {/* Score adjustment */}
+        <div className="p-3 rounded-xl border border-white/10 bg-black/20 space-y-2">
+          <label className="block text-xs font-semibold opacity-75">Re-entry Score</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              value={scoreInput}
+              onChange={e => setScoreInput(e.target.value)}
+              className="w-full px-3 py-2 font-mono font-bold text-base rounded-lg bg-white/5 border border-white/10 focus:outline-none focus:border-blue-400"
+            />
+          </div>
+        </div>
+
+        {/* Seating Relocation Notice (The User's Key Feature) */}
+        <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-2.5 text-xs text-amber-200">
+          <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <span className="font-bold text-amber-300 block">Automatic Seating Relocation:</span>
+            <p className="opacity-90 leading-relaxed">
+              Upon re-entry, <span className="font-bold text-white">{player?.name}</span>'s chair position will automatically move to sit <span className="font-bold underline text-amber-300">immediately below/after Distributor ({dealerPlayer?.name})</span> in the playing turn order!
+            </p>
+          </div>
+        </div>
+
+        {/* Confirm Button */}
+        <button
+          type="button"
+          onClick={handleConfirm}
+          className="w-full py-3.5 rounded-xl font-extrabold text-sm bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/20 hover:brightness-110 active:scale-[0.99] transition flex items-center justify-center gap-2"
+        >
+          <Crown className="w-4 h-4" /> CONFIRM RE-ENTRY & RE-ORDER SEAT
+        </button>
+      </div>
+    </Modal>
+  );
+};

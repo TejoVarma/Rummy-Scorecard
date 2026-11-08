@@ -60,6 +60,7 @@ export const App: React.FC = () => {
           onUndoRound={handleUndoRound}
           onOpenSettings={() => setIsSettingsOpen(true)}
           onPromptReEntry={id => setReEntryTargetPlayerId(id)}
+          onDeleteGame={handleResetGame}
         />
       )}
 

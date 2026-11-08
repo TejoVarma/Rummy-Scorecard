@@ -2,7 +2,7 @@ import React from 'react';
 import { GameState, PlayerId } from '../../domain/types';
 import { StatusChip } from '../common/StatusChip';
 import { Confetti } from '../common/Confetti';
-import { PlusCircle, RotateCcw, Settings, Trophy, Crown, Share2 } from 'lucide-react';
+import { PlusCircle, RotateCcw, Settings, Trophy, Crown, Share2, Trash2 } from 'lucide-react';
 
 interface ScoreboardScreenProps {
   state: GameState;
@@ -10,6 +10,7 @@ interface ScoreboardScreenProps {
   onUndoRound: () => void;
   onOpenSettings: () => void;
   onPromptReEntry: (playerId: PlayerId) => void;
+  onDeleteGame: () => void;
 }
 
 export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
@@ -18,6 +19,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
   onUndoRound,
   onOpenSettings,
   onPromptReEntry,
+  onDeleteGame,
 }) => {
   const { title, rules, seats, players, rounds, currentDealerIndex, winnerPlayerId } = state;
   const currentDealerId = seats[currentDealerIndex];
@@ -101,6 +103,17 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
             className="p-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition"
           >
             <Settings className="w-4 h-4 text-slate-300" />
+          </button>
+          <button
+            onClick={() => {
+              if (window.confirm('Are you sure you want to delete this game permanently?')) {
+                onDeleteGame();
+              }
+            }}
+            title="Delete Game"
+            className="p-2 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300 hover:bg-rose-500/20 active:scale-95 transition"
+          >
+            <Trash2 className="w-4 h-4" />
           </button>
         </div>
       </div>

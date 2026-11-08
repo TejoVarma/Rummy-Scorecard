@@ -23,9 +23,9 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
   );
   const [poolLimit, setPoolLimit] = useState<number>(201);
   const [customPool, setCustomPool] = useState<string>('');
-  const [openDrop, setOpenDrop] = useState<number>(DEFAULT_RULES.openDrop);
-  const [middleDrop, setMiddleDrop] = useState<number>(DEFAULT_RULES.middleDrop);
-  const [fullCount, setFullCount] = useState<number>(DEFAULT_RULES.fullCount);
+  const [openDrop, setOpenDrop] = useState<string>(String(DEFAULT_RULES.openDrop));
+  const [middleDrop, setMiddleDrop] = useState<string>(String(DEFAULT_RULES.middleDrop));
+  const [fullCount, setFullCount] = useState<string>(String(DEFAULT_RULES.fullCount));
   const [adjustReEntry, setAdjustReEntry] = useState(true);
   const [entryAmount, setEntryAmount] = useState<string>('100');
 
@@ -63,14 +63,17 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
     }
 
     const finalPool = customPool ? parseInt(customPool, 10) || poolLimit : poolLimit;
+    const finalOpenDrop = parseInt(openDrop, 10) || DEFAULT_RULES.openDrop;
+    const finalMiddleDrop = parseInt(middleDrop, 10) || DEFAULT_RULES.middleDrop;
+    const finalFullCount = parseInt(fullCount, 10) || DEFAULT_RULES.fullCount;
     const parsedAmount = parseInt(entryAmount, 10);
     const finalEntryAmount = isNaN(parsedAmount) || parsedAmount < 0 ? 0 : parsedAmount;
 
     const rules: GameRules = {
       poolLimit: finalPool,
-      openDrop,
-      middleDrop,
-      fullCount,
+      openDrop: finalOpenDrop,
+      middleDrop: finalMiddleDrop,
+      fullCount: finalFullCount,
       allowReEntry: adjustReEntry,
       reEntryScoreMode: 'highest_plus_one',
       entryAmount: finalEntryAmount,
@@ -155,36 +158,59 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
             <div className="relative border border-[var(--color-border)] rounded-full px-4 py-1.5 bg-[var(--color-subtle)]">
               <span className="text-[10px] text-[var(--color-muted)] block text-center">Game total score</span>
               <input
-                type="number"
-                value={customPool || poolLimit}
-                onChange={e => setCustomPool(e.target.value)}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={customPool !== '' ? customPool : String(poolLimit)}
+                onChange={e => {
+                  const clean = e.target.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+                  setCustomPool(clean);
+                  if (clean) {
+                    setPoolLimit(parseInt(clean, 10));
+                  }
+                }}
                 className="w-full text-center text-sm font-mono font-medium text-[var(--color-text)] bg-transparent focus:outline-none"
               />
             </div>
             <div className="relative border border-[var(--color-border)] rounded-full px-4 py-1.5 bg-[var(--color-subtle)]">
               <span className="text-[10px] text-[var(--color-muted)] block text-center">Open drop</span>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={openDrop}
-                onChange={e => setOpenDrop(Number(e.target.value))}
+                onChange={e => {
+                  const clean = e.target.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+                  setOpenDrop(clean);
+                }}
                 className="w-full text-center text-sm font-mono font-medium text-[var(--color-text)] bg-transparent focus:outline-none"
               />
             </div>
             <div className="relative border border-[var(--color-border)] rounded-full px-4 py-1.5 bg-[var(--color-subtle)]">
               <span className="text-[10px] text-[var(--color-muted)] block text-center">Middle Drop</span>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={middleDrop}
-                onChange={e => setMiddleDrop(Number(e.target.value))}
+                onChange={e => {
+                  const clean = e.target.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+                  setMiddleDrop(clean);
+                }}
                 className="w-full text-center text-sm font-mono font-medium text-[var(--color-text)] bg-transparent focus:outline-none"
               />
             </div>
             <div className="relative border border-[var(--color-border)] rounded-full px-4 py-1.5 bg-[var(--color-subtle)]">
               <span className="text-[10px] text-[var(--color-muted)] block text-center">Full count</span>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={fullCount}
-                onChange={e => setFullCount(Number(e.target.value))}
+                onChange={e => {
+                  const clean = e.target.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+                  setFullCount(clean);
+                }}
                 className="w-full text-center text-sm font-mono font-medium text-[var(--color-text)] bg-transparent focus:outline-none"
               />
             </div>

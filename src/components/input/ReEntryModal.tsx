@@ -80,9 +80,14 @@ export const ReEntryModal: React.FC<ReEntryModalProps> = ({
           <label className="block text-xs font-semibold text-[var(--color-muted)]">Re-entry Score</label>
           <div className="flex items-center gap-2">
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={scoreInput}
-              onChange={e => setScoreInput(e.target.value)}
+              onChange={e => {
+                const clean = e.target.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+                setScoreInput(clean);
+              }}
               className="w-full px-3 py-2 font-mono font-bold text-base rounded-lg bg-[var(--color-card)] border border-[var(--color-border)] text-[var(--color-text)] focus:outline-none focus:border-[var(--color-primary)]"
             />
           </div>

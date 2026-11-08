@@ -10,6 +10,8 @@ import { RoundInputModal } from './components/input/RoundInputModal';
 import { ReEntryModal } from './components/input/ReEntryModal';
 import { SettingsModal } from './components/settings/SettingsModal';
 import { GameState, PlayerId, ScoreInputType } from './domain/types';
+import { useBackButton, BACK_PRIORITY } from './hooks/useBackButton';
+import { backButtonManager } from './services/backHandler';
 
 export const App: React.FC = () => {
   const [state, dispatch] = useReducer(gameReducer, INITIAL_STATE, () => {
@@ -23,6 +25,24 @@ export const App: React.FC = () => {
   const [isEditingLastRound, setIsEditingLastRound] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [reEntryTargetPlayerId, setReEntryTargetPlayerId] = useState<PlayerId | null>(null);
+  const [showExitToast, setShowExitToast] = useState(false);
+
+  // Subscribe to Android exit toast alerts from the back button manager
+  useEffect(() => {
+    return backButtonManager.onExitToastChange(visible => {
+      setShowExitToast(visible);
+    });
+  }, []);
+
+  // Back button navigates from any sub-screen back to Home dashboard
+  useBackButton(
+    () => {
+      setCurrentScreen('home');
+    },
+    currentScreen !== 'home',
+    BACK_PRIORITY.SCREEN,
+    'screen_navigation'
+  );
 
   // Auto-persist active state to local storage and Preferences
   useEffect(() => {
@@ -144,6 +164,15 @@ export const App: React.FC = () => {
           onClose={() => setIsSettingsOpen(false)}
           onResetGame={handleDeleteGame}
         />
+      )}
+
+      {/* Android-style Exit Toast Notification */}
+      {showExitToast && (
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[60] pointer-events-none transition-all duration-200">
+          <div className="px-4 py-2 rounded-full bg-slate-900/95 text-white text-xs sm:text-sm font-medium shadow-2xl border border-white/10 flex items-center gap-2">
+            <span>Press back again to exit</span>
+          </div>
+        </div>
       )}
     </div>
   );

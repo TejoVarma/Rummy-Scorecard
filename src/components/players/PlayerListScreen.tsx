@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, User, UserPlus, Trash2, Edit2, MoreVertical, X } from 'lucide-react';
 import { SavedRosterPlayer, loadPlayerRoster, savePlayerRoster } from '../../storage/localStorageAdapter';
+import { useBackButton, BACK_PRIORITY } from '../../hooks/useBackButton';
 
 interface PlayerListScreenProps {
   onBack: () => void;
@@ -12,6 +13,10 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
   const [newPlayerName, setNewPlayerName] = useState('');
   const [editingPlayer, setEditingPlayer] = useState<SavedRosterPlayer | null>(null);
   const [editName, setEditName] = useState('');
+
+  // Close inner modals on back press
+  useBackButton(() => setEditingPlayer(null), Boolean(editingPlayer), BACK_PRIORITY.NESTED_MODAL, 'player_list_edit_modal');
+  useBackButton(() => setIsAddModalOpen(false), isAddModalOpen, BACK_PRIORITY.NESTED_MODAL, 'player_list_add_modal');
 
   const handleSaveRoster = (updated: SavedRosterPlayer[]) => {
     setRoster(updated);

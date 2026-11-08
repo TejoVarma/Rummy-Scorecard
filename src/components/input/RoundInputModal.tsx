@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { GameState, PlayerId, ScoreInputType } from '../../domain/types';
 import { validateRoundScores } from '../../domain/scoring';
 import { ArrowLeft, Crown } from 'lucide-react';
+import { useBackButton, BACK_PRIORITY } from '../../hooks/useBackButton';
 
 interface RoundInputModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
   isEditingLastRound = false,
   onSubmitRound,
 }) => {
+  useBackButton(onClose, isOpen, BACK_PRIORITY.GLOBAL_MODAL);
   const { seats, players, rules, rounds, currentDealerIndex } = state;
   const currentDealerId = seats[currentDealerIndex];
   const lastRound = rounds.length > 0 ? rounds[rounds.length - 1] : null;

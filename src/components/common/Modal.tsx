@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
+import { useBackButton, BACK_PRIORITY } from '../../hooks/useBackButton';
 
 interface ModalProps {
   isOpen: boolean;
@@ -16,6 +17,8 @@ export const Modal: React.FC<ModalProps> = ({
   children,
   maxWidth = 'max-w-md',
 }) => {
+  useBackButton(onClose, isOpen, BACK_PRIORITY.GLOBAL_MODAL);
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';

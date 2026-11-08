@@ -4,6 +4,7 @@ import { getEligibleForReEntryPlayers } from '../../domain/elimination';
 import { Confetti } from '../common/Confetti';
 import { toBlob } from 'html-to-image';
 import { Settings, Trophy, Crown, Share2, Trash2, ArrowLeft, UserPlus, Loader2 } from 'lucide-react';
+import { useBackButton, BACK_PRIORITY } from '../../hooks/useBackButton';
 
 interface ScoreboardScreenProps {
   state: GameState;
@@ -29,6 +30,14 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
   const [selectedRoundIndex, setSelectedRoundIndex] = useState<number | null>(null);
   const [isSharingImage, setIsSharingImage] = useState(false);
   const scorecardCaptureRef = useRef<HTMLDivElement>(null);
+
+  // Close round details sheet on back press
+  useBackButton(
+    () => setSelectedRoundIndex(null),
+    selectedRoundIndex !== null,
+    BACK_PRIORITY.NESTED_MODAL,
+    'scoreboard_round_details'
+  );
 
   // Calculate latest cumulative scores
   const latestScores: Record<PlayerId, number> =

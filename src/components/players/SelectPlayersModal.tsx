@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Check, UserPlus, X, MoreVertical } from 'lucide-react';
 import { SavedRosterPlayer, loadPlayerRoster, savePlayerRoster } from '../../storage/localStorageAdapter';
+import { useBackButton, BACK_PRIORITY } from '../../hooks/useBackButton';
 
 interface SelectPlayersModalProps {
   isOpen: boolean;
@@ -20,6 +21,11 @@ export const SelectPlayersModal: React.FC<SelectPlayersModalProps> = ({
   const [selectedIds, setSelectedIds] = useState<string[]>(selectedPlayerIds);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [newPlayerName, setNewPlayerName] = useState('');
+
+  // If Add Player inline sheet is open, back closes that sheet first
+  useBackButton(() => setIsAddOpen(false), isAddOpen, BACK_PRIORITY.NESTED_MODAL, 'select_players_add_submodal');
+  // Otherwise back closes the SelectPlayersModal
+  useBackButton(onClose, isOpen, BACK_PRIORITY.GLOBAL_MODAL, 'select_players_modal');
 
   if (!isOpen) return null;
 

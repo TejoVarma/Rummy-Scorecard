@@ -436,4 +436,94 @@ describe('gameReducer integration tests', () => {
     expect(state.status).toBe('playing');
     expect(state.dealSplit).toBeUndefined();
   });
+
+  it('safely handles RE_ENTER_PLAYER when lastRound.reEnteredInRound is undefined', () => {
+    const players = [
+      { id: 'p1', name: 'P1', avatarColor: '#10b981', reEntryCount: 0 },
+      { id: 'p2', name: 'P2', avatarColor: '#3b82f6', reEntryCount: 0 },
+    ];
+
+    let state = gameReducer(INITIAL_STATE, {
+      type: 'START_GAME',
+      payload: {
+        title: 'Legacy Round Test',
+        rules: { ...DEFAULT_RULES, poolLimit: 101, allowReEntry: true },
+        players,
+        initialSeats: ['p1', 'p2'],
+        initialDealerIndex: 0,
+      },
+    });
+
+    // Round 1: p2 gets 105 points and is eliminated
+    state = gameReducer(state, {
+      type: 'SUBMIT_ROUND',
+      payload: {
+        roundScores: {
+          p1: { type: 'show', points: 0 },
+          p2: { type: 'custom', points: 105 },
+        },
+      },
+    });
+
+    // Simulate legacy round without reEnteredInRound field
+    const legacyRound = { ...state.rounds[0] };
+    delete (legacyRound as any).reEnteredInRound;
+    state = { ...state, rounds: [legacyRound as any] };
+
+    // Re-entering p2 must not throw TypeError: lastRound.reEnteredInRound is not iterable
+    expect(() => {
+      state = gameReducer(state, {
+        type: 'RE_ENTER_PLAYER',
+        payload: { playerId: 'p2' },
+      });
+    }).not.toThrow();
+
+    expect(state.players['p2'].reEntryCount).toBe(1);
+    expect(state.rounds[0].reEnteredInRound).toEqual(['p2']);
+  });
+
+  it('restores original seats on UNDO_ROUND when round 1 had re-entry relocation', () => {
+    const players = [
+      { id: 'p1', name: 'P1', avatarColor: '#10b981', reEntryCount: 0 },
+      { id: 'p2', name: 'P2', avatarColor: '#3b82f6', reEntryCount: 0 },
+      { id: 'p3', name: 'P3', avatarColor: '#f59e0b', reEntryCount: 0 },
+    ];
+
+    let state = gameReducer(INITIAL_STATE, {
+      type: 'START_GAME',
+      payload: {
+        title: 'Undo Round 1 Seating Test',
+        rules: { ...DEFAULT_RULES, poolLimit: 101, allowReEntry: true },
+        players,
+        initialSeats: ['p1', 'p2', 'p3'],
+        initialDealerIndex: 1, // p2 deals
+      },
+    });
+
+    // Round 1: p3 eliminated
+    state = gameReducer(state, {
+      type: 'SUBMIT_ROUND',
+      payload: {
+        roundScores: {
+          p1: { type: 'open_drop', points: 20 },
+          p2: { type: 'show', points: 0 },
+          p3: { type: 'custom', points: 105 },
+        },
+      },
+    });
+
+    // p3 re-enters and seats relocate
+    state = gameReducer(state, {
+      type: 'RE_ENTER_PLAYER',
+      payload: { playerId: 'p3' },
+    });
+    expect(state.seats).not.toEqual(['p1', 'p2', 'p3']);
+
+    // Undo Round 1
+    state = gameReducer(state, { type: 'UNDO_ROUND' });
+
+    // Seating order must be restored to original initialSeats
+    expect(state.seats).toEqual(['p1', 'p2', 'p3']);
+    expect(state.rounds.length).toBe(0);
+  });
 });

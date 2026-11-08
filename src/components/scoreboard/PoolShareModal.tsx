@@ -148,8 +148,19 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2000);
       }
-    } catch {
-      // User cancelled share
+    } catch (err: any) {
+      if (err?.name !== 'AbortError') {
+        console.warn('Share deal failed, attempting clipboard fallback:', err);
+        try {
+          if (typeof navigator !== 'undefined' && navigator.clipboard) {
+            await navigator.clipboard.writeText(text);
+            setIsCopied(true);
+            setTimeout(() => setIsCopied(false), 2000);
+          }
+        } catch (clipErr) {
+          console.warn('Clipboard write failed:', clipErr);
+        }
+      }
     }
   };
 

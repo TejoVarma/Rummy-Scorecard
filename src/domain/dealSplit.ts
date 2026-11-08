@@ -101,10 +101,12 @@ export function validateCustomDeal(
   totalPool: number,
   payouts: Record<PlayerId, number>
 ): { isValid: boolean; allocatedTotal: number; difference: number } {
-  const allocatedTotal = Object.values(payouts).reduce((sum, val) => sum + (Number(val) || 0), 0);
+  const numericValues = Object.values(payouts).map(val => Number(val) || 0);
+  const hasNegative = numericValues.some(val => val < 0);
+  const allocatedTotal = numericValues.reduce((sum, val) => sum + val, 0);
   const difference = totalPool - allocatedTotal;
   return {
-    isValid: difference === 0,
+    isValid: difference === 0 && !hasNegative && totalPool >= 0,
     allocatedTotal,
     difference,
   };

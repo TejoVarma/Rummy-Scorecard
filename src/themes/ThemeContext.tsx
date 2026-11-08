@@ -21,12 +21,13 @@ const isValidThemeId = (id: unknown): id is ThemeId =>
 const isValidColorMode = (mode: unknown): mode is ColorMode =>
   mode === 'dark' || mode === 'light';
 
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [themeId, setThemeIdState] = useState<ThemeId>(() => {
     try {
       const raw = localStorage.getItem(THEME_STORAGE_KEY);
       return isValidThemeId(raw) ? raw : 'slate_dark';
-    } catch {
+    } catch (err) {
+      console.warn('Failed to read theme preference from storage:', err);
       return 'slate_dark';
     }
   });
@@ -35,7 +36,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const raw = localStorage.getItem(MODE_STORAGE_KEY);
       return isValidColorMode(raw) ? raw : 'dark';
-    } catch {
+    } catch (err) {
+      console.warn('Failed to read color mode preference from storage:', err);
       return 'dark';
     }
   });
@@ -47,8 +49,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setThemeIdState(id);
     try {
       localStorage.setItem(THEME_STORAGE_KEY, id);
-    } catch {
-      // Storage unavailable or quota exceeded
+    } catch (err) {
+      console.warn(`Failed to persist theme ID "${id}" to localStorage:`, err);
     }
   };
 
@@ -57,8 +59,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setColorModeState(mode);
     try {
       localStorage.setItem(MODE_STORAGE_KEY, mode);
-    } catch {
-      // Storage unavailable or quota exceeded
+    } catch (err) {
+      console.warn(`Failed to persist color mode "${mode}" to localStorage:`, err);
     }
   };
 

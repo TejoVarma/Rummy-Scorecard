@@ -87,6 +87,9 @@ describe('dealSplit domain tests', () => {
     const invalidOver = validateCustomDeal(1000, { p1: 700, p2: 400 });
     expect(invalidOver.isValid).toBe(false);
     expect(invalidOver.difference).toBe(-100);
+
+    const invalidNegative = validateCustomDeal(1000, { p1: 1500, p2: -500 });
+    expect(invalidNegative.isValid).toBe(false);
   });
 
   it('formats deal summary string cleanly for sharing', () => {

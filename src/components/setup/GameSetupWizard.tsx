@@ -69,6 +69,23 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
     const parsedAmount = parseInt(entryAmount, 10);
     const finalEntryAmount = isNaN(parsedAmount) || parsedAmount < 0 ? 0 : parsedAmount;
 
+    if (finalOpenDrop <= 0) {
+      alert('Open Drop must be greater than 0.');
+      return;
+    }
+    if (finalOpenDrop >= finalMiddleDrop) {
+      alert('Open Drop must be strictly less than Middle Drop.');
+      return;
+    }
+    if (finalMiddleDrop >= finalFullCount) {
+      alert('Middle Drop must be strictly less than Full Count.');
+      return;
+    }
+    if (finalOpenDrop >= finalPool) {
+      alert('Open Drop cannot be greater than or equal to the Pool Limit.');
+      return;
+    }
+
     const rules: GameRules = {
       poolLimit: finalPool,
       openDrop: finalOpenDrop,

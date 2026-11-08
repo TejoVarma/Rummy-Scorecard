@@ -100,11 +100,9 @@ export class BackButtonManager {
           return true;
         }
       } catch (err) {
-        console.error(`Error in back handler ${entry.id}:`, err);
-        // Do not fall through to app exit when UI error occurs
-        this.lastBackPressTime = 0;
-        this.clearExitToastTimer();
-        return true;
+        console.error(`Error in back handler ${entry.id}; unregistering faulty handler:`, err);
+        this.unregister(entry.id);
+        // Continue loop to let next handler or root handle the back press
       }
     }
 

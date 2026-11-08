@@ -26,7 +26,15 @@ export function loadAllSavedGames(): GameState[] {
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed.filter(isValidGameState) : [];
   } catch (e) {
-    console.warn('Failed to parse saved games list from storage:', e);
+    console.error('Failed to parse saved games list from storage:', e);
+    const raw = localStorage.getItem(SAVED_GAMES_LIST_KEY);
+    if (raw) {
+      try {
+        localStorage.setItem(`${SAVED_GAMES_LIST_KEY}_corrupted_${Date.now()}`, raw);
+      } catch {
+        // Ignore backup failure
+      }
+    }
     return [];
   }
 }
@@ -82,17 +90,46 @@ export async function loadActiveGameAsync(): Promise<GameState | null> {
   }
 }
 
-function isValidGameState(obj: any): obj is GameState {
-  return (
-    obj &&
-    typeof obj === 'object' &&
-    typeof obj.gameId === 'string' &&
-    Array.isArray(obj.seats) &&
-    typeof obj.players === 'object' &&
-    Array.isArray(obj.rounds) &&
-    typeof obj.rules === 'object' &&
-    typeof obj.rules.poolLimit === 'number'
-  );
+export function isValidGameState(obj: unknown): obj is GameState {
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return false;
+  const candidate = obj as Record<string, any>;
+
+  if (typeof candidate.gameId !== 'string' || !candidate.gameId) return false;
+  if (typeof candidate.title !== 'string') return false;
+  if (typeof candidate.createdAt !== 'number') return false;
+  if (!['setup', 'playing', 'completed'].includes(candidate.status)) return false;
+  if (typeof candidate.currentDealerIndex !== 'number' || candidate.currentDealerIndex < 0) return false;
+
+  // Validate rules
+  if (!candidate.rules || typeof candidate.rules !== 'object' || Array.isArray(candidate.rules)) return false;
+  const { poolLimit, openDrop, middleDrop, fullCount } = candidate.rules;
+  if (
+    typeof poolLimit !== 'number' ||
+    typeof openDrop !== 'number' ||
+    typeof middleDrop !== 'number' ||
+    typeof fullCount !== 'number'
+  ) {
+    return false;
+  }
+
+  // Validate players dictionary
+  if (!candidate.players || typeof candidate.players !== 'object' || Array.isArray(candidate.players)) return false;
+  for (const [id, player] of Object.entries(candidate.players)) {
+    if (!player || typeof player !== 'object' || (player as any).id !== id || typeof (player as any).name !== 'string') {
+      return false;
+    }
+  }
+
+  // Validate seats
+  if (!Array.isArray(candidate.seats) || candidate.seats.length === 0) return false;
+  for (const seatId of candidate.seats) {
+    if (typeof seatId !== 'string' || !candidate.players[seatId]) return false;
+  }
+
+  // Validate rounds
+  if (!Array.isArray(candidate.rounds)) return false;
+
+  return true;
 }
 
 export function loadActiveGame(): GameState | null {
@@ -138,7 +175,9 @@ export function savePlayerRoster(players: SavedRosterPlayer[]): void {
   try {
     const serialized = JSON.stringify(players);
     localStorage.setItem(SAVED_PLAYERS_KEY, serialized);
-    Preferences.set({ key: SAVED_PLAYERS_KEY, value: serialized }).catch(() => {});
+    Preferences.set({ key: SAVED_PLAYERS_KEY, value: serialized }).catch(err => {
+      console.warn('Failed to sync player roster to native Preferences:', err);
+    });
   } catch (e) {
     console.error('Failed to save players', e);
   }
@@ -157,6 +196,7 @@ export function loadPlayerRoster(): SavedRosterPlayer[] {
     }
     return cleaned;
   } catch (e) {
+    console.error('Failed to read or parse player roster from storage:', e);
     return [];
   }
 }

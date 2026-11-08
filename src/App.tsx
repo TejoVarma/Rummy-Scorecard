@@ -1,4 +1,4 @@
-import React, { useReducer, useEffect, useState } from 'react';
+import { useReducer, useEffect, useState, useCallback } from 'react';
 import { gameReducer, INITIAL_STATE } from './state/gameReducer';
 import { loadActiveGame, saveActiveGame, clearActiveGame, deleteGameFromList } from './storage/localStorageAdapter';
 import { HomeScreen } from './components/home/HomeScreen';
@@ -9,11 +9,19 @@ import { ScoreboardScreen } from './components/scoreboard/ScoreboardScreen';
 import { RoundInputModal } from './components/input/RoundInputModal';
 import { ReEntryModal } from './components/input/ReEntryModal';
 import { SettingsModal } from './components/settings/SettingsModal';
-import { GameState, PlayerId, ScoreInputType } from './domain/types';
+import { GameRules, GameState, Player, PlayerId, ScoreInputType, DealSplit } from './domain/types';
 import { useBackButton, BACK_PRIORITY } from './hooks/useBackButton';
 import { backButtonManager } from './services/backHandler';
 
-export const App: React.FC = () => {
+interface StartGameConfig {
+  title: string;
+  rules: GameRules;
+  players: Player[];
+  initialSeats: PlayerId[];
+  initialDealerIndex: number;
+}
+
+export function App() {
   const [state, dispatch] = useReducer(gameReducer, INITIAL_STATE, () => {
     const saved = loadActiveGame();
     return saved && saved.status ? saved : INITIAL_STATE;
@@ -51,39 +59,47 @@ export const App: React.FC = () => {
     }
   }, [state]);
 
-  const handleStartGame = (config: any) => {
+  const handleStartGame = useCallback((config: StartGameConfig) => {
     dispatch({ type: 'START_GAME', payload: config });
     setCurrentScreen('scoreboard');
-  };
+  }, []);
 
-  const handleResumeGame = (gameToResume: GameState) => {
+  const handleResumeGame = useCallback((gameToResume: GameState) => {
     dispatch({ type: 'LOAD_GAME', payload: gameToResume });
     setCurrentScreen('scoreboard');
-  };
+  }, []);
 
-  const handleSubmitRound = (roundScores: Record<PlayerId, { type: ScoreInputType; points: number }>) => {
+  const handleSubmitRound = useCallback((roundScores: Record<PlayerId, { type: ScoreInputType; points: number }>) => {
     if (isEditingLastRound) {
       dispatch({ type: 'EDIT_LAST_ROUND', payload: { roundScores } });
     } else {
       dispatch({ type: 'SUBMIT_ROUND', payload: { roundScores } });
     }
-  };
+  }, [isEditingLastRound]);
 
-  const handleConfirmReEntry = (playerId: PlayerId, customScore?: number) => {
+  const handleConfirmReEntry = useCallback((playerId: PlayerId, customScore?: number) => {
     dispatch({
       type: 'RE_ENTER_PLAYER',
       payload: { playerId, customReEntryScore: customScore },
     });
-  };
+  }, []);
 
-  const handleDeleteGame = () => {
+  const handleDeleteGame = useCallback(() => {
     if (state.gameId) {
       deleteGameFromList(state.gameId);
     }
     clearActiveGame();
     dispatch({ type: 'RESET_GAME' });
     setCurrentScreen('continue_game');
-  };
+  }, [state.gameId]);
+
+  const handleAcceptDeal = useCallback((dealSplit: DealSplit) => {
+    dispatch({ type: 'ACCEPT_DEAL', payload: { dealSplit } });
+  }, []);
+
+  const handleCancelDeal = useCallback(() => {
+    dispatch({ type: 'CANCEL_DEAL' });
+  }, []);
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] transition-colors duration-200">
@@ -133,8 +149,8 @@ export const App: React.FC = () => {
           onOpenSettings={() => setIsSettingsOpen(true)}
           onPromptReEntry={id => setReEntryTargetPlayerId(id)}
           onDeleteGame={handleDeleteGame}
-          onAcceptDeal={dealSplit => dispatch({ type: 'ACCEPT_DEAL', payload: { dealSplit } })}
-          onCancelDeal={() => dispatch({ type: 'CANCEL_DEAL' })}
+          onAcceptDeal={handleAcceptDeal}
+          onCancelDeal={handleCancelDeal}
         />
       )}
 

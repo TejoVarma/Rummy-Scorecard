@@ -41,8 +41,8 @@ export const ReEntryModal: React.FC<ReEntryModalProps> = ({
 
   const handleConfirm = () => {
     const parsed = parseInt(scoreInput, 10);
-    // Boundary check: cannot be negative, cannot exceed pool limit
-    const safeScore = (isNaN(parsed) || parsed < 0 || parsed >= rules.poolLimit)
+    // Boundary check: cannot be non-positive, cannot reach or exceed pool limit
+    const safeScore = (isNaN(parsed) || parsed <= 0 || parsed >= rules.poolLimit)
       ? calculatedScore
       : parsed;
 

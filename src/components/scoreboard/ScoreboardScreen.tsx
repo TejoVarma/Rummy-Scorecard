@@ -80,6 +80,32 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
   const isLastRoundEdited = Boolean(lastRound?.isEdited);
   const [dismissedRoundToast, setDismissedRoundToast] = useState<number | null>(null);
 
+  // Precompute All-Drop rounds for O(1) cell coloring
+  const allDropRoundIndices = useMemo(() => {
+    const indices = new Set<number>();
+    rounds.forEach((round, rIdx) => {
+      const scoreEntries = Object.entries(round.scores);
+      if (scoreEntries.length <= 1) return;
+      let showCount = 0;
+      let dropCount = 0;
+      let isAllDrop = true;
+      for (const [, info] of scoreEntries) {
+        if (info.type === 'show' || info.points === 0) {
+          showCount++;
+        } else if (info.type === 'open_drop') {
+          dropCount++;
+        } else {
+          isAllDrop = false;
+          break;
+        }
+      }
+      if (isAllDrop && showCount === 1 && dropCount > 0) {
+        indices.add(rIdx);
+      }
+    });
+    return indices;
+  }, [rounds]);
+
   // Identify winner of the last completed round for congrats toast
   const lastRoundWinnerId = useMemo(() => {
     if (!lastRound) return null;
@@ -176,9 +202,14 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
             });
           } else if (typeof navigator !== 'undefined' && navigator.share) {
             await navigator.share({ title: `${safeShareTitle} Scorecard`, text: summary });
+          } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
+            await navigator.clipboard.writeText(summary);
+            alert('Scorecard text copied to clipboard!');
           }
-        } catch {
-          // Ignore canceled or unsupported share
+        } catch (shareErr: any) {
+          if (shareErr?.name !== 'AbortError') {
+            console.warn('Text share fallback failed:', shareErr);
+          }
         }
       }
     } finally {
@@ -448,24 +479,8 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                     const isRowSelected = selectedRoundIndex === rIdx;
                     const isEdited = Boolean(round.isEdited);
 
-                    // Detect if this round is an "All Drop" round (all active opponents took open drop 'D')
-                    const isAllDropRound = (() => {
-                      const scoreEntries = Object.entries(round.scores);
-                      if (scoreEntries.length <= 1) return false;
-                      let showCount = 0;
-                      let dropCount = 0;
-                      for (const [_, info] of scoreEntries) {
-                        if (info.type === 'show' || info.points === 0) {
-                          showCount++;
-                        } else if (info.type === 'open_drop') {
-                          dropCount++;
-                        } else {
-                          return false;
-                        }
-                      }
-                      return showCount === 1 && dropCount > 0;
-                    })();
-
+                    // O(1) All Drop round check from precomputed memoized set
+                    const isAllDropRound = allDropRoundIndices.has(rIdx);
                     const cellBgClass = isAllDropRound ? 'bg-[#15803d]' : 'bg-[#0078d4]';
 
                     return (
@@ -677,13 +692,15 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
         )}
       </div>
 
-      <PoolShareModal
-        isOpen={isPoolShareOpen}
-        onClose={() => setIsPoolShareOpen(false)}
-        state={state}
-        onAcceptDeal={onAcceptDeal}
-        onCancelDeal={onCancelDeal}
-      />
+      {isPoolShareOpen && (
+        <PoolShareModal
+          isOpen={isPoolShareOpen}
+          onClose={() => setIsPoolShareOpen(false)}
+          state={state}
+          onAcceptDeal={onAcceptDeal}
+          onCancelDeal={onCancelDeal}
+        />
+      )}
     </div>
   );
 };

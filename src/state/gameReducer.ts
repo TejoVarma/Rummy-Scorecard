@@ -2,6 +2,7 @@ import { GameState, PlayerId, RoundRecord } from '../domain/types';
 import { GameAction } from './gameActions';
 import { getNextDealerIndex, relocateReEnteredPlayer, reorderSeats } from '../domain/seating';
 import { calculateReEntryScore, getActivePlayerIds, isEliminated } from '../domain/elimination';
+import { isValidGameState } from '../storage/localStorageAdapter';
 
 export const INITIAL_STATE: GameState = {
   gameId: '',
@@ -247,7 +248,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       updatedRounds[updatedRounds.length - 1] = {
         ...lastRound,
         cumulativeScores: updatedCumulative,
-        reEnteredInRound: [...lastRound.reEnteredInRound, playerId],
+        reEnteredInRound: [...(lastRound.reEnteredInRound || []), playerId],
       };
 
       // Recalculate active players to determine status and winner
@@ -271,12 +272,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'UNDO_ROUND': {
       if (state.rounds.length === 0) return state;
+      const lastRound = state.rounds[state.rounds.length - 1];
       const poppedRounds = state.rounds.slice(0, -1);
       const previousRound = poppedRounds[poppedRounds.length - 1];
 
-      // Restore seats and dealer from previous round snapshot or initial
-      const restoredSeats = previousRound ? previousRound.seatsSnapshot : state.seats;
-      const lastDealerId = state.rounds[state.rounds.length - 1].dealerPlayerId;
+      // Restore seats and dealer from previous round snapshot or initial setup
+      const restoredSeats = previousRound 
+        ? previousRound.seatsSnapshot 
+        : (lastRound.seatsSnapshot || state.seats);
+      const lastDealerId = lastRound.dealerPlayerId;
       const restoredDealerIndex = restoredSeats.indexOf(lastDealerId);
 
       // Restore players snapshot so reEntryCount and reEntryScore don't leak
@@ -334,9 +338,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'LOAD_GAME': {
-      if (action.payload && typeof action.payload === 'object' && Array.isArray(action.payload.seats)) {
+      if (isValidGameState(action.payload)) {
         return action.payload;
       }
+      console.warn('LOAD_GAME ignored invalid game state payload:', action.payload);
       return state;
     }
 

@@ -149,7 +149,7 @@ describe('gameReducer integration tests', () => {
       },
     });
 
-    // Round 1: p2 gets 105 points and is eliminated!
+    // Round 1: p1 is dealer. p2 (next to dealer) gets 105 points and is eliminated!
     state = gameReducer(state, {
       type: 'SUBMIT_ROUND',
       payload: {
@@ -162,7 +162,23 @@ describe('gameReducer integration tests', () => {
       },
     });
 
-    // Dealer should skip p2 (index 1) and advance directly to p3 (index 2)!
+    // Since p2 got eliminated in this round, p1 deals again so p3 gets the open card!
+    expect(state.currentDealerIndex).toBe(0);
+    expect(state.seats[state.currentDealerIndex]).toBe('p1');
+
+    // Round 2: p1 deals again to p3, p4. Nobody eliminated.
+    state = gameReducer(state, {
+      type: 'SUBMIT_ROUND',
+      payload: {
+        roundScores: {
+          p1: { type: 'open_drop', points: 24 },
+          p3: { type: 'show', points: 0 },
+          p4: { type: 'open_drop', points: 24 },
+        },
+      },
+    });
+
+    // Now dealer advances clockwise, skipping already-eliminated p2 and going to p3!
     expect(state.currentDealerIndex).toBe(2);
     expect(state.seats[state.currentDealerIndex]).toBe('p3');
   });
@@ -269,5 +285,48 @@ describe('gameReducer integration tests', () => {
     expect(state.status).toBe('playing');
     expect(state.winnerPlayerId).toBeUndefined();
     expect(state.rounds[0].cumulativeScores['p2']).toBe(1);
+  });
+
+  it('keeps dealer unchanged when the player after the dealer gets eliminated in that round', () => {
+    const players = [
+      { id: 'p1', name: 'Player 1', avatarColor: '#3b82f6', reEntryCount: 0 },
+      { id: 'p2', name: 'Player 2', avatarColor: '#10b981', reEntryCount: 0 },
+      { id: 'p3', name: 'Player 3', avatarColor: '#f59e0b', reEntryCount: 0 },
+      { id: 'p4', name: 'Player 4', avatarColor: '#ec4899', reEntryCount: 0 },
+      { id: 'p5', name: 'Player 5', avatarColor: '#8b5cf6', reEntryCount: 0 },
+    ];
+
+    let state = gameReducer(INITIAL_STATE, {
+      type: 'START_GAME',
+      payload: {
+        title: '5-player pool match',
+        rules: { ...DEFAULT_RULES, poolLimit: 201 },
+        players,
+        initialSeats: ['p1', 'p2', 'p3', 'p4', 'p5'],
+        initialDealerIndex: 4, // Player 5 is dealing
+      },
+    });
+
+    expect(state.currentDealerIndex).toBe(4);
+    expect(state.seats[state.currentDealerIndex]).toBe('p5');
+
+    // Round 1: Player 5 deals. Player 1 (first player after p5) gets eliminated (score 205).
+    // Player 5 should deal again so Player 2 gets the open card!
+    state = gameReducer(state, {
+      type: 'SUBMIT_ROUND',
+      payload: {
+        roundScores: {
+          p1: { type: 'custom', points: 205 }, // eliminated!
+          p2: { type: 'open_drop', points: 24 },
+          p3: { type: 'middle_drop', points: 48 },
+          p4: { type: 'middle_drop', points: 48 },
+          p5: { type: 'show', points: 0 },
+        },
+      },
+    });
+
+    // Dealer MUST remain p5 (index 4), not skip to p2!
+    expect(state.currentDealerIndex).toBe(4);
+    expect(state.seats[state.currentDealerIndex]).toBe('p5');
   });
 });

@@ -116,15 +116,18 @@ export interface SavedRosterPlayer {
   name: string;
 }
 
-export const DEFAULT_ROSTER: SavedRosterPlayer[] = [
-  { id: 'p_aashu', name: 'Aashu' },
-  { id: 'p_atthaya', name: 'Atthaya' },
-  { id: 'p_bava', name: 'Bava' },
-  { id: 'p_chellai', name: 'Chellai' },
-  { id: 'p_kannamma', name: 'Kannamma' },
-  { id: 'p_pavan', name: 'Pavan bava' },
-  { id: 'p_pedha', name: 'Pedha akka' },
-];
+export const DEFAULT_ROSTER: SavedRosterPlayer[] = [];
+
+// Sample test IDs to purge from existing storage
+const LEGACY_SAMPLE_IDS = new Set([
+  'p_aashu',
+  'p_atthaya',
+  'p_bava',
+  'p_chellai',
+  'p_kannamma',
+  'p_pavan',
+  'p_pedha',
+]);
 
 export function savePlayerRoster(players: SavedRosterPlayer[]): void {
   try {
@@ -137,10 +140,16 @@ export function savePlayerRoster(players: SavedRosterPlayer[]): void {
 export function loadPlayerRoster(): SavedRosterPlayer[] {
   try {
     const raw = localStorage.getItem(SAVED_PLAYERS_KEY);
-    if (!raw) return DEFAULT_ROSTER;
+    if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_ROSTER;
+    if (!Array.isArray(parsed)) return [];
+    // Purge test/sample data if present
+    const cleaned = parsed.filter(p => p && p.id && !LEGACY_SAMPLE_IDS.has(p.id));
+    if (cleaned.length !== parsed.length) {
+      savePlayerRoster(cleaned);
+    }
+    return cleaned;
   } catch (e) {
-    return DEFAULT_ROSTER;
+    return [];
   }
 }

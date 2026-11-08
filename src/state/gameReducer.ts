@@ -81,8 +81,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         newStatus = 'completed';
       }
 
-      // Advance dealer to next active player
-      const nextDealerIdx = getNextDealerIndex(state.seats, state.currentDealerIndex, activeIds);
+      // Advance dealer to next active player (or retain current dealer if the first player after dealer was eliminated)
+      const nextDealerIdx = getNextDealerIndex(
+        state.seats,
+        state.currentDealerIndex,
+        activeIds,
+        eliminatedInRound
+      );
 
       const roundRecord: RoundRecord = {
         roundNumber: roundNum,
@@ -151,7 +156,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const nextDealerIdx = getNextDealerIndex(
         state.seats,
         roundDealerIndex >= 0 ? roundDealerIndex : 0,
-        activeIds
+        activeIds,
+        eliminatedInRound
       );
 
       const updatedRound: RoundRecord = {

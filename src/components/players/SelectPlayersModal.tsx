@@ -126,6 +126,13 @@ export const SelectPlayersModal: React.FC<SelectPlayersModalProps> = ({
               </div>
             );
           })}
+
+          {roster.length === 0 && (
+            <div className="text-center py-10 px-4 text-xs text-[var(--color-muted)] space-y-2">
+              <p className="font-semibold text-sm text-[var(--color-text)]">No saved players yet</p>
+              <p>Tap <strong className="text-[var(--color-primary)]">"+ Add New Player"</strong> below to create your player list.</p>
+            </div>
+          )}
         </div>
 
         {/* Floating Add Player quick form or button */}

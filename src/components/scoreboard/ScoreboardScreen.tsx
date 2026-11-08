@@ -2,10 +2,11 @@ import React from 'react';
 import { GameState, PlayerId } from '../../domain/types';
 import { StatusChip } from '../common/StatusChip';
 import { Confetti } from '../common/Confetti';
-import { PlusCircle, RotateCcw, Settings, Trophy, Crown, Share2, Trash2 } from 'lucide-react';
+import { PlusCircle, RotateCcw, Settings, Trophy, Crown, Share2, Trash2, ArrowLeft } from 'lucide-react';
 
 interface ScoreboardScreenProps {
   state: GameState;
+  onBack: () => void;
   onOpenScoreInput: () => void;
   onUndoRound: () => void;
   onOpenSettings: () => void;
@@ -15,6 +16,7 @@ interface ScoreboardScreenProps {
 
 export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
   state,
+  onBack,
   onOpenScoreInput,
   onUndoRound,
   onOpenSettings,
@@ -56,22 +58,32 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
   return (
     <div className="flex flex-col h-screen max-w-7xl mx-auto overflow-hidden bg-[#121214] text-[#f4f4f5]">
       {/* Top App Bar (Clean solid blue matching original app) */}
-      <div className="flex items-center justify-between px-4 py-3 bg-[#0284c7] text-white shadow-sm">
-        <div>
-          <h1 className="font-bold text-base tracking-tight flex items-center gap-2">
-            {title}
-            <span className="text-xs px-2 py-0.5 rounded bg-black/20 font-mono">
-              {rules.poolLimit}
-            </span>
-          </h1>
-          <div className="flex items-center gap-2 text-xs opacity-90 mt-0.5 font-normal">
-            <span>Drop: {rules.openDrop}</span>
-            <span>•</span>
-            <span>MD: {rules.middleDrop}</span>
-            <span>•</span>
-            <span>Full: {rules.fullCount}</span>
-            <span>•</span>
-            <span>Rounds: {rounds.length}</span>
+      <div className="flex items-center justify-between px-3 py-3 bg-[#00a2ed] text-white shadow-sm">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onBack}
+            title="Back to Home"
+            className="p-1 rounded hover:bg-black/10 active:bg-black/20 transition"
+          >
+            <ArrowLeft className="w-5 h-5 text-white" />
+          </button>
+          <div>
+            <h1 className="font-bold text-base tracking-tight flex items-center gap-2">
+              {title}
+              <span className="text-xs px-2 py-0.5 rounded bg-black/20 font-mono">
+                {rules.poolLimit}
+              </span>
+            </h1>
+            <div className="flex items-center gap-2 text-xs opacity-90 mt-0.5 font-normal">
+              <span>Drop: {rules.openDrop}</span>
+              <span>•</span>
+              <span>MD: {rules.middleDrop}</span>
+              <span>•</span>
+              <span>Full: {rules.fullCount}</span>
+              <span>•</span>
+              <span>Rounds: {rounds.length}</span>
+            </div>
           </div>
         </div>
 

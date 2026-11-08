@@ -37,9 +37,10 @@ Most rummy scorecard apps on the Play Store are clunky, loaded with banner ads, 
 * **Smart Re-Entry Math:** Automatically calculates re-entry score as:
   $$\text{Re-entry Score} = \text{Highest Active Score} + 1$$
 
-### 2. 👥 Unlimited $N$ Players Support
-* Smooth horizontal scrolling handles **2 to 10+ players** without cramping or clipping names.
-* Drag-and-drop or use quick arrows in the Setup Wizard to set up the exact physical table order before the match begins.
+### 2. 👥 Player Roster & Seating Order (Highest to Least)
+* **Saved Player Roster:** Easily manage your family and friends roster with avatars, quick edit, and delete options.
+* **Automatic Dealer Assignment:** Tap or arrange players in seating order from **Highest card (#1) to Least card (Last)**. The least player automatically deals Round 1, and the deal rotates clockwise among surviving active players.
+* **Unlimited $N$ Players:** Smooth horizontal scrolling handles **2 to 10+ players** without cramping or clipping names.
 
 ### 3. ⚡ 1-Tap Rapid Score Entry
 * Enter scores for 6+ players in **under 5 seconds**:

@@ -1,5 +1,5 @@
 import { Preferences } from '@capacitor/preferences';
-import { GameState, Player } from '../domain/types';
+import { GameState } from '../domain/types';
 
 const ACTIVE_GAME_KEY = 'rummy_active_game_v1';
 const SAVED_PLAYERS_KEY = 'rummy_saved_players_v1';
@@ -59,7 +59,22 @@ export async function clearActiveGame(): Promise<void> {
   }
 }
 
-export function savePlayerRoster(players: Player[]): void {
+export interface SavedRosterPlayer {
+  id: string;
+  name: string;
+}
+
+export const DEFAULT_ROSTER: SavedRosterPlayer[] = [
+  { id: 'p_aashu', name: 'Aashu' },
+  { id: 'p_atthaya', name: 'Atthaya' },
+  { id: 'p_bava', name: 'Bava' },
+  { id: 'p_chellai', name: 'Chellai' },
+  { id: 'p_kannamma', name: 'Kannamma' },
+  { id: 'p_pavan', name: 'Pavan bava' },
+  { id: 'p_pedha', name: 'Pedha akka' },
+];
+
+export function savePlayerRoster(players: SavedRosterPlayer[]): void {
   try {
     localStorage.setItem(SAVED_PLAYERS_KEY, JSON.stringify(players));
   } catch (e) {
@@ -67,11 +82,13 @@ export function savePlayerRoster(players: Player[]): void {
   }
 }
 
-export function loadPlayerRoster(): Player[] {
+export function loadPlayerRoster(): SavedRosterPlayer[] {
   try {
     const raw = localStorage.getItem(SAVED_PLAYERS_KEY);
-    return raw ? JSON.parse(raw) : [];
+    if (!raw) return DEFAULT_ROSTER;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_ROSTER;
   } catch (e) {
-    return [];
+    return DEFAULT_ROSTER;
   }
 }

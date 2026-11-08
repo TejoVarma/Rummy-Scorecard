@@ -15,23 +15,33 @@ const MODE_STORAGE_KEY = 'rummy_color_mode';
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
+const isValidThemeId = (id: unknown): id is ThemeId =>
+  typeof id === 'string' && Object.prototype.hasOwnProperty.call(THEMES, id);
+
+const isValidColorMode = (mode: unknown): mode is ColorMode =>
+  mode === 'dark' || mode === 'light';
+
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [themeId, setThemeIdState] = useState<ThemeId>(() => {
-    return (localStorage.getItem(THEME_STORAGE_KEY) as ThemeId) || 'casino_green';
+    const raw = localStorage.getItem(THEME_STORAGE_KEY);
+    return isValidThemeId(raw) ? raw : 'casino_green';
   });
 
   const [colorMode, setColorModeState] = useState<ColorMode>(() => {
-    return (localStorage.getItem(MODE_STORAGE_KEY) as ColorMode) || 'dark';
+    const raw = localStorage.getItem(MODE_STORAGE_KEY);
+    return isValidColorMode(raw) ? raw : 'dark';
   });
 
   const theme = THEMES[themeId] || THEMES.casino_green;
 
   const setThemeId = (id: ThemeId) => {
+    if (!isValidThemeId(id)) return;
     setThemeIdState(id);
     localStorage.setItem(THEME_STORAGE_KEY, id);
   };
 
   const setColorMode = (mode: ColorMode) => {
+    if (!isValidColorMode(mode)) return;
     setColorModeState(mode);
     localStorage.setItem(MODE_STORAGE_KEY, mode);
   };

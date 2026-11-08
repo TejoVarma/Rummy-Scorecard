@@ -1,6 +1,7 @@
 import React from 'react';
 import { GameState, PlayerId } from '../../domain/types';
 import { StatusChip } from '../common/StatusChip';
+import { Confetti } from '../common/Confetti';
 import { PlusCircle, RotateCcw, Settings, Trophy, Crown, Share2 } from 'lucide-react';
 
 interface ScoreboardScreenProps {
@@ -119,15 +120,20 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
 
       {/* Winner Banner (if game completed) */}
       {winnerPlayerId && (
-        <div className="mx-4 my-2 p-3 rounded-xl bg-gradient-to-r from-emerald-600/30 to-amber-600/30 border border-emerald-500/50 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Trophy className="w-6 h-6 text-amber-400 animate-bounce" />
-            <div>
-              <div className="font-extrabold text-sm text-emerald-300">Winner Declared!</div>
-              <div className="text-xs opacity-90">{players[winnerPlayerId]?.name} has won the match!</div>
+        <>
+          <Confetti />
+          <div className="mx-4 my-2 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-600/40 via-amber-600/30 to-emerald-600/40 border border-emerald-400/60 shadow-lg shadow-emerald-500/20 flex items-center justify-between animate-in zoom-in-95 duration-500">
+            <div className="flex items-center gap-3">
+              <Trophy className="w-8 h-8 text-amber-400 animate-bounce drop-shadow" />
+              <div>
+                <div className="font-extrabold text-sm text-emerald-300 tracking-wide uppercase">Winner Declared!</div>
+                <div className="text-xs font-semibold text-white/90">
+                  {players[winnerPlayerId]?.name} has won the match!
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* Re-Entry Prompt Banner */}
@@ -185,7 +191,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                           {player?.name?.[0]?.toUpperCase()}
                         </div>
                         {isDealer && (
-                          <div className="absolute -top-1.5 -right-1.5 bg-amber-500 text-black p-0.5 rounded-full shadow">
+                          <div className="absolute -top-2 -right-2 bg-gradient-to-tr from-amber-500 to-amber-300 text-black p-1 rounded-full shadow-lg shadow-amber-500/50 animate-pulse ring-2 ring-amber-300">
                             <Crown className="w-3 h-3 fill-current" />
                           </div>
                         )}

@@ -25,10 +25,25 @@ export async function loadActiveGameAsync(): Promise<GameState | null> {
   }
 }
 
+function isValidGameState(obj: any): obj is GameState {
+  return (
+    obj &&
+    typeof obj === 'object' &&
+    typeof obj.gameId === 'string' &&
+    Array.isArray(obj.seats) &&
+    typeof obj.players === 'object' &&
+    Array.isArray(obj.rounds) &&
+    typeof obj.rules === 'object' &&
+    typeof obj.rules.poolLimit === 'number'
+  );
+}
+
 export function loadActiveGame(): GameState | null {
   try {
     const raw = localStorage.getItem(ACTIVE_GAME_KEY);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return isValidGameState(parsed) ? parsed : null;
   } catch (e) {
     console.error('Failed to load active game', e);
     return null;

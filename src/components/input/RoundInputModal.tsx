@@ -157,9 +157,9 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
                   <button
                     type="button"
                     onClick={() => handleSelectType(playerId, 'show')}
-                    className={`py-1.5 px-2 rounded-lg font-bold text-xs border transition ${
+                    className={`py-2 px-2 rounded-xl font-bold text-xs border transition-all duration-150 transform active:scale-95 ${
                       currentInput.type === 'show'
-                        ? 'bg-emerald-500 text-black border-emerald-400 shadow'
+                        ? 'bg-emerald-500 text-black border-emerald-300 shadow-md shadow-emerald-500/30 ring-2 ring-emerald-400'
                         : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20'
                     }`}
                   >
@@ -169,9 +169,9 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
                   <button
                     type="button"
                     onClick={() => handleSelectType(playerId, 'open_drop')}
-                    className={`py-1.5 px-2 rounded-lg font-bold text-xs border transition ${
+                    className={`py-2 px-2 rounded-xl font-bold text-xs border transition-all duration-150 transform active:scale-95 ${
                       currentInput.type === 'open_drop'
-                        ? 'bg-orange-500 text-black border-orange-400 shadow'
+                        ? 'bg-orange-500 text-black border-orange-300 shadow-md shadow-orange-500/30 ring-2 ring-orange-400'
                         : 'bg-orange-500/10 text-orange-300 border-orange-500/30 hover:bg-orange-500/20'
                     }`}
                   >
@@ -181,9 +181,9 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
                   <button
                     type="button"
                     onClick={() => handleSelectType(playerId, 'middle_drop')}
-                    className={`py-1.5 px-2 rounded-lg font-bold text-xs border transition ${
+                    className={`py-2 px-2 rounded-xl font-bold text-xs border transition-all duration-150 transform active:scale-95 ${
                       currentInput.type === 'middle_drop'
-                        ? 'bg-yellow-500 text-black border-yellow-400 shadow'
+                        ? 'bg-yellow-500 text-black border-yellow-300 shadow-md shadow-yellow-500/30 ring-2 ring-yellow-400'
                         : 'bg-yellow-500/10 text-yellow-300 border-yellow-500/30 hover:bg-yellow-500/20'
                     }`}
                   >
@@ -193,9 +193,9 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
                   <button
                     type="button"
                     onClick={() => handleSelectType(playerId, 'full_count')}
-                    className={`py-1.5 px-2 rounded-lg font-bold text-xs border transition ${
+                    className={`py-2 px-2 rounded-xl font-bold text-xs border transition-all duration-150 transform active:scale-95 ${
                       currentInput.type === 'full_count'
-                        ? 'bg-purple-500 text-black border-purple-400 shadow'
+                        ? 'bg-purple-500 text-white border-purple-300 shadow-md shadow-purple-500/30 ring-2 ring-purple-400'
                         : 'bg-purple-500/10 text-purple-300 border-purple-500/30 hover:bg-purple-500/20'
                     }`}
                   >
@@ -205,9 +205,9 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
                   <button
                     type="button"
                     onClick={() => handleSelectType(playerId, 'out')}
-                    className={`py-1.5 px-2 rounded-lg font-bold text-xs border transition ${
+                    className={`py-2 px-2 rounded-xl font-bold text-xs border transition-all duration-150 transform active:scale-95 ${
                       currentInput.type === 'out'
-                        ? 'bg-rose-500 text-white border-rose-400 shadow'
+                        ? 'bg-rose-500 text-white border-rose-300 shadow-md shadow-rose-500/30 ring-2 ring-rose-400'
                         : 'bg-rose-500/10 text-rose-300 border-rose-500/30 hover:bg-rose-500/20'
                     }`}
                   >

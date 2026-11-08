@@ -107,6 +107,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onStartGame })
           <input
             type="text"
             value={title}
+            maxLength={50}
             onChange={e => setTitle(e.target.value)}
             placeholder="Match Title"
             className="w-full px-3 py-1.5 text-center text-xs font-semibold rounded-lg bg-white/5 border border-white/10 focus:outline-none focus:border-amber-400"
@@ -195,6 +196,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onStartGame })
           <input
             type="text"
             placeholder="Enter player name"
+            maxLength={25}
             value={newPlayerName}
             onChange={e => setNewPlayerName(e.target.value)}
             className="flex-1 px-3 py-2 text-sm rounded-lg bg-white/5 border border-white/10 focus:outline-none focus:border-amber-400"

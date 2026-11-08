@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { GameState, PlayerId, ScoreInputType } from '../../domain/types';
-import { Modal } from '../common/Modal';
 import { validateRoundScores } from '../../domain/scoring';
-import { Crown } from 'lucide-react';
+import { ArrowLeft, Crown } from 'lucide-react';
 
 interface RoundInputModalProps {
   isOpen: boolean;
@@ -24,7 +23,6 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
   const lastRound = rounds.length > 0 ? rounds[rounds.length - 1] : null;
 
   // Active players for this round
-  // If editing, use the players that participated in the last round
   const activeSeats = isEditingLastRound && lastRound
     ? Object.keys(lastRound.scores)
     : seats.filter(id => {
@@ -37,17 +35,18 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
     ? (rounds.length > 1 ? rounds[rounds.length - 2].cumulativeScores : Object.fromEntries(seats.map(id => [id, 0])))
     : (rounds.length > 0 ? rounds[rounds.length - 1].cumulativeScores : Object.fromEntries(seats.map(id => [id, 0])));
 
-  // Round input state pre-populated if editing last round
-  const [scores, setScores] = useState<Record<PlayerId, { type: ScoreInputType; points: number }>>(() => {
+  // NO default drop score when opening! Start completely empty unless editing
+  const [scores, setScores] = useState<Record<PlayerId, { type: ScoreInputType; points: number } | undefined>>(() => {
     if (isEditingLastRound && lastRound) {
       return { ...lastRound.scores };
     }
-    return Object.fromEntries(
-      activeSeats.map(id => [id, { type: 'open_drop' as ScoreInputType, points: rules.openDrop }])
-    );
+    return {};
   });
 
+  const [showScoreOptions, setShowScoreOptions] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  if (!isOpen) return null;
 
   const handleSelectType = (playerId: PlayerId, type: ScoreInputType) => {
     setErrorMessage(null);
@@ -60,10 +59,11 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
 
     setScores(prev => {
       const next = { ...prev };
+      // Exactly one player can have "show" (winner). If another player had show, clear it
       if (type === 'show') {
         for (const id of activeSeats) {
           if (id !== playerId && next[id]?.type === 'show') {
-            next[id] = { type: 'open_drop', points: rules.openDrop };
+            delete next[id];
           }
         }
       }
@@ -74,6 +74,15 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
 
   const handleCustomScoreChange = (playerId: PlayerId, val: string) => {
     setErrorMessage(null);
+    if (val.trim() === '') {
+      setScores(prev => {
+        const next = { ...prev };
+        delete next[playerId];
+        return next;
+      });
+      return;
+    }
+
     const parsed = parseInt(val, 10);
     const pts = isNaN(parsed) ? 0 : Math.min(Math.max(0, parsed), rules.fullCount);
     setScores(prev => ({
@@ -83,7 +92,16 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
   };
 
   const handleSubmit = () => {
-    const validation = validateRoundScores(scores, activeSeats);
+    // Validate that all active players have a score recorded
+    for (const id of activeSeats) {
+      if (!scores[id]) {
+        setErrorMessage(`Please select or enter a score for ${players[id]?.name || 'all players'}.`);
+        return;
+      }
+    }
+
+    const completeScores = scores as Record<PlayerId, { type: ScoreInputType; points: number }>;
+    const validation = validateRoundScores(completeScores, activeSeats);
     if (!validation.valid) {
       setErrorMessage(validation.error || 'Invalid scores');
       return;
@@ -92,7 +110,7 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
     const finalScores: Record<PlayerId, { type: ScoreInputType; points: number }> = {};
     for (const id of seats) {
       if (activeSeats.includes(id)) {
-        finalScores[id] = scores[id];
+        finalScores[id] = completeScores[id];
       } else {
         finalScores[id] = { type: 'out', points: 0 };
       }
@@ -103,78 +121,132 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={isEditingLastRound ? `Edit Round ${rounds.length} Scores` : 'Add Round Scores'}
-    >
-      <div className="space-y-3">
+    <div className="fixed inset-0 z-50 flex flex-col bg-[var(--color-bg)] text-[var(--color-text)] font-sans select-none overflow-hidden transition-colors duration-200">
+      {/* Top App Bar matching Screenshot */}
+      <div className="flex items-center gap-3 px-4 py-3.5 bg-[var(--color-primary)] text-white shadow shrink-0">
+        <button
+          type="button"
+          onClick={onClose}
+          className="p-1 rounded hover:bg-black/10 active:bg-black/20 transition"
+          title="Back"
+        >
+          <ArrowLeft className="w-5 h-5 text-white" />
+        </button>
+        <h1 className="font-semibold text-lg tracking-normal">
+          {isEditingLastRound ? `Edit Round ${rounds.length} Scores` : 'Add Round Scores'}
+        </h1>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-3.5 max-w-md w-full mx-auto">
         {errorMessage && (
-          <div className="p-2.5 rounded bg-rose-950/40 border border-rose-800 text-rose-200 text-xs font-medium">
+          <div className="p-3 rounded-lg bg-rose-950/60 border border-rose-800 text-rose-200 text-xs font-medium">
             {errorMessage}
           </div>
         )}
 
-        <div className="space-y-2.5 max-h-[65vh] overflow-y-auto pr-1">
-          {activeSeats.map(playerId => {
-            const player = players[playerId];
-            const currentTotal = cumulativeScores[playerId] ?? 0;
-            const currentInput = scores[playerId] || { type: 'open_drop', points: rules.openDrop };
-            const isDealer = playerId === currentDealerId;
+        {/* Player Cards */}
+        {activeSeats.map(playerId => {
+          const player = players[playerId];
+          const currentTotal = cumulativeScores[playerId] ?? 0;
+          const currentInput = scores[playerId];
+          const isDealer = playerId === currentDealerId;
 
-            return (
-              <div
-                key={playerId}
-                className="p-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-subtle)] space-y-2"
-              >
-                {/* Header row */}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-semibold text-sm text-[var(--color-text)] flex items-center gap-1.5">
-                      {player?.name}
-                      {(player?.reEntryCount ?? 0) > 0 && (
-                        <span className="text-[10px] text-[#ef4444] font-semibold">
-                          (re entry)
-                        </span>
-                      )}
-                      {isDealer && (
-                        <span className="text-[10px] text-[#00a2ed] bg-[#00a2ed]/20 px-1.5 py-0.2 rounded border border-[#00a2ed]/30 flex items-center gap-0.5">
-                          <Crown className="w-2.5 h-2.5" /> Deal
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-xs text-[var(--color-muted)] font-mono">
-                      Score: {currentTotal}
-                    </div>
+          return (
+            <div
+              key={playerId}
+              className="p-4 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)] space-y-3 shadow-sm"
+            >
+              {/* Header row: Name + Current Total on left, Outlined Capsule on right */}
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="font-semibold text-base text-[var(--color-text)] flex items-center gap-1.5">
+                    {player?.name}
+                    {(player?.reEntryCount ?? 0) > 0 && (
+                      <span className="text-[10px] text-[#ef4444] font-semibold">
+                        (re entry)
+                      </span>
+                    )}
+                    {isDealer && (
+                      <span className="text-[10px] text-[var(--color-primary)] bg-[var(--color-primary)]/20 px-1.5 py-0.5 rounded border border-[var(--color-primary)]/30 flex items-center gap-0.5">
+                        <Crown className="w-2.5 h-2.5" /> Deal
+                      </span>
+                    )}
                   </div>
+                  <div className="text-xs text-[var(--color-muted)] italic mt-0.5 font-mono">
+                    Score: {currentTotal}
+                  </div>
+                </div>
 
-                  {/* Score box matching original app */}
-                  <div className="flex items-center gap-1.5">
+                {/* Outlined Score Capsule matching Screenshot */}
+                <div className="relative min-w-[110px] h-[38px] rounded-full border border-zinc-500/80 px-2.5 flex items-center justify-center bg-[var(--color-card)] focus-within:border-[var(--color-primary)] transition">
+                  <span className="absolute -top-2 left-3 bg-[var(--color-card)] px-1 text-[10px] font-medium text-zinc-400 select-none">
+                    Score
+                  </span>
+
+                  {/* Render Badge when selected, exactly like screenshot */}
+                  {currentInput?.type === 'show' && (
+                    <span className="px-3.5 py-1 rounded-full bg-[#16a34a] text-white font-medium text-xs leading-none shadow-sm">
+                      Show
+                    </span>
+                  )}
+                  {currentInput?.type === 'open_drop' && (
+                    <span className="px-3.5 py-1 rounded-full bg-[#ea580c] text-white font-medium text-xs leading-none shadow-sm">
+                      Drop
+                    </span>
+                  )}
+                  {currentInput?.type === 'middle_drop' && (
+                    <span className="px-3.5 py-1 rounded-full bg-[#ca8a04] text-white font-medium text-xs leading-none shadow-sm">
+                      M Drop
+                    </span>
+                  )}
+                  {currentInput?.type === 'full_count' && (
+                    <span className="px-3.5 py-1 rounded-full bg-[#7c3aed] text-white font-medium text-xs leading-none shadow-sm">
+                      Full
+                    </span>
+                  )}
+                  {currentInput?.type === 'out' && (
+                    <span className="px-3.5 py-1 rounded-full bg-[#dc2626] text-white font-medium text-xs leading-none shadow-sm">
+                      Out
+                    </span>
+                  )}
+
+                  {/* If custom numeric score */}
+                  {currentInput?.type === 'custom' && (
                     <input
                       type="number"
                       min={0}
                       max={rules.fullCount}
-                      placeholder="Score"
-                      value={currentInput.type === 'show' ? 'Show' : currentInput.points}
+                      value={currentInput.points}
                       onChange={e => handleCustomScoreChange(playerId, e.target.value)}
-                      className={`w-20 px-2.5 py-1 text-center font-mono font-semibold text-xs rounded-full border focus:outline-none ${
-                        currentInput.type === 'show'
-                          ? 'bg-[#15803d] text-white border-[#22c55e]'
-                          : 'bg-[var(--color-card)] text-[var(--color-text)] border-[var(--color-border)] focus:border-[#00a2ed]'
-                      }`}
+                      className="w-full text-center font-mono font-bold text-sm bg-transparent border-none text-[var(--color-text)] focus:outline-none"
                     />
-                  </div>
-                </div>
+                  )}
 
-                {/* Flat Pills matching original app Screenshot 6 */}
-                <div className="flex flex-wrap gap-1.5 pt-0.5">
+                  {/* If empty / unselected */}
+                  {!currentInput && (
+                    <input
+                      type="number"
+                      min={0}
+                      max={rules.fullCount}
+                      placeholder=""
+                      onChange={e => handleCustomScoreChange(playerId, e.target.value)}
+                      className="w-full text-center font-mono text-sm bg-transparent border-none text-[var(--color-text)] focus:outline-none placeholder-zinc-500"
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* Pill Action Buttons (Controlled by Show Score Options checkbox) */}
+              {showScoreOptions && (
+                <div className="flex flex-wrap gap-2 pt-1">
                   <button
                     type="button"
                     onClick={() => handleSelectType(playerId, 'show')}
-                    className={`px-3 py-1 rounded-full font-medium text-xs transition ${
-                      currentInput.type === 'show'
-                        ? 'bg-[#16a34a] text-white ring-2 ring-white/50'
-                        : 'bg-[#16a34a] text-white opacity-85 hover:opacity-100'
+                    className={`px-3.5 py-1.5 rounded-full font-medium text-xs transition ${
+                      currentInput?.type === 'show'
+                        ? 'bg-[#16a34a] text-white ring-2 ring-white/60 shadow-md'
+                        : 'bg-[#16a34a] text-white hover:opacity-95'
                     }`}
                   >
                     Show
@@ -183,10 +255,10 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
                   <button
                     type="button"
                     onClick={() => handleSelectType(playerId, 'open_drop')}
-                    className={`px-3 py-1 rounded-full font-medium text-xs transition ${
-                      currentInput.type === 'open_drop'
-                        ? 'bg-[#ea580c] text-white ring-2 ring-white/50'
-                        : 'bg-[#ea580c] text-white opacity-85 hover:opacity-100'
+                    className={`px-3.5 py-1.5 rounded-full font-medium text-xs transition ${
+                      currentInput?.type === 'open_drop'
+                        ? 'bg-[#ea580c] text-white ring-2 ring-white/60 shadow-md'
+                        : 'bg-[#ea580c] text-white hover:opacity-95'
                     }`}
                   >
                     Drop
@@ -195,10 +267,10 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
                   <button
                     type="button"
                     onClick={() => handleSelectType(playerId, 'middle_drop')}
-                    className={`px-3 py-1 rounded-full font-medium text-xs transition ${
-                      currentInput.type === 'middle_drop'
-                        ? 'bg-[#ca8a04] text-white ring-2 ring-white/50'
-                        : 'bg-[#ca8a04] text-white opacity-85 hover:opacity-100'
+                    className={`px-3.5 py-1.5 rounded-full font-medium text-xs transition ${
+                      currentInput?.type === 'middle_drop'
+                        ? 'bg-[#ca8a04] text-white ring-2 ring-white/60 shadow-md'
+                        : 'bg-[#ca8a04] text-white hover:opacity-95'
                     }`}
                   >
                     M Drop
@@ -207,10 +279,10 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
                   <button
                     type="button"
                     onClick={() => handleSelectType(playerId, 'full_count')}
-                    className={`px-3 py-1 rounded-full font-medium text-xs transition ${
-                      currentInput.type === 'full_count'
-                        ? 'bg-[#7c3aed] text-white ring-2 ring-white/50'
-                        : 'bg-[#7c3aed] text-white opacity-85 hover:opacity-100'
+                    className={`px-3.5 py-1.5 rounded-full font-medium text-xs transition ${
+                      currentInput?.type === 'full_count'
+                        ? 'bg-[#7c3aed] text-white ring-2 ring-white/60 shadow-md'
+                        : 'bg-[#7c3aed] text-white hover:opacity-95'
                     }`}
                   >
                     Full
@@ -219,29 +291,44 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
                   <button
                     type="button"
                     onClick={() => handleSelectType(playerId, 'out')}
-                    className={`px-3 py-1 rounded-full font-medium text-xs transition ${
-                      currentInput.type === 'out'
-                        ? 'bg-[#dc2626] text-white ring-2 ring-white/50'
-                        : 'bg-[#dc2626] text-white opacity-85 hover:opacity-100'
+                    className={`px-3.5 py-1.5 rounded-full font-medium text-xs transition ${
+                      currentInput?.type === 'out'
+                        ? 'bg-[#dc2626] text-white ring-2 ring-white/60 shadow-md'
+                        : 'bg-[#dc2626] text-white hover:opacity-95'
                     }`}
                   >
                     Out
                   </button>
                 </div>
-              </div>
-            );
-          })}
+              )}
+            </div>
+          );
+        })}
+
+        {/* Checkbox: Show Score Options? matching Screenshot */}
+        <div className="pt-2">
+          <label className="flex items-center gap-2.5 text-sm font-medium text-[var(--color-text)] cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={showScoreOptions}
+              onChange={e => setShowScoreOptions(e.target.checked)}
+              className="w-4 h-4 rounded text-[var(--color-primary)] focus:ring-0 cursor-pointer"
+            />
+            <span>Show Score Options?</span>
+          </label>
         </div>
 
-        {/* Submit Button (Clean solid blue matching screenshot) */}
-        <button
-          type="button"
-          onClick={handleSubmit}
-          className="w-full py-3 rounded-full font-bold text-sm bg-[#00a2ed] hover:bg-[#008fcf] text-white shadow transition active:scale-[0.99] tracking-wider"
-        >
-          {isEditingLastRound ? 'UPDATE SCORE' : 'SUBMIT'}
-        </button>
+        {/* Submit Pill Button matching Screenshot */}
+        <div className="pt-4 pb-8">
+          <button
+            type="button"
+            onClick={handleSubmit}
+            className="w-full py-3.5 rounded-full font-bold text-sm bg-[var(--color-primary)] hover:opacity-90 text-white shadow-md transition active:scale-[0.99] tracking-wider"
+          >
+            {isEditingLastRound ? 'UPDATE SCORE' : 'SUBMIT'}
+          </button>
+        </div>
       </div>
-    </Modal>
+    </div>
   );
 };

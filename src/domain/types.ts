@@ -43,6 +43,7 @@ export interface RoundRecord {
   eliminatedInRound: PlayerId[];
   reEnteredInRound: PlayerId[];
   timestamp: number;
+  isEdited?: boolean;
 }
 
 export interface GameState {

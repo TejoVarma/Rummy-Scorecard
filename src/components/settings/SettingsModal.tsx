@@ -29,7 +29,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               onClick={() => toggleColorMode()}
               className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded text-xs font-medium border transition ${
                 colorMode === 'dark'
-                  ? 'bg-[#00a2ed] text-white border-[#00a2ed]'
+                  ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]'
                   : 'bg-[var(--color-subtle)] text-[var(--color-muted)] border-[var(--color-border)] hover:bg-black/5 dark:hover:bg-white/5'
               }`}
             >
@@ -40,7 +40,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               onClick={() => toggleColorMode()}
               className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded text-xs font-medium border transition ${
                 colorMode === 'light'
-                  ? 'bg-[#00a2ed] text-white border-[#00a2ed]'
+                  ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]'
                   : 'bg-[var(--color-subtle)] text-[var(--color-muted)] border-[var(--color-border)] hover:bg-black/5 dark:hover:bg-white/5'
               }`}
             >
@@ -66,7 +66,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   onClick={() => setThemeId(id)}
                   className={`flex items-center gap-2 p-2.5 rounded border text-left transition ${
                     isSelected
-                      ? 'border-[#00a2ed] bg-[#00a2ed]/10'
+                      ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10 font-semibold'
                       : 'border-[var(--color-border)] bg-[var(--color-subtle)] hover:bg-black/5 dark:hover:bg-white/5'
                   }`}
                 >

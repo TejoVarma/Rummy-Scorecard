@@ -50,7 +50,7 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
   return (
     <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] flex flex-col font-sans select-none transition-colors duration-200">
       {/* Top App Bar matching Screenshot 2 */}
-      <div className="px-4 py-3.5 bg-[#00a2ed] text-white shadow flex items-center justify-between">
+      <div className="px-4 py-3.5 bg-[var(--color-primary)] text-white shadow flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button
             type="button"
@@ -78,7 +78,7 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
             className="flex items-center justify-between p-3.5 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)] shadow-sm"
           >
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-[#00a2ed] flex items-center justify-center text-white shrink-0">
+              <div className="w-10 h-10 rounded-full bg-[var(--color-primary)] flex items-center justify-center text-white shrink-0">
                 <User className="w-5 h-5 fill-current" />
               </div>
               <span className="font-normal text-base text-[var(--color-text)]">{player.name}</span>
@@ -117,7 +117,7 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
       <button
         type="button"
         onClick={() => setIsAddModalOpen(true)}
-        className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-[#00a2ed] hover:bg-[#008fcf] active:scale-95 text-white flex items-center justify-center shadow-lg transition z-20"
+        className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-[var(--color-primary)] hover:opacity-90 active:scale-95 text-white flex items-center justify-center shadow-lg transition z-20"
         title="Add Player"
       >
         <UserPlus className="w-6 h-6" />
@@ -145,7 +145,7 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
                 maxLength={25}
                 value={newPlayerName}
                 onChange={e => setNewPlayerName(e.target.value)}
-                className="w-full px-3 py-2 text-sm rounded bg-[var(--color-subtle)] border border-[var(--color-border)] text-[var(--color-text)] focus:outline-none focus:border-[#00a2ed]"
+                className="w-full px-3 py-2 text-sm rounded bg-[var(--color-subtle)] border border-[var(--color-border)] text-[var(--color-text)] focus:outline-none focus:border-[var(--color-primary)]"
               />
               <div className="flex justify-end gap-2 pt-2">
                 <button
@@ -157,7 +157,7 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 text-xs font-semibold rounded bg-[#00a2ed] text-white hover:bg-[#008fcf]"
+                  className="px-4 py-1.5 text-xs font-semibold rounded bg-[var(--color-primary)] text-white hover:opacity-90"
                 >
                   Save
                 </button>
@@ -188,7 +188,7 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
                 maxLength={25}
                 value={editName}
                 onChange={e => setEditName(e.target.value)}
-                className="w-full px-3 py-2 text-sm rounded bg-[var(--color-subtle)] border border-[var(--color-border)] text-[var(--color-text)] focus:outline-none focus:border-[#00a2ed]"
+                className="w-full px-3 py-2 text-sm rounded bg-[var(--color-subtle)] border border-[var(--color-border)] text-[var(--color-text)] focus:outline-none focus:border-[var(--color-primary)]"
               />
               <div className="flex justify-end gap-2 pt-2">
                 <button
@@ -200,7 +200,7 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 text-xs font-semibold rounded bg-[#00a2ed] text-white hover:bg-[#008fcf]"
+                  className="px-4 py-1.5 text-xs font-semibold rounded bg-[var(--color-primary)] text-white hover:opacity-90"
                 >
                   Update
                 </button>

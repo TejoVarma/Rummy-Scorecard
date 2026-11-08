@@ -73,7 +73,7 @@ export const ReEntryModal: React.FC<ReEntryModalProps> = ({
               type="number"
               value={scoreInput}
               onChange={e => setScoreInput(e.target.value)}
-              className="w-full px-3 py-2 font-mono font-bold text-base rounded-lg bg-[var(--color-card)] border border-[var(--color-border)] text-[var(--color-text)] focus:outline-none focus:border-[#00a2ed]"
+              className="w-full px-3 py-2 font-mono font-bold text-base rounded-lg bg-[var(--color-card)] border border-[var(--color-border)] text-[var(--color-text)] focus:outline-none focus:border-[var(--color-primary)]"
             />
           </div>
         </div>
@@ -93,7 +93,7 @@ export const ReEntryModal: React.FC<ReEntryModalProps> = ({
         <button
           type="button"
           onClick={handleConfirm}
-          className="w-full py-3.5 rounded-xl font-extrabold text-sm bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/20 hover:brightness-110 active:scale-[0.99] transition flex items-center justify-center gap-2"
+          className="w-full py-3.5 rounded-xl font-extrabold text-sm bg-[var(--color-primary)] hover:opacity-90 text-white shadow-lg active:scale-[0.99] transition flex items-center justify-center gap-2"
         >
           <Crown className="w-4 h-4" /> CONFIRM RE-ENTRY & RE-ORDER SEAT
         </button>

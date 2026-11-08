@@ -61,7 +61,7 @@ export const SelectPlayersModal: React.FC<SelectPlayersModalProps> = ({
     <div className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-3 select-none">
       <div className="w-full max-w-sm bg-[var(--color-card)] rounded-xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh] border border-[var(--color-border)] text-[var(--color-text)] transition-colors duration-200">
         {/* Top App Bar matching Screenshot 4 */}
-        <div className="px-4 py-3 bg-[#00a2ed] text-white shadow flex items-center justify-between">
+        <div className="px-4 py-3 bg-[var(--color-primary)] text-white shadow flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -98,7 +98,7 @@ export const SelectPlayersModal: React.FC<SelectPlayersModalProps> = ({
                 onClick={() => togglePlayer(player.id)}
                 className={`flex items-center justify-between p-3 rounded-lg border transition cursor-pointer ${
                   isSelected
-                    ? 'bg-[#00a2ed]/10 border-[#00a2ed]'
+                    ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)]'
                     : 'bg-[var(--color-subtle)] border-[var(--color-border)] hover:opacity-90'
                 }`}
               >
@@ -106,7 +106,7 @@ export const SelectPlayersModal: React.FC<SelectPlayersModalProps> = ({
                   <div
                     className={`w-7 h-7 rounded-full flex items-center justify-center transition border ${
                       isSelected
-                        ? 'bg-[#00a2ed] border-[#00a2ed] text-white'
+                        ? 'bg-[var(--color-primary)] border-[var(--color-primary)] text-white'
                         : 'border-[#52525e] bg-transparent text-transparent'
                     }`}
                   >
@@ -116,7 +116,7 @@ export const SelectPlayersModal: React.FC<SelectPlayersModalProps> = ({
                 </div>
 
                 {isSelected && (
-                  <span className="text-[11px] font-mono text-[#00a2ed] px-2 py-0.5 rounded bg-[#00a2ed]/10">
+                  <span className="text-[11px] font-mono text-[var(--color-primary)] px-2 py-0.5 rounded bg-[var(--color-primary)]/10">
                     #{selectionOrderIndex + 1}
                     {selectionOrderIndex === selectedIds.length - 1 && selectedIds.length > 1
                       ? ' (Deals)'
@@ -138,11 +138,11 @@ export const SelectPlayersModal: React.FC<SelectPlayersModalProps> = ({
               maxLength={25}
               value={newPlayerName}
               onChange={e => setNewPlayerName(e.target.value)}
-              className="flex-1 px-3 py-1.5 text-xs rounded bg-[var(--color-subtle)] border border-[var(--color-border)] text-[var(--color-text)] focus:outline-none focus:border-[#00a2ed]"
+              className="flex-1 px-3 py-1.5 text-xs rounded bg-[var(--color-subtle)] border border-[var(--color-border)] text-[var(--color-text)] focus:outline-none focus:border-[var(--color-primary)]"
             />
             <button
               type="submit"
-              className="px-3 py-1.5 rounded bg-[#00a2ed] text-white text-xs font-semibold"
+              className="px-3 py-1.5 rounded bg-[var(--color-primary)] text-white text-xs font-semibold"
             >
               Add
             </button>
@@ -159,7 +159,7 @@ export const SelectPlayersModal: React.FC<SelectPlayersModalProps> = ({
             <button
               type="button"
               onClick={() => setIsAddOpen(true)}
-              className="flex items-center gap-1.5 text-xs text-[#00a2ed] font-medium hover:underline"
+              className="flex items-center gap-1.5 text-xs text-[var(--color-primary)] font-medium hover:underline"
             >
               <UserPlus className="w-4 h-4" /> Add New Player
             </button>
@@ -167,7 +167,7 @@ export const SelectPlayersModal: React.FC<SelectPlayersModalProps> = ({
             <button
               type="button"
               onClick={handleDone}
-              className="px-5 py-2 rounded-lg bg-[#00a2ed] hover:bg-[#008fcf] text-white font-semibold text-xs transition"
+              className="px-5 py-2 rounded-lg bg-[var(--color-primary)] hover:opacity-90 text-white font-semibold text-xs transition"
             >
               Done ({selectedIds.length})
             </button>

@@ -211,5 +211,19 @@ describe('gameReducer integration tests', () => {
     expect(state.rounds.length).toBe(1);
     expect(state.rounds[0].cumulativeScores).toEqual({ p1: 0, p2: 48 });
     expect(state.rounds[0].scores['p2'].type).toBe('middle_drop');
+    expect(state.rounds[0].isEdited).toBe(true);
+
+    // Attempting a second edit should be ignored (edit once only)
+    state = gameReducer(state, {
+      type: 'EDIT_LAST_ROUND',
+      payload: {
+        roundScores: {
+          p1: { type: 'show', points: 0 },
+          p2: { type: 'full_count', points: 80 },
+        },
+      },
+    });
+    expect(state.rounds[0].cumulativeScores['p2']).toBe(48);
+    expect(state.rounds[0].scores['p2'].type).toBe('middle_drop');
   });
 });

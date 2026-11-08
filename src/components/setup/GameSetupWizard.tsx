@@ -100,7 +100,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
   return (
     <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] flex flex-col font-sans select-none pb-12 transition-colors duration-200">
       {/* Top App Bar matching Screenshot 3 */}
-      <div className="px-4 py-3.5 bg-[#00a2ed] text-white shadow flex items-center justify-between">
+      <div className="px-4 py-3.5 bg-[var(--color-primary)] text-white shadow flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button
             type="button"
@@ -142,7 +142,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
                   }}
                   className={`px-2 py-0.5 rounded text-[11px] font-medium transition ${
                     poolLimit === preset && !customPool
-                      ? 'bg-[#00a2ed] text-white'
+                      ? 'bg-[var(--color-primary)] text-white'
                       : 'bg-[var(--color-subtle)] text-[var(--color-muted)] hover:bg-black/5 dark:hover:bg-white/5'
                   }`}
                 >
@@ -199,7 +199,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
                 type="checkbox"
                 checked={adjustReEntry}
                 onChange={e => setAdjustReEntry(e.target.checked)}
-                className="w-4 h-4 rounded text-[#00a2ed] focus:ring-0 cursor-pointer"
+                className="w-4 h-4 rounded text-[var(--color-primary)] focus:ring-0 cursor-pointer"
               />
               <span>Adjust re-entry score to highest player score +1</span>
             </label>
@@ -218,7 +218,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
             <button
               type="button"
               onClick={() => setIsSelectModalOpen(true)}
-              className="text-xs font-semibold text-[#00a2ed] hover:underline"
+              className="text-xs font-semibold text-[var(--color-primary)] hover:underline"
             >
               SELECT PLAYERS
             </button>
@@ -235,7 +235,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
                   key={player.id}
                   className={`flex items-center justify-between p-2.5 rounded-lg border transition ${
                     isLeast
-                      ? 'bg-[#00a2ed]/10 border-[#00a2ed]/40'
+                      ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)]/40'
                       : 'bg-[var(--color-subtle)] border-[var(--color-border)]'
                   }`}
                 >
@@ -243,12 +243,12 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
                     <span className="text-xs font-mono text-[var(--color-muted)] w-5">#{idx + 1}</span>
                     <span className="font-medium text-xs text-[var(--color-text)]">{player.name}</span>
                     {isHighest && (
-                      <span className="text-[10px] text-[var(--color-muted)] bg-black/5 dark:bg-white/10 px-1.5 py-0.2 rounded">
+                      <span className="text-[10px] text-[var(--color-muted)] bg-black/5 dark:bg-white/10 px-1.5 py-0.5 rounded">
                         Highest Card
                       </span>
                     )}
                     {isLeast && (
-                      <span className="text-[10px] font-semibold text-[#00a2ed] bg-[#00a2ed]/20 px-1.5 py-0.2 rounded flex items-center gap-1">
+                      <span className="text-[10px] font-semibold text-[var(--color-primary)] bg-[var(--color-primary)]/20 px-1.5 py-0.5 rounded flex items-center gap-1">
                         <Crown className="w-3 h-3" /> Deals (Least Card)
                       </span>
                     )}
@@ -293,7 +293,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
         <button
           type="button"
           onClick={handleStart}
-          className="w-full py-3.5 rounded-full font-bold text-sm bg-[#00a2ed] hover:bg-[#008fcf] text-white shadow-md transition active:scale-[0.99] tracking-wide"
+          className="w-full py-3.5 rounded-full font-bold text-sm bg-[var(--color-primary)] hover:opacity-90 text-white shadow-md transition active:scale-[0.99] tracking-wide"
         >
           START GAME
         </button>

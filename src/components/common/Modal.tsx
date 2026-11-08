@@ -35,7 +35,7 @@ export const Modal: React.FC<ModalProps> = ({
         className={`w-full ${maxWidth} max-h-[90vh] flex flex-col rounded-t-xl sm:rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] text-[var(--color-text)] shadow-xl overflow-hidden transition-colors duration-200`}
       >
         {/* Header - Simple clean header */}
-        <div className="flex items-center justify-between px-4 py-3 bg-[#00a2ed] text-white">
+        <div className="flex items-center justify-between px-4 py-3 bg-[var(--color-primary)] text-white">
           <h2 className="text-sm font-bold tracking-tight">{title}</h2>
           <button
             onClick={onClose}

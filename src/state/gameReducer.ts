@@ -111,6 +111,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const lastRoundIndex = state.rounds.length - 1;
       const lastRound = state.rounds[lastRoundIndex];
 
+      // Enforce: Edit once only for the last round!
+      if (lastRound.isEdited) return state;
+
       // Calculate previous cumulative scores prior to the last round
       const prevCumulative: Record<PlayerId, number> =
         lastRoundIndex > 0
@@ -156,6 +159,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         scores: roundScores,
         cumulativeScores: newCumulative,
         eliminatedInRound,
+        isEdited: true,
         timestamp: Date.now(),
       };
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { GameState } from '../../domain/types';
-import { Settings, Share2 } from 'lucide-react';
+import { Settings } from 'lucide-react';
 
 interface HomeScreenProps {
   activeGame: GameState | null;
@@ -19,24 +19,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 }) => {
   const hasActiveGame = activeGame && activeGame.status === 'playing';
 
-  const handleShareApp = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'Rummy Score Board',
-          text: 'Offline-first Indian Rummy Score Board app',
-          url: window.location.href,
-        });
-      } catch (err) {
-        // User cancelled or share failed silently
-      }
-    }
-  };
-
   return (
     <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] flex flex-col font-sans select-none transition-colors duration-200">
-      {/* Top App Bar matching original app */}
-      <div className="px-4 py-3.5 bg-[#00a2ed] text-white shadow flex items-center justify-between">
+      {/* Top App Bar dynamically colored by current theme */}
+      <div className="px-4 py-3.5 bg-[var(--color-primary)] text-white shadow flex items-center justify-between">
         <h1 className="font-semibold text-lg tracking-normal">Rummy Score Board</h1>
         <div className="flex items-center gap-3">
           <button
@@ -46,14 +32,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             className="p-1 rounded hover:bg-black/10 active:bg-black/20 transition"
           >
             <Settings className="w-5 h-5 text-white" />
-          </button>
-          <button
-            type="button"
-            onClick={handleShareApp}
-            title="Share"
-            className="p-1 rounded hover:bg-black/10 active:bg-black/20 transition"
-          >
-            <Share2 className="w-5 h-5 text-white" />
           </button>
         </div>
       </div>
@@ -114,14 +92,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           >
             <div>
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#00a2ed] animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-pulse" />
                 <span className="font-semibold text-xs text-[var(--color-text)]">Active Game</span>
               </div>
               <span className="text-[11px] text-[var(--color-muted)] block mt-0.5">
                 {activeGame.title} • Round {activeGame.rounds.length + 1} • {activeGame.seats.length} players
               </span>
             </div>
-            <span className="text-xs font-semibold text-[#00a2ed] underline">Resume →</span>
+            <span className="text-xs font-semibold text-[var(--color-primary)] underline">Resume →</span>
           </div>
         )}
       </div>

@@ -186,18 +186,25 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                     }`}
                   >
                     <div className="flex flex-col items-center justify-center">
-                      {/* Player Name matching Screenshot 5 */}
+                      {/* Player Name */}
                       <div className="flex items-center justify-center gap-0.5 max-w-full">
                         {isDealer && <Crown className="w-3 h-3 text-[#00a2ed] shrink-0" />}
                         <span
-                          className={`text-xs truncate block ${
-                            isOut || isReEntered ? 'text-[#ef4444] font-semibold' : 'text-[var(--color-text)]'
+                          className={`text-xs truncate block font-semibold ${
+                            isOut ? 'text-rose-400' : 'text-[var(--color-text)]'
                           }`}
-                          title={player?.name}
+                          title={isReEntered ? `${player?.name} (re entry)` : player?.name}
                         >
-                          {isReEntered && !isOut ? `*${player?.name}` : player?.name}
+                          {player?.name}
                         </span>
                       </div>
+
+                      {/* Explicit (re entry) badge */}
+                      {isReEntered && !isOut && (
+                        <span className="text-[9px] text-[#ef4444] font-semibold leading-tight tracking-tight block mt-0.5">
+                          (re entry)
+                        </span>
+                      )}
 
                       {/* Cumulative Total under player name */}
                       <span

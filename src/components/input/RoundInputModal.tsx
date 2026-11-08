@@ -117,6 +117,11 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
                   <div>
                     <div className="font-semibold text-sm text-[var(--color-text)] flex items-center gap-1.5">
                       {player?.name}
+                      {(player?.reEntryCount ?? 0) > 0 && (
+                        <span className="text-[10px] text-[#ef4444] font-semibold">
+                          (re entry)
+                        </span>
+                      )}
                       {isDealer && (
                         <span className="text-[10px] text-[#00a2ed] bg-[#00a2ed]/20 px-1.5 py-0.2 rounded border border-[#00a2ed]/30 flex items-center gap-0.5">
                           <Crown className="w-2.5 h-2.5" /> Deal

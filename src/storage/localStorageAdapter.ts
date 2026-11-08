@@ -200,3 +200,61 @@ export function loadPlayerRoster(): SavedRosterPlayer[] {
     return [];
   }
 }
+
+export interface BackupDataPayload {
+  version: number;
+  exportedAt: number;
+  activeGame: GameState | null;
+  savedGames: GameState[];
+  savedPlayers: SavedRosterPlayer[];
+}
+
+export function exportAllData(): string {
+  const payload: BackupDataPayload = {
+    version: 1,
+    exportedAt: Date.now(),
+    activeGame: loadActiveGame(),
+    savedGames: loadAllSavedGames(),
+    savedPlayers: loadPlayerRoster(),
+  };
+  return JSON.stringify(payload, null, 2);
+}
+
+export function importAllData(jsonStr: string): { success: boolean; message: string } {
+  try {
+    const parsed = JSON.parse(jsonStr);
+    if (!parsed || typeof parsed !== 'object') {
+      return { success: false, message: 'Invalid backup file format' };
+    }
+
+    let restoredGames = 0;
+    let restoredPlayers = 0;
+
+    if (Array.isArray(parsed.savedPlayers)) {
+      const validPlayers = parsed.savedPlayers.filter(
+        (p: any) => p && typeof p.id === 'string' && typeof p.name === 'string'
+      );
+      savePlayerRoster(validPlayers);
+      restoredPlayers = validPlayers.length;
+    }
+
+    if (Array.isArray(parsed.savedGames)) {
+      const validGames = parsed.savedGames.filter(isValidGameState);
+      const serialized = JSON.stringify(validGames);
+      localStorage.setItem(SAVED_GAMES_LIST_KEY, serialized);
+      Preferences.set({ key: SAVED_GAMES_LIST_KEY, value: serialized }).catch(() => {});
+      restoredGames = validGames.length;
+    }
+
+    if (parsed.activeGame && isValidGameState(parsed.activeGame)) {
+      saveActiveGame(parsed.activeGame);
+    }
+
+    return {
+      success: true,
+      message: `Successfully restored ${restoredGames} matches and ${restoredPlayers} players!`,
+    };
+  } catch (err: any) {
+    return { success: false, message: err?.message || 'Failed to parse backup file' };
+  }
+}

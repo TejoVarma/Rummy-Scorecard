@@ -2,6 +2,9 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import {
   isValidGameState,
   loadAllSavedGames,
+  exportAllData,
+  importAllData,
+  loadPlayerRoster,
 } from '../storage/localStorageAdapter';
 import { GameState } from '../domain/types';
 
@@ -93,5 +96,31 @@ describe('localStorageAdapter Schema Validation', () => {
     const backupKey = keys.find(k => k.startsWith('rummy_saved_games_list_v1_corrupted_'));
     expect(backupKey).toBeDefined();
     expect(mockLocalStorage.getItem(backupKey!)).toBe('{ invalid json garbage');
+  });
+
+  it('exports and imports complete application backup JSON cleanly', () => {
+    const backupJson = exportAllData();
+    expect(backupJson).toContain('"version": 1');
+
+    // Simulate import of backup
+    const testBackup = JSON.stringify({
+      version: 1,
+      exportedAt: Date.now(),
+      savedPlayers: [
+        { id: 'p_custom1', name: 'Ravi' },
+        { id: 'p_custom2', name: 'Sita' },
+      ],
+      savedGames: [validGameState],
+    });
+
+    const importResult = importAllData(testBackup);
+    expect(importResult.success).toBe(true);
+
+    const loadedRoster = loadPlayerRoster();
+    expect(loadedRoster.some(p => p.name === 'Ravi')).toBe(true);
+
+    const loadedGames = loadAllSavedGames();
+    expect(loadedGames.length).toBe(1);
+    expect(loadedGames[0].gameId).toBe('game_123');
   });
 });

@@ -4,17 +4,28 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Deep Royal Casino Felt Background -->
+    <!-- Deep Obsidian / Midnight Onyx Base -->
     <path
         android:pathData="M0,0h108v108h-108z"
-        android:fillColor="#022c22" />
+        android:fillColor="#090B10" />
+
+    <!-- Subtle Deep Charcoal Inner Tone -->
     <path
-        android:pathData="M12,12h84v84h-84z"
-        android:fillColor="#064e3b" />
-    <!-- Fine Gold Accent Trim -->
+        android:pathData="M8,8h92v92h-92z"
+        android:fillColor="#10131B" />
+
+    <!-- Outer Fine Gold Accent Squircle -->
     <path
-        android:pathData="M20,20h68v68h-68z"
+        android:pathData="M16,16h76v76h-76z"
         android:strokeColor="#ca8a04"
         android:strokeWidth="0.8"
-        android:fillColor="#044e3b" />
+        android:fillColor="#0c0e15" />
+
+    <!-- Fine Concentric Gold Aura -->
+    <path
+        android:pathData="M54,16 a38,38 0 1,0 0.001,0"
+        android:strokeColor="#ca8a04"
+        android:strokeWidth="0.4"
+        android:strokeAlpha="0.3"
+        android:fillColor="#00000000" />
 </vector>

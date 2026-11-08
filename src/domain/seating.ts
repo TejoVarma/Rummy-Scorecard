@@ -21,13 +21,13 @@ export function getNextDealerIndex(
 }
 
 /**
- * Moves a re-entered player's seating position to sit immediately AFTER (clockwise below)
- * the current card distributor/dealer.
+ * Moves a re-entered player's seating position to sit immediately to the LEFT of
+ * the current card distributor/dealer (i.e. immediately before the dealer in the seating order).
  * 
  * Example:
- * Seats: [P1, P2 (Dealer), P3, P4]
- * P1 was eliminated and re-enters.
- * After relocation: [P2 (Dealer), P1 (Re-entered), P3, P4]
+ * Seats: [P1, P2, P3 (Dealer), P4]
+ * P4 re-enters.
+ * After relocation to left of dealer P3: [P1, P2, P4 (Re-entered), P3 (Dealer)]
  */
 export function relocateReEnteredPlayer(
   seats: PlayerId[],
@@ -40,16 +40,15 @@ export function relocateReEnteredPlayer(
   // 2. Find dealer index in remaining seats
   const dealerIndex = remainingSeats.indexOf(currentDealerId);
   if (dealerIndex === -1) {
-    // If dealer wasn't found, append to the end
-    return [...remainingSeats, reEnteringPlayerId];
+    // If dealer wasn't found, place at the start (left)
+    return [reEnteringPlayerId, ...remainingSeats];
   }
 
-  // 3. Insert immediately after the dealer
-  const insertIndex = dealerIndex + 1;
+  // 3. Insert immediately to the LEFT of the dealer (before dealerIndex)
   return [
-    ...remainingSeats.slice(0, insertIndex),
+    ...remainingSeats.slice(0, dealerIndex),
     reEnteringPlayerId,
-    ...remainingSeats.slice(insertIndex)
+    ...remainingSeats.slice(dealerIndex)
   ];
 }
 

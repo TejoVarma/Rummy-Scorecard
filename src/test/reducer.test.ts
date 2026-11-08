@@ -89,8 +89,8 @@ describe('gameReducer integration tests', () => {
 
     const lastRound = state.rounds[0];
     expect(lastRound.cumulativeScores['p3']).toBe(49);
-    // Seating order after p2: ['p1', 'p2', 'p3']
-    expect(state.seats).toEqual(['p1', 'p2', 'p3']);
+    // Seating order: p3 sits to the LEFT of dealer p2: ['p1', 'p3', 'p2']
+    expect(state.seats).toEqual(['p1', 'p3', 'p2']);
     expect(state.players['p3'].reEntryCount).toBe(1);
   });
 

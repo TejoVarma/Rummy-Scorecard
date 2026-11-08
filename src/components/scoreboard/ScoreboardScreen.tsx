@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { GameState, PlayerId } from '../../domain/types';
-import { StatusChip } from '../common/StatusChip';
 import { Confetti } from '../common/Confetti';
-import { PlusCircle, RotateCcw, Settings, Trophy, Crown, Share2, Trash2, ArrowLeft } from 'lucide-react';
+import { RotateCcw, Settings, Trophy, Crown, Share2, Trash2, ArrowLeft, UserPlus } from 'lucide-react';
 
 interface ScoreboardScreenProps {
   state: GameState;
@@ -25,7 +24,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
 }) => {
   const { title, rules, seats, players, rounds, currentDealerIndex, winnerPlayerId } = state;
   const currentDealerId = seats[currentDealerIndex];
-  const currentDealer = players[currentDealerId];
+  const [selectedRoundIndex, setSelectedRoundIndex] = useState<number | null>(null);
 
   // Calculate latest cumulative scores
   const latestScores: Record<PlayerId, number> =
@@ -33,200 +32,181 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
       ? rounds[rounds.length - 1].cumulativeScores
       : Object.fromEntries(seats.map(id => [id, 0]));
 
-  // Sort players by score to determine ranks
-  const sortedByScore = [...seats].sort((a, b) => (latestScores[a] ?? 0) - (latestScores[b] ?? 0));
-  const ranks: Record<PlayerId, number> = {};
-  sortedByScore.forEach((id, idx) => {
-    ranks[id] = idx + 1;
-  });
-
-  // Check players who are eliminated
+  // Check players who crossed pool limit
   const eliminatedPlayers = seats.filter(
     id => (latestScores[id] ?? 0) >= rules.poolLimit
   );
 
   const handleShare = () => {
     if (navigator.share) {
-      const summary = `🎴 *Rummy Match: ${title}*\nPool: ${rules.poolLimit} | Rounds: ${rounds.length}\n` +
+      const summary = `🎴 *Rummy Scorecard: ${title}*\nPool: ${rules.poolLimit} | Rounds: ${rounds.length}\n` +
         seats.map(id => `${players[id]?.name}: ${latestScores[id] ?? 0} pts`).join('\n');
       navigator.share({ title: 'Rummy Scorecard', text: summary }).catch(() => {});
     } else {
-      alert('Scorecard copied to clipboard!');
+      alert('Scorecard summary copied to clipboard!');
     }
   };
 
+  // Determine if columns can fit 100% on screen without horizontal scroll
+  // Up to 6 players fit cleanly edge-to-edge on standard mobile screens!
+  const isCompactFit = seats.length <= 6;
+
   return (
-    <div className="flex flex-col h-screen max-w-7xl mx-auto overflow-hidden bg-[#121214] text-[#f4f4f5]">
-      {/* Top App Bar (Clean solid blue matching original app) */}
-      <div className="flex items-center justify-between px-3 py-3 bg-[#00a2ed] text-white shadow-sm">
+    <div className="flex flex-col h-screen w-full max-w-2xl mx-auto overflow-hidden bg-[#111113] text-[#f4f4f5] font-sans select-none">
+      {/* Top App Bar matching Screenshot 5 */}
+      <div className="flex items-center justify-between px-3.5 py-3 bg-[#00a2ed] text-white shadow-sm shrink-0">
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={onBack}
             title="Back to Home"
-            className="p-1 rounded hover:bg-black/10 active:bg-black/20 transition"
+            className="p-1 rounded hover:bg-black/10 transition"
           >
             <ArrowLeft className="w-5 h-5 text-white" />
           </button>
-          <div>
-            <h1 className="font-bold text-base tracking-tight flex items-center gap-2">
-              {title}
-              <span className="text-xs px-2 py-0.5 rounded bg-black/20 font-mono">
-                {rules.poolLimit}
-              </span>
-            </h1>
-            <div className="flex items-center gap-2 text-xs opacity-90 mt-0.5 font-normal">
-              <span>Drop: {rules.openDrop}</span>
-              <span>•</span>
-              <span>MD: {rules.middleDrop}</span>
-              <span>•</span>
-              <span>Full: {rules.fullCount}</span>
-              <span>•</span>
-              <span>Rounds: {rounds.length}</span>
-            </div>
-          </div>
+          <h1 className="font-semibold text-base tracking-normal truncate max-w-[200px]">
+            {title}
+          </h1>
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           <button
+            type="button"
             onClick={handleShare}
-            title="Share scores"
-            className="p-2 rounded-lg hover:bg-black/10 active:bg-black/20 transition"
+            title="Share"
+            className="p-1.5 rounded hover:bg-black/10 transition"
           >
-            <Share2 className="w-4 h-4" />
+            <Share2 className="w-4 h-4 text-white" />
           </button>
           <button
+            type="button"
             onClick={onUndoRound}
             disabled={rounds.length === 0}
-            title="Undo last round"
-            className="p-2 rounded-lg hover:bg-black/10 active:bg-black/20 disabled:opacity-30 transition"
+            title="Undo Last Round"
+            className="p-1.5 rounded hover:bg-black/10 disabled:opacity-30 transition"
           >
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw className="w-4 h-4 text-white" />
           </button>
           <button
+            type="button"
             onClick={onOpenSettings}
-            title="Settings & Themes"
-            className="p-2 rounded-lg hover:bg-black/10 active:bg-black/20 transition"
+            title="Settings"
+            className="p-1.5 rounded hover:bg-black/10 transition"
           >
-            <Settings className="w-4 h-4" />
+            <Settings className="w-4 h-4 text-white" />
           </button>
           <button
+            type="button"
             onClick={() => {
-              if (window.confirm('Are you sure you want to delete this game permanently?')) {
+              if (window.confirm('Are you sure you want to delete this game permanently? This action cannot be undone.')) {
                 onDeleteGame();
               }
             }}
             title="Delete Game"
-            className="p-2 rounded-lg hover:bg-rose-600/30 text-rose-100 transition"
+            className="p-1.5 rounded hover:bg-rose-600/30 text-rose-200 transition"
           >
             <Trash2 className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* Current Dealer & Seating Bar (Subtle and clean) */}
-      <div className="px-4 py-2 bg-[#1a1a20] border-b border-[#2a2a34] flex items-center justify-between text-xs text-[#a1a1aa]">
-        <div className="flex items-center gap-1.5">
-          <Crown className="w-3.5 h-3.5 text-[#38bdf8]" />
-          <span>Distributor:</span>
-          <span className="font-semibold text-white">
-            {currentDealer?.name ?? 'Dealer'}
-          </span>
+      {/* Subheader info block matching Screenshot 5 */}
+      <div className="px-4 py-2.5 bg-[#17171c] border-b border-[#282830] text-xs text-[#d4d4d8] shrink-0">
+        <div className="flex justify-between items-center py-0.5">
+          <span>Game Score: <strong className="text-white font-mono">{rules.poolLimit}</strong></span>
+          <span>Open drop: <strong className="text-white font-mono">{rules.openDrop}</strong></span>
         </div>
-        <span className="text-[11px] opacity-75">Clockwise Turn Order</span>
+        <div className="flex justify-between items-center py-0.5">
+          <span>Middle drop: <strong className="text-white font-mono">{rules.middleDrop}</strong></span>
+          <span>Full count: <strong className="text-white font-mono">{rules.fullCount}</strong></span>
+        </div>
+        <div className="text-center pt-1 font-medium text-white/90">
+          Rounds Completed: <span className="font-mono text-[#00a2ed] font-bold">{rounds.length}</span>
+        </div>
       </div>
 
-      {/* Winner Banner */}
-      {winnerPlayerId && (
-        <>
-          <Confetti />
-          <div className="mx-4 my-2 p-3 rounded-lg bg-[#064e3b] border border-[#059669] flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <Trophy className="w-6 h-6 text-amber-400" />
-              <div>
-                <div className="font-bold text-xs text-emerald-300">WINNER DECLARED</div>
-                <div className="text-sm font-semibold text-white">
-                  {players[winnerPlayerId]?.name} won the match!
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Re-Entry Prompt Banner */}
+      {/* Re-Entry Action Banner */}
       {eliminatedPlayers.length > 0 && rules.allowReEntry && (
-        <div className="px-4 py-2 bg-[#1e293b] border-b border-[#334155] flex flex-wrap items-center justify-between gap-2">
-          <span className="text-xs text-slate-300">
-            {eliminatedPlayers.map(id => players[id]?.name).join(', ')} crossed {rules.poolLimit}!
+        <div className="px-3 py-2 bg-[#27272a] border-b border-[#3f3f46] flex items-center justify-between gap-2 shrink-0">
+          <span className="text-xs text-[#f4f4f5] truncate">
+            {eliminatedPlayers.map(id => players[id]?.name).join(', ')} eliminated!
           </span>
-          <div className="flex gap-1.5">
+          <div className="flex gap-1.5 shrink-0">
             {eliminatedPlayers.map(id => (
               <button
                 key={id}
+                type="button"
                 onClick={() => onPromptReEntry(id)}
-                className="px-2.5 py-1 text-xs font-semibold rounded bg-[#0284c7] hover:bg-[#0369a1] text-white transition"
+                className="px-2.5 py-1 text-xs font-semibold rounded bg-[#00a2ed] hover:bg-[#008fcf] text-white flex items-center gap-1 shadow-sm transition active:scale-95"
               >
-                Re-Enter {players[id]?.name}
+                <UserPlus className="w-3 h-3" /> Re-Enter {players[id]?.name}
               </button>
             ))}
           </div>
         </div>
       )}
 
-      {/* Dual-Axis Score Matrix */}
-      <div className="flex-1 overflow-auto relative bg-[#121214]">
-        <table className="w-full border-collapse text-left min-w-max">
-          {/* Sticky Player Headers */}
-          <thead className="sticky top-0 z-30 bg-[#1e1e24] shadow-sm border-b border-[#2e2e38]">
-            <tr>
-              {/* Sticky Round Header */}
-              <th className="sticky left-0 z-40 bg-[#1e1e24] p-3 w-16 text-center border-r border-[#2e2e38] font-mono text-xs font-semibold text-[#a1a1aa]">
-                RND
-              </th>
+      {/* Winner Celebration Banner */}
+      {winnerPlayerId && (
+        <div className="shrink-0">
+          <Confetti />
+          <div className="mx-3 my-2 p-2.5 rounded-lg bg-[#064e3b] border border-[#059669] flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-amber-400" />
+              <div>
+                <span className="text-[10px] text-emerald-300 font-bold uppercase tracking-wider block">Winner Declared</span>
+                <span className="text-xs font-bold text-white">
+                  {players[winnerPlayerId]?.name} won the match!
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
-              {/* Player Columns */}
-              {seats.map((playerId, idx) => {
+      {/* Score Matrix Table - NO horizontal scroll for <= 6 players! */}
+      <div className={`flex-1 ${isCompactFit ? 'overflow-y-auto overflow-x-hidden' : 'overflow-auto'} relative bg-[#111113]`}>
+        <table className={`w-full border-collapse ${isCompactFit ? 'table-fixed' : 'min-w-max'}`}>
+          {/* Sticky Player Headers matching Screenshot 5 */}
+          <thead className="sticky top-0 z-30 bg-[#222226] border-b border-[#33333d] shadow-sm">
+            <tr>
+              {seats.map(playerId => {
                 const player = players[playerId];
                 const score = latestScores[playerId] ?? 0;
-                const isDealer = currentDealerIndex === idx;
+                const isDealer = currentDealerId === playerId;
                 const isOut = score >= rules.poolLimit;
+                const isReEntered = (player?.reEntryCount ?? 0) > 0;
 
                 return (
                   <th
                     key={playerId}
-                    className={`p-2.5 min-w-[105px] max-w-[130px] border-r border-[#2e2e38] ${
-                      isDealer ? 'bg-[#0284c7]/10' : ''
+                    style={isCompactFit ? { width: `${100 / seats.length}%` } : { minWidth: '60px' }}
+                    className={`py-2 px-1 text-center font-normal border-r border-[#2d2d38] last:border-r-0 ${
+                      isDealer ? 'bg-[#00a2ed]/10' : ''
                     }`}
                   >
-                    <div className="flex flex-col items-center text-center space-y-1">
-                      {/* Name & Dealer Indicator */}
-                      <div className="flex items-center gap-1 font-semibold text-xs tracking-tight truncate max-w-[100px]">
-                        {isDealer && <Crown className="w-3 h-3 text-[#38bdf8] shrink-0" />}
-                        <span className={isDealer ? 'text-[#38bdf8]' : 'text-white'}>
-                          {player?.name}
+                    <div className="flex flex-col items-center justify-center">
+                      {/* Player Name matching Screenshot 5 */}
+                      <div className="flex items-center justify-center gap-0.5 max-w-full">
+                        {isDealer && <Crown className="w-3 h-3 text-[#00a2ed] shrink-0" />}
+                        <span
+                          className={`text-xs truncate block ${
+                            isOut || isReEntered ? 'text-[#ef4444] font-semibold' : 'text-[#f4f4f5]'
+                          }`}
+                          title={player?.name}
+                        >
+                          {isReEntered && !isOut ? `*${player?.name}` : player?.name}
                         </span>
                       </div>
 
-                      {/* Cumulative Score */}
-                      <div className={`text-base font-mono font-bold ${
-                        isOut ? 'text-rose-400' : score >= rules.poolLimit - rules.openDrop ? 'text-amber-300' : 'text-white'
-                      }`}>
+                      {/* Cumulative Total under player name */}
+                      <span
+                        className={`text-[11px] font-mono font-semibold block leading-tight mt-0.5 ${
+                          isOut ? 'text-rose-400' : 'text-zinc-400'
+                        }`}
+                      >
                         {score}
-                      </div>
-
-                      {/* Status / Re-entry tag / Rank */}
-                      <div className="flex items-center gap-1">
-                        {player?.reEntryCount > 0 && !isOut && (
-                          <StatusChip label="RE" variant="re_entered" subLabel={String(player.reEntryScore)} />
-                        )}
-                        {isOut && <StatusChip label="OUT" variant="out" />}
-                        {!isOut && (
-                          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-black/20 text-[#a1a1aa]">
-                            #{ranks[playerId]}
-                          </span>
-                        )}
-                      </div>
+                      </span>
                     </div>
                   </th>
                 );
@@ -235,83 +215,100 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
           </thead>
 
           {/* Table Body (Rounds) */}
-          <tbody className="divide-y divide-[#23232c]">
+          <tbody className="divide-y divide-[#24242e]">
             {rounds.length === 0 ? (
               <tr>
-                <td colSpan={seats.length + 1} className="py-16 text-center text-xs text-[#71717a]">
-                  No rounds recorded yet. Tap "ENTER SCORE" below to begin.
+                <td colSpan={seats.length} className="py-20 text-center text-xs text-[#71717a]">
+                  No rounds recorded yet.<br />Tap <strong className="text-[#00a2ed]">"ENTER SCORE"</strong> below to begin.
                 </td>
               </tr>
             ) : (
-              rounds.map(round => {
-                const roundDealer = players[round.dealerPlayerId];
+              rounds.map((round, rIdx) => {
+                const isRowSelected = selectedRoundIndex === rIdx;
 
                 return (
-                  <tr key={round.roundNumber} className="hover:bg-white/[0.02] transition-colors">
-                    {/* Sticky Round Col */}
-                    <td className="sticky left-0 z-20 bg-[#18181e] p-2.5 text-center border-r border-[#2e2e38] font-mono text-xs text-[#a1a1aa]">
-                      <div>{round.roundNumber}</div>
-                      <div className="text-[9px] text-[#38bdf8] truncate max-w-[45px] mx-auto opacity-80">
-                        {roundDealer?.name}
-                      </div>
-                    </td>
-
-                    {/* Scores for each player - Clean blue boxes matching screenshot */}
+                  <tr
+                    key={round.roundNumber}
+                    onClick={() => setSelectedRoundIndex(isRowSelected ? null : rIdx)}
+                    className={`transition-colors cursor-pointer ${
+                      isRowSelected ? 'bg-white/[0.06]' : 'hover:bg-white/[0.02]'
+                    }`}
+                  >
                     {seats.map(playerId => {
                       const scoreInfo = round.scores[playerId];
+
                       if (!scoreInfo) {
                         return (
-                          <td key={playerId} className="p-2 text-center border-r border-[#23232c] text-[#52525b] font-mono text-xs">
+                          <td
+                            key={playerId}
+                            className="py-1 px-0.5 text-center border-r border-[#24242e] last:border-r-0 text-[#52525b] font-mono text-xs"
+                          >
                             -
                           </td>
                         );
                       }
 
-                      const renderCell = () => {
-                        // Cell box matching original app Screenshot 5
+                      // Cell content exactly matching Screenshot 5 blue rounded boxes
+                      const renderScoreCell = () => {
                         switch (scoreInfo.type) {
                           case 'show':
                             return (
-                              <div className="mx-auto w-12 py-1.5 rounded bg-[#0284c7] text-amber-300 font-bold text-sm text-center shadow-sm">
+                              <div className="w-full max-w-[48px] mx-auto py-1.5 rounded-lg bg-[#0078d4] text-[#facc15] font-bold text-sm text-center shadow-sm">
                                 R
                               </div>
                             );
                           case 'open_drop':
                             return (
-                              <div className="mx-auto w-12 py-1.5 rounded bg-[#0284c7] text-white font-bold text-sm text-center shadow-sm">
+                              <div className="w-full max-w-[48px] mx-auto py-1.5 rounded-lg bg-[#0078d4] text-white font-bold text-sm text-center shadow-sm">
                                 D
                               </div>
                             );
                           case 'middle_drop':
                             return (
-                              <div className="mx-auto w-12 py-1.5 rounded bg-[#0284c7] text-white font-bold text-sm text-center shadow-sm">
+                              <div className="w-full max-w-[48px] mx-auto py-1.5 rounded-lg bg-[#0078d4] text-white font-bold text-sm text-center shadow-sm">
                                 MD
                               </div>
                             );
                           case 'full_count':
                             return (
-                              <div className="mx-auto w-12 py-1.5 rounded bg-[#0284c7] text-white font-bold text-sm text-center shadow-sm">
+                              <div className="w-full max-w-[48px] mx-auto py-1.5 rounded-lg bg-[#0078d4] text-white font-bold text-sm text-center shadow-sm">
                                 FC
                               </div>
                             );
                           case 'out':
                             return (
-                              <div className="mx-auto w-12 py-1.5 rounded bg-[#1e293b] text-slate-400 font-bold text-sm text-center">
+                              <div className="w-full max-w-[48px] mx-auto py-1.5 rounded-lg bg-[#27272a] text-[#71717a] font-bold text-sm text-center">
                                 X
                               </div>
                             );
-                          default:
+                          default: {
+                            // If player re-entered in this round
+                            const wasReEnteredHere = round.reEnteredInRound?.includes(playerId);
+                            if (wasReEnteredHere) {
+                              return (
+                                <div className="w-full max-w-[48px] mx-auto py-0.5 rounded-lg bg-[#0078d4] text-white text-center shadow-sm">
+                                  <div className="text-[11px] font-bold leading-tight">RE</div>
+                                  <div className="text-[9px] font-mono text-emerald-300 font-bold leading-tight">
+                                    {scoreInfo.points}
+                                  </div>
+                                </div>
+                              );
+                            }
                             return (
-                              <div className="mx-auto w-12 py-1.5 rounded bg-[#0284c7] text-white font-bold text-sm text-center shadow-sm">
+                              <div className="w-full max-w-[48px] mx-auto py-1.5 rounded-lg bg-[#0078d4] text-white font-bold text-sm text-center shadow-sm font-mono">
                                 {scoreInfo.points}
                               </div>
                             );
+                          }
                         }
                       };
 
                       return (
-                        <td key={playerId} className="p-1.5 text-center border-r border-[#23232c]">
-                          {renderCell()}
+                        <td
+                          key={playerId}
+                          className="py-1 px-0.5 text-center border-r border-[#24242e] last:border-r-0 align-middle"
+                        >
+                          {renderScoreCell()}
                         </td>
                       );
                     })}
@@ -323,13 +320,31 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
         </table>
       </div>
 
-      {/* Bottom Action Bar (Simple solid blue button matching screenshot) */}
-      <div className="p-3 border-t border-[#2a2a34] bg-[#1a1a20] flex gap-2">
+      {/* Selected Round Info Toast */}
+      {selectedRoundIndex !== null && rounds[selectedRoundIndex] && (
+        <div className="px-4 py-1.5 bg-[#1f1f26] border-t border-[#33333e] text-center text-[11px] text-[#a1a1aa] shrink-0">
+          Showing Round {selectedRoundIndex + 1} • Dealer was {players[rounds[selectedRoundIndex].dealerPlayerId]?.name || 'Unknown'}
+        </div>
+      )}
+
+      {/* Bottom Action Pill Buttons matching Screenshot 5 */}
+      <div className="p-3 bg-[#111113] border-t border-[#24242e] space-y-2 shrink-0">
         <button
+          type="button"
           onClick={onOpenScoreInput}
-          className="w-full py-3 px-4 rounded-lg font-bold text-sm bg-[#0284c7] hover:bg-[#0369a1] text-white shadow transition flex items-center justify-center gap-2 active:scale-[0.99]"
+          disabled={Boolean(winnerPlayerId)}
+          className="w-full py-3 rounded-full font-bold text-sm bg-[#00a2ed] hover:bg-[#008fcf] disabled:bg-[#00a2ed]/40 disabled:text-white/40 text-white shadow transition active:scale-[0.99] tracking-wider"
         >
-          <PlusCircle className="w-4 h-4" /> ENTER SCORE
+          ENTER SCORE
+        </button>
+
+        <button
+          type="button"
+          onClick={onUndoRound}
+          disabled={rounds.length === 0}
+          className="w-full py-2.5 rounded-full font-semibold text-xs border border-[#00a2ed] text-[#00a2ed] hover:bg-[#00a2ed]/10 disabled:opacity-40 transition active:scale-[0.99] tracking-wider"
+        >
+          UNDO LAST ROUND
         </button>
       </div>
     </div>

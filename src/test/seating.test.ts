@@ -21,7 +21,7 @@ describe('seating domain tests', () => {
     expect(getNextDealerIndex(seats, 0, active)).toBe(2);
   });
 
-  it('moves re-entered player immediately AFTER the distributor/dealer', () => {
+  it('moves re-entered player immediately to the LEFT of the distributor/dealer', () => {
     // Current seats: Tejo, Bava, Rohini, Siri, Pavan
     // Bava is the dealer. Rohini was eliminated and re-enters.
     const seats = ['Tejo', 'Bava', 'Rohini', 'Siri', 'Pavan'];
@@ -30,15 +30,13 @@ describe('seating domain tests', () => {
 
     const newSeats = relocateReEnteredPlayer(seats, currentDealer, reEnteringPlayer);
     
-    // Rohini should now sit right after Bava!
-    expect(newSeats).toEqual(['Tejo', 'Bava', 'Rohini', 'Siri', 'Pavan']);
+    // Rohini should now sit to the LEFT of Bava (before Bava)!
+    expect(newSeats).toEqual(['Tejo', 'Rohini', 'Bava', 'Siri', 'Pavan']);
 
-    // Another example where re-entering player is earlier in seats array:
-    // Tejo was eliminated and re-enters. Dealer is Siri.
-    const newSeats2 = relocateReEnteredPlayer(seats, 'Siri', 'Tejo');
-    // Siri is at index in remaining: ['Bava', 'Rohini', 'Siri', 'Pavan']
-    // Tejo should be placed right after Siri: ['Bava', 'Rohini', 'Siri', 'Tejo', 'Pavan']
-    expect(newSeats2).toEqual(['Bava', 'Rohini', 'Siri', 'Tejo', 'Pavan']);
+    // Another example: Pavan was eliminated and re-enters. Dealer is Siri.
+    const newSeats2 = relocateReEnteredPlayer(seats, 'Siri', 'Pavan');
+    // Pavan should be placed to the LEFT of Siri (before Siri):
+    expect(newSeats2).toEqual(['Tejo', 'Bava', 'Rohini', 'Pavan', 'Siri']);
   });
 
   it('re-orders seats correctly', () => {

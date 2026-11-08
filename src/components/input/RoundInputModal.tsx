@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { GameState, PlayerId, ScoreInputType } from '../../domain/types';
 import { validateRoundScores } from '../../domain/scoring';
-import { getDropStatus } from '../../domain/elimination';
+import { analyzePlayerDrops } from '../../domain/elimination';
 import { ArrowLeft, Crown } from 'lucide-react';
 import { useBackButton, BACK_PRIORITY } from '../../hooks/useBackButton';
 
@@ -159,7 +159,8 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
           const currentTotal = cumulativeScores[playerId] ?? 0;
           const currentInput = scores[playerId];
           const isDealer = playerId === currentDealerId;
-          const dropStatus = getDropStatus(currentTotal, rules.poolLimit, rules.openDrop);
+          const dropAnalysis = analyzePlayerDrops(currentTotal, rules.poolLimit, rules.openDrop, rules.middleDrop, rules.fullCount);
+          const dropStatus = dropAnalysis.status;
 
           return (
             <div
@@ -170,7 +171,7 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <div className="font-semibold text-base flex items-center gap-1.5 flex-wrap">
-                    <span className={dropStatus === 'compulsory' ? 'text-rose-500 font-bold' : dropStatus === 'one_drop' ? 'text-yellow-400 font-bold' : 'text-[var(--color-text)]'}>
+                    <span className={dropStatus === 'compulsory' ? 'text-rose-600 dark:text-rose-500 font-bold' : dropStatus === 'one_drop' ? 'text-amber-600 dark:text-yellow-400 font-bold' : 'text-[var(--color-text)]'}>
                       {player?.name}
                     </span>
                     {(player?.reEntryCount ?? 0) > 0 && (
@@ -179,13 +180,13 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
                       </span>
                     )}
                     {dropStatus === 'compulsory' && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded font-extrabold bg-rose-500/15 text-rose-400 border border-rose-500/30 uppercase tracking-tight">
-                        Compulsory
+                      <span className="text-[9px] px-1.5 py-0.5 rounded font-extrabold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 uppercase tracking-tight">
+                        Compulsory (0 drops)
                       </span>
                     )}
                     {dropStatus === 'one_drop' && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded font-bold bg-yellow-500/15 text-yellow-400 border border-yellow-500/30 uppercase tracking-tight">
-                        1 Drop
+                      <span className="text-[9px] px-1.5 py-0.5 rounded font-bold bg-amber-500/15 text-amber-600 dark:text-yellow-400 border border-amber-500/30 uppercase tracking-tight">
+                        1 Drop ({dropAnalysis.canMiddleDrop ? 'Can MD' : 'No MD'})
                       </span>
                     )}
                     {isDealer && (

@@ -6,6 +6,7 @@ interface HomeScreenProps {
   activeGame: GameState | null;
   onStartNewGame: () => void;
   onContinueGame: () => void;
+  onResumeGame?: () => void;
   onOpenPlayerList: () => void;
   onOpenSettings: () => void;
 }
@@ -14,10 +15,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   activeGame,
   onStartNewGame,
   onContinueGame,
+  onResumeGame,
   onOpenPlayerList,
   onOpenSettings,
 }) => {
-  const hasActiveGame = activeGame && activeGame.status === 'playing';
+  const hasActiveGame = Boolean(activeGame && (activeGame.status === 'playing' || activeGame.status === 'completed'));
 
   // Calculate active game pool stake
   const entryAmount = activeGame?.rules.entryAmount ?? 0;
@@ -91,19 +93,24 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           </button>
         </div>
 
-        {/* Active game quick card if a game is in progress */}
-        {hasActiveGame && (
+        {/* Last Game quick card */}
+        {hasActiveGame && activeGame && (
           <div
-            onClick={onContinueGame}
-            className="mt-4 p-3.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] shadow-sm flex items-center justify-between cursor-pointer hover:opacity-90 transition"
+            onClick={onResumeGame || onContinueGame}
+            className="mt-4 p-3.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] shadow-sm flex items-center justify-between cursor-pointer hover:border-[var(--color-primary)] transition active:scale-[0.99]"
           >
             <div>
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-pulse" />
-                <span className="font-semibold text-xs text-[var(--color-text)]">Active Game</span>
+                <span className={`w-2 h-2 rounded-full ${activeGame.status === 'playing' ? 'bg-[var(--color-primary)] animate-pulse' : 'bg-emerald-500'}`} />
+                <span className="font-semibold text-xs text-[var(--color-text)]">Last Game</span>
+                {activeGame.status === 'completed' && (
+                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">
+                    Finished
+                  </span>
+                )}
               </div>
               <span className="text-[11px] text-[var(--color-muted)] block mt-0.5">
-                {activeGame.title} • Round {activeGame.rounds.length + 1} • {activeGame.seats.length} players
+                {activeGame.title} • Round {activeGame.rounds.length + (activeGame.status === 'playing' ? 1 : 0)} • {activeGame.seats.length} players
                 {totalPool > 0 && (
                   <strong className="text-emerald-500 font-mono ml-1 font-bold">
                     • ₹{totalPool} Pool
@@ -111,7 +118,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 )}
               </span>
             </div>
-            <span className="text-xs font-semibold text-[var(--color-primary)] underline">Resume →</span>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onResumeGame) onResumeGame();
+                else onContinueGame();
+              }}
+              className="px-3 py-1.5 rounded-lg bg-[var(--color-primary)] text-white text-xs font-semibold shadow-sm hover:opacity-90 active:scale-95 transition"
+            >
+              {activeGame.status === 'completed' ? 'Scorecard →' : 'Resume →'}
+            </button>
           </div>
         )}
       </div>

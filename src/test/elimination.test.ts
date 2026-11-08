@@ -7,6 +7,7 @@ import {
   getEligibleForReEntryPlayers,
   getDropStatus,
   getRemainingDrops,
+  analyzePlayerDrops,
 } from '../domain/elimination';
 import { DEFAULT_RULES } from '../domain/scoring';
 import { RoundRecord } from '../domain/types';
@@ -189,6 +190,42 @@ describe('elimination domain tests', () => {
       expect(getDropStatus(81, pool101, drop20)).toBe('compulsory');
       // Score 101: out
       expect(getDropStatus(101, pool101, drop20)).toBe('out');
+    });
+
+    it('performs comprehensive drop analysis including middle drop and full count', () => {
+      // Score 150 in 201 pool (openDrop: 20, middleDrop: 40, fullCount: 80)
+      const safeAnalysis = analyzePlayerDrops(150, 201, 20, 40, 80);
+      expect(safeAnalysis.status).toBe('safe');
+      expect(safeAnalysis.canOpenDrop).toBe(true);
+      expect(safeAnalysis.canMiddleDrop).toBe(true);
+      expect(safeAnalysis.canTwoOpenDrops).toBe(true);
+      expect(safeAnalysis.canFullCount).toBe(false); // 150 + 80 = 230 >= 201
+
+      // Score 180 (Bava in screenshot): can open drop (200), cannot middle drop (220)
+      const oneDropAnalysis = analyzePlayerDrops(180, 201, 20, 40, 80);
+      expect(oneDropAnalysis.status).toBe('one_drop');
+      expect(oneDropAnalysis.canOpenDrop).toBe(true);
+      expect(oneDropAnalysis.canMiddleDrop).toBe(false);
+      expect(oneDropAnalysis.canTwoOpenDrops).toBe(false);
+      expect(oneDropAnalysis.openDropsRemaining).toBe(1);
+
+      // Score 181: cannot even open drop (201 >= 201)
+      const compulsoryAnalysis = analyzePlayerDrops(181, 201, 20, 40, 80);
+      expect(compulsoryAnalysis.status).toBe('compulsory');
+      expect(compulsoryAnalysis.canOpenDrop).toBe(false);
+      expect(compulsoryAnalysis.canMiddleDrop).toBe(false);
+      expect(compulsoryAnalysis.openDropsRemaining).toBe(0);
+
+      // Asymmetric drops: openDrop = 15, middleDrop = 45 in 201 pool
+      // Score 160: 160 + 15 = 175 < 201, 160 + 30 = 190 < 201, but 160 + 45 = 205 >= 201 (no MD!)
+      const asymAnalysis = analyzePlayerDrops(160, 201, 15, 45, 80);
+      expect(asymAnalysis.status).toBe('one_drop');
+      expect(asymAnalysis.canMiddleDrop).toBe(false);
+      expect(asymAnalysis.canTwoOpenDrops).toBe(true);
+
+      // Defensive guard for non-positive openDrop
+      expect(getRemainingDrops(50, 201, 0)).toBe(0);
+      expect(getRemainingDrops(50, 201, -10)).toBe(0);
     });
   });
 });

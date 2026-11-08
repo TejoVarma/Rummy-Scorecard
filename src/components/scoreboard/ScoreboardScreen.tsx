@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { GameState, PlayerId } from '../../domain/types';
-import { getEligibleForReEntryPlayers, getDropStatus } from '../../domain/elimination';
+import { getEligibleForReEntryPlayers, analyzePlayerDrops } from '../../domain/elimination';
 import { Confetti } from '../common/Confetti';
 import { toBlob } from 'html-to-image';
 import { Settings, Trophy, Crown, Share2, Trash2, ArrowLeft, UserPlus, Loader2 } from 'lucide-react';
@@ -267,17 +267,20 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                   const score = latestScores[playerId] ?? 0;
                   const isDealer = currentDealerId === playerId;
                   const isOut = score >= rules.poolLimit;
-                  const dropStatus = getDropStatus(score, rules.poolLimit, rules.openDrop);
+                  const dropAnalysis = analyzePlayerDrops(score, rules.poolLimit, rules.openDrop, rules.middleDrop, rules.fullCount);
+                  const dropStatus = dropAnalysis.status;
                   const reEntryCount = player?.reEntryCount ?? 0;
                   const isReEntered = reEntryCount > 0;
 
                   const nameColorClass = isOut
                     ? 'text-rose-400 line-through'
                     : dropStatus === 'compulsory'
-                    ? 'text-rose-500 font-extrabold'
+                    ? 'text-rose-600 dark:text-rose-500 font-extrabold'
                     : dropStatus === 'one_drop'
-                    ? 'text-yellow-400 font-extrabold'
+                    ? 'text-amber-600 dark:text-yellow-400 font-extrabold'
                     : 'text-[var(--color-text)] font-bold';
+
+                  const oneDropLabel = dropAnalysis.canMiddleDrop ? '1 DROP' : '1 DROP (NO MD)';
 
                   return (
                     <th
@@ -301,13 +304,13 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
 
                         {/* Drop Warning / Compulsory Pill */}
                         {!isOut && dropStatus === 'compulsory' && (
-                          <span className="text-[9px] font-extrabold leading-tight tracking-wider text-rose-500 block uppercase mt-0.5">
+                          <span className="text-[8px] sm:text-[9px] font-extrabold leading-tight tracking-tight text-rose-600 dark:text-rose-500 block uppercase mt-0.5">
                             COMPULSORY
                           </span>
                         )}
                         {!isOut && dropStatus === 'one_drop' && (
-                          <span className="text-[9px] font-extrabold leading-tight tracking-wider text-yellow-400 block uppercase mt-0.5">
-                            1 DROP
+                          <span className="text-[8px] sm:text-[9px] font-extrabold leading-tight tracking-tight text-amber-600 dark:text-yellow-400 block uppercase mt-0.5">
+                            {oneDropLabel}
                           </span>
                         )}
 
@@ -446,15 +449,18 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                   const score = latestScores[playerId] ?? 0;
                   const isDealer = currentDealerId === playerId;
                   const isOut = score >= rules.poolLimit;
-                  const dropStatus = getDropStatus(score, rules.poolLimit, rules.openDrop);
+                  const dropAnalysis = analyzePlayerDrops(score, rules.poolLimit, rules.openDrop, rules.middleDrop, rules.fullCount);
+                  const dropStatus = dropAnalysis.status;
 
                   const totalColorClass = isOut
                     ? 'text-rose-500 line-through'
                     : dropStatus === 'compulsory'
-                    ? 'text-rose-500'
+                    ? 'text-rose-600 dark:text-rose-500'
                     : dropStatus === 'one_drop'
-                    ? 'text-yellow-400'
+                    ? 'text-amber-600 dark:text-yellow-400'
                     : 'text-[var(--color-primary)]';
+
+                  const oneDropFooterLabel = dropAnalysis.canMiddleDrop ? '1 DROP' : '1 DROP (NO MD)';
 
                   return (
                     <td
@@ -471,13 +477,13 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                         {score}
                       </div>
                       {!isOut && dropStatus === 'compulsory' && (
-                        <div className="text-[8px] font-extrabold uppercase text-rose-500 tracking-tight leading-none mt-0.5">
+                        <div className="text-[8px] font-extrabold uppercase text-rose-600 dark:text-rose-500 tracking-tight leading-none mt-0.5">
                           COMPULSORY
                         </div>
                       )}
                       {!isOut && dropStatus === 'one_drop' && (
-                        <div className="text-[8px] font-extrabold uppercase text-yellow-400 tracking-tight leading-none mt-0.5">
-                          1 DROP
+                        <div className="text-[8px] font-extrabold uppercase text-amber-600 dark:text-yellow-400 tracking-tight leading-none mt-0.5">
+                          {oneDropFooterLabel}
                         </div>
                       )}
                     </td>

@@ -93,6 +93,7 @@ export const App: React.FC = () => {
           activeGame={state.status !== 'setup' ? state : null}
           onStartNewGame={() => setCurrentScreen('new_game')}
           onContinueGame={() => setCurrentScreen('continue_game')}
+          onResumeGame={() => setCurrentScreen('scoreboard')}
           onOpenPlayerList={() => setCurrentScreen('players')}
           onOpenSettings={() => setIsSettingsOpen(true)}
         />

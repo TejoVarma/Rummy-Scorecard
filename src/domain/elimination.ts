@@ -2,24 +2,86 @@ import { GameRules, PlayerId, RoundRecord } from './types';
 
 export type DropStatus = 'safe' | 'one_drop' | 'compulsory' | 'out';
 
+export interface PlayerDropAnalysis {
+  status: DropStatus;
+  remainingMargin: number;
+  openDropsRemaining: number;
+  canOpenDrop: boolean;
+  canMiddleDrop: boolean;
+  canTwoOpenDrops: boolean;
+  canFullCount: boolean;
+}
+
 /**
- * Calculates whether a player is safe, has 1 drop left, is compulsory (0 drops), or is eliminated.
+ * Accurately analyzes player drop status by taking into account:
+ * - total cumulative score
+ * - pool limit (101, 201, custom)
+ * - open drop score
+ * - middle drop (MD) score
+ * - full count score
+ *
+ * Rules:
  * - 'out': score >= poolLimit
- * - 'compulsory': score + openDrop >= poolLimit (0 open drops remaining, must play!)
- * - 'one_drop': score + openDrop < poolLimit BUT score + 2 * openDrop >= poolLimit (exactly 1 open drop remaining)
- * - 'safe': score + 2 * openDrop < poolLimit (2 or more drops remaining)
+ * - 'compulsory': score + openDrop >= poolLimit (cannot even take open drop; 0 drops remaining)
+ * - 'one_drop': can take 1 open drop, but cannot take 2 open drops OR cannot middle drop (MD)
+ * - 'safe': can take at least 2 open drops AND can take middle drop (MD)
  */
-export function getDropStatus(score: number, poolLimit: number, openDrop: number): DropStatus {
+export function analyzePlayerDrops(
+  score: number,
+  poolLimit: number,
+  openDrop: number,
+  middleDrop: number = openDrop * 2,
+  fullCount: number = 80
+): PlayerDropAnalysis {
   if (score >= poolLimit) {
-    return 'out';
+    return {
+      status: 'out',
+      remainingMargin: 0,
+      openDropsRemaining: -1,
+      canOpenDrop: false,
+      canMiddleDrop: false,
+      canTwoOpenDrops: false,
+      canFullCount: false,
+    };
   }
-  if (score + openDrop >= poolLimit) {
-    return 'compulsory';
+
+  const safeOpenDrop = openDrop > 0 ? openDrop : 20;
+  const safeMiddleDrop = middleDrop > 0 ? middleDrop : safeOpenDrop * 2;
+  const remainingMargin = Math.max(0, poolLimit - 1 - score);
+
+  const canOpenDrop = score + safeOpenDrop < poolLimit;
+  const canTwoOpenDrops = score + 2 * safeOpenDrop < poolLimit;
+  const canMiddleDrop = score + safeMiddleDrop < poolLimit;
+  const canFullCount = score + fullCount < poolLimit;
+  const openDropsRemaining = Math.max(0, Math.floor(remainingMargin / safeOpenDrop));
+
+  let status: DropStatus = 'safe';
+  if (!canOpenDrop) {
+    status = 'compulsory';
+  } else if (!canTwoOpenDrops || !canMiddleDrop) {
+    status = 'one_drop';
+  } else {
+    status = 'safe';
   }
-  if (score + 2 * openDrop >= poolLimit) {
-    return 'one_drop';
-  }
-  return 'safe';
+
+  return {
+    status,
+    remainingMargin,
+    openDropsRemaining,
+    canOpenDrop,
+    canMiddleDrop,
+    canTwoOpenDrops,
+    canFullCount,
+  };
+}
+
+export function getDropStatus(
+  score: number,
+  poolLimit: number,
+  openDrop: number,
+  middleDrop: number = openDrop * 2
+): DropStatus {
+  return analyzePlayerDrops(score, poolLimit, openDrop, middleDrop).status;
 }
 
 /**
@@ -28,6 +90,7 @@ export function getDropStatus(score: number, poolLimit: number, openDrop: number
  */
 export function getRemainingDrops(score: number, poolLimit: number, openDrop: number): number {
   if (score >= poolLimit) return -1;
+  if (openDrop <= 0) return 0;
   const margin = poolLimit - 1 - score;
   return Math.max(0, Math.floor(margin / openDrop));
 }
@@ -90,10 +153,8 @@ export function getActivePlayerIds(
  * Determines which players are currently eligible for re-entry.
  * In Indian Pool Rummy:
  * 1. Re-entry must be allowed by rules.
- * 2. Only players who got eliminated in the MOST RECENT round have the chance to re-enter for the very next round.
- *    If a subsequent round has already been played without them re-entering, their window has closed.
- * 3. The player must still be eliminated (has not already re-entered).
- * 4. Re-entry score (highest active score + 1) must be strictly less than the pool limit.
+ * 2. Only players who got ELIMINATED IN THE MOST RECENT ROUND are eligible to re-enter!
+ * 3. The re-entry score (highest active score + 1) must be strictly less than the pool limit.
  */
 export function getEligibleForReEntryPlayers(
   rounds: RoundRecord[],
@@ -107,28 +168,25 @@ export function getEligibleForReEntryPlayers(
   const lastRound = rounds[rounds.length - 1];
   const latestScores = lastRound.cumulativeScores;
 
-  // Players who crossed the pool limit in the most recent round
-  const candidates = (lastRound.eliminatedInRound ?? []).filter(
-    id => (latestScores[id] ?? 0) >= rules.poolLimit
-  );
-
-  if (candidates.length === 0) {
-    return [];
-  }
-
-  // Active player scores (players still under pool limit)
+  // Active players in the game right now
   const activeScores = seats
-    .filter(id => (latestScores[id] ?? 0) < rules.poolLimit)
+    .filter(id => !isEliminated(latestScores[id] ?? 0, rules.poolLimit))
     .map(id => latestScores[id] ?? 0);
 
+  // If no active players left or game is over, no one can re-enter
   if (activeScores.length === 0) {
     return [];
   }
 
   const potentialReEntryScore = calculateReEntryScore(activeScores, rules);
+
+  // Boundary check: re-entry score must be strictly below pool limit
   if (!isEligibleForReEntry(potentialReEntryScore, rules.poolLimit)) {
     return [];
   }
 
-  return candidates;
+  // Only players who were eliminated specifically in this last round
+  const eliminatedInLastRound = lastRound.eliminatedInRound || [];
+
+  return eliminatedInLastRound.filter(id => seats.includes(id));
 }

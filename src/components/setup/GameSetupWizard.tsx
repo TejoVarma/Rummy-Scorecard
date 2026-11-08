@@ -27,6 +27,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onStartGame })
   const [fullCount, setFullCount] = useState<number>(DEFAULT_RULES.fullCount);
   const [adjustReEntry, setAdjustReEntry] = useState(true);
 
+  // Initial order: Highest to Least. Least person deals first!
   const [players, setPlayers] = useState<Array<{ id: string; name: string; avatarColor: string }>>([
     { id: 'p1', name: 'Tejo', avatarColor: AVATAR_COLORS[0] },
     { id: 'p2', name: 'Bava', avatarColor: AVATAR_COLORS[1] },
@@ -35,7 +36,6 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onStartGame })
   ]);
 
   const [newPlayerName, setNewPlayerName] = useState('');
-  const [dealerIndex, setDealerIndex] = useState(0);
 
   const handleAddPlayer = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -50,7 +50,6 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onStartGame })
   const handleRemovePlayer = (id: string) => {
     if (players.length <= 2) return;
     setPlayers(prev => prev.filter(p => p.id !== id));
-    setDealerIndex(0);
   };
 
   const movePlayer = (index: number, direction: 'up' | 'down') => {
@@ -63,12 +62,6 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onStartGame })
       copy.splice(targetIndex, 0, moved);
       return copy;
     });
-
-    if (dealerIndex === index) {
-      setDealerIndex(targetIndex);
-    } else if (dealerIndex === targetIndex) {
-      setDealerIndex(index);
-    }
   };
 
   const handleStart = () => {
@@ -89,18 +82,21 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onStartGame })
       reEntryCount: 0,
     }));
 
+    // The least person (last in the list) automatically deals Round 1!
+    const leastPersonIndex = players.length - 1;
+
     onStartGame({
       title,
       rules,
       players: playerObjs,
       initialSeats: players.map(p => p.id),
-      initialDealerIndex: dealerIndex,
+      initialDealerIndex: leastPersonIndex,
     });
   };
 
   return (
     <div className="min-h-screen bg-[#121214] text-[#f4f4f5]">
-      {/* Top App Bar (matching original app) */}
+      {/* Top App Bar */}
       <div className="px-4 py-3 bg-[#0284c7] text-white font-bold text-base shadow-sm flex items-center justify-between">
         <span>New Game</span>
         <span className="text-xs opacity-80 font-normal">Rummy Score Board</span>
@@ -144,7 +140,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onStartGame })
             ))}
           </div>
 
-          {/* Drop Inputs matching original oval inputs */}
+          {/* Drop Inputs */}
           <div className="grid grid-cols-2 gap-3 pt-1">
             <div className="space-y-1">
               <span className="block text-xs text-[#a1a1aa]">Game total score</span>
@@ -184,7 +180,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onStartGame })
             </div>
           </div>
 
-          {/* Checkbox matching original app */}
+          {/* Re-entry checkbox */}
           <div className="pt-2">
             <label className="flex items-center gap-2.5 text-xs text-[#cbd5e1] cursor-pointer">
               <input
@@ -198,13 +194,18 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onStartGame })
           </div>
         </div>
 
-        {/* Players & Seating Order */}
+        {/* Players & Seating Order (Highest to Least) */}
         <div className="p-3.5 rounded-lg border border-[#2e2e38] bg-[#1e1e24] space-y-3">
-          <div className="flex items-center justify-between">
-            <label className="block text-sm font-semibold text-white">
-              Players ({players.length}) & Table Seating
-            </label>
-            <span className="text-[11px] text-[#38bdf8]">Tap 🎴 to pick starting Dealer</span>
+          <div>
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-semibold text-white">
+                Seating Order ({players.length} Players)
+              </label>
+              <span className="text-[11px] text-[#38bdf8] font-medium">Highest → Least</span>
+            </div>
+            <p className="text-[11px] text-[#9ca3af] mt-0.5">
+              Arranged from highest to least card. The least person deals Round 1 automatically.
+            </p>
           </div>
 
           {/* Add player field */}
@@ -227,68 +228,72 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onStartGame })
 
           {/* Player list */}
           <div className="space-y-1.5 pt-1">
-            {players.map((player, idx) => (
-              <div
-                key={player.id}
-                className={`flex items-center justify-between p-2 rounded border transition ${
-                  dealerIndex === idx
-                    ? 'border-[#0284c7] bg-[#0284c7]/10'
-                    : 'border-[#2e2e38] bg-[#18181f]'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <span className="text-[11px] font-mono text-[#71717a] w-4">#{idx + 1}</span>
-                  <span className="font-medium text-xs text-white">{player.name}</span>
-                  {dealerIndex === idx && (
-                    <span className="text-[10px] font-semibold text-[#38bdf8] bg-[#0284c7]/20 px-1.5 py-0.2 rounded border border-[#0284c7]/30 flex items-center gap-0.5">
-                      <Crown className="w-2.5 h-2.5" /> Dealer
-                    </span>
-                  )}
-                </div>
+            {players.map((player, idx) => {
+              const isLeast = idx === players.length - 1;
+              const isHighest = idx === 0;
 
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setDealerIndex(idx)}
-                    className={`px-2 py-0.5 text-[11px] rounded font-semibold border transition ${
-                      dealerIndex === idx
-                        ? 'bg-[#0284c7] text-white border-[#0284c7]'
-                        : 'border-[#3f3f4e] text-[#a1a1aa] hover:bg-white/5'
-                    }`}
-                  >
-                    🎴 Deal
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => movePlayer(idx, 'up')}
-                    disabled={idx === 0}
-                    className="p-1 rounded text-slate-400 hover:text-white disabled:opacity-30"
-                  >
-                    <ArrowUp className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => movePlayer(idx, 'down')}
-                    disabled={idx === players.length - 1}
-                    className="p-1 rounded text-slate-400 hover:text-white disabled:opacity-30"
-                  >
-                    <ArrowDown className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleRemovePlayer(player.id)}
-                    disabled={players.length <= 2}
-                    className="p-1 rounded text-rose-400 hover:text-rose-300 disabled:opacity-30"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+              return (
+                <div
+                  key={player.id}
+                  className={`flex items-center justify-between p-2.5 rounded border transition ${
+                    isLeast
+                      ? 'border-[#0284c7] bg-[#0284c7]/10'
+                      : 'border-[#2e2e38] bg-[#18181f]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-[11px] font-mono text-[#71717a] w-4">#{idx + 1}</span>
+                    <span className="font-medium text-xs text-white">{player.name}</span>
+
+                    {/* Automatic role tag */}
+                    {isHighest && (
+                      <span className="text-[10px] text-slate-300 bg-white/5 px-1.5 py-0.2 rounded border border-white/10">
+                        Highest
+                      </span>
+                    )}
+                    {isLeast && (
+                      <span className="text-[10px] font-semibold text-[#38bdf8] bg-[#0284c7]/20 px-1.5 py-0.2 rounded border border-[#0284c7]/30 flex items-center gap-0.5">
+                        <Crown className="w-2.5 h-2.5" /> Deals (Least)
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Reorder controls only (No manual dealer button!) */}
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => movePlayer(idx, 'up')}
+                      disabled={idx === 0}
+                      title="Move higher in seating"
+                      className="p-1 rounded text-slate-400 hover:text-white disabled:opacity-30"
+                    >
+                      <ArrowUp className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => movePlayer(idx, 'down')}
+                      disabled={idx === players.length - 1}
+                      title="Move lower in seating"
+                      className="p-1 rounded text-slate-400 hover:text-white disabled:opacity-30"
+                    >
+                      <ArrowDown className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRemovePlayer(player.id)}
+                      disabled={players.length <= 2}
+                      className="p-1 rounded text-rose-400 hover:text-rose-300 disabled:opacity-30"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
-        {/* Start Button matching original app */}
+        {/* Start Button */}
         <button
           type="button"
           onClick={handleStart}

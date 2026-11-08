@@ -11,7 +11,11 @@ export function useBackButton(
   id?: string
 ) {
   const handlerRef = useRef(handler);
-  handlerRef.current = handler;
+
+  // Keep ref up to date after committed renders without mutating ref in render phase
+  useEffect(() => {
+    handlerRef.current = handler;
+  });
 
   useEffect(() => {
     if (!enabled) return;

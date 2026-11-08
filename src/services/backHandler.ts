@@ -1,5 +1,5 @@
 import { App as CapApp } from '@capacitor/app';
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, PluginListenerHandle } from '@capacitor/core';
 
 export const BACK_PRIORITY = {
   ROOT: 0,
@@ -13,6 +13,7 @@ export type BackPriority = typeof BACK_PRIORITY[keyof typeof BACK_PRIORITY] | nu
 export interface BackHandlerRegistration {
   id: string;
   priority: number;
+  seq: number;
   handler: () => boolean | void;
 }
 
@@ -20,8 +21,11 @@ export class BackButtonManager {
   private handlers: BackHandlerRegistration[] = [];
   private lastBackPressTime = 0;
   private isInitialized = false;
+  private seqCounter = 0;
   private exitToastListeners = new Set<(visible: boolean) => void>();
   private exitToastTimer: ReturnType<typeof setTimeout> | null = null;
+  private keydownHandler: ((e: KeyboardEvent) => void) | null = null;
+  private capListenerHandle: PluginListenerHandle | null = null;
 
   public init() {
     if (this.isInitialized) return;
@@ -32,6 +36,8 @@ export class BackButtonManager {
       try {
         CapApp.addListener('backButton', () => {
           this.handleBack();
+        }).then(handle => {
+          this.capListenerHandle = handle;
         }).catch(err => {
           console.warn('Capacitor App backButton listener registration error:', err);
         });
@@ -40,11 +46,12 @@ export class BackButtonManager {
       }
 
       // Keyboard Escape key support for desktop browsers
-      window.addEventListener('keydown', (e: KeyboardEvent) => {
+      this.keydownHandler = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
           this.handleBack();
         }
-      });
+      };
+      window.addEventListener('keydown', this.keydownHandler);
     }
   }
 
@@ -56,8 +63,10 @@ export class BackButtonManager {
     this.init();
 
     this.handlers = this.handlers.filter(h => h.id !== id);
-    this.handlers.push({ id, priority, handler });
-    this.handlers.sort((a, b) => b.priority - a.priority);
+    this.seqCounter += 1;
+    this.handlers.push({ id, priority, seq: this.seqCounter, handler });
+    // Sort descending by priority, breaking ties with sequence descending (LIFO)
+    this.handlers.sort((a, b) => b.priority - a.priority || b.seq - a.seq);
 
     return () => {
       this.unregister(id);
@@ -80,15 +89,22 @@ export class BackButtonManager {
   }
 
   public handleBack(): boolean {
-    // Execute highest priority active handler
+    // Execute highest priority active handler (LIFO on tie)
     for (const entry of this.handlers) {
       try {
         const result = entry.handler();
         if (result !== false) {
+          // Handled successfully: reset exit guard & timer so root exit requires 2 fresh presses
+          this.lastBackPressTime = 0;
+          this.clearExitToastTimer();
           return true;
         }
       } catch (err) {
         console.error(`Error in back handler ${entry.id}:`, err);
+        // Do not fall through to app exit when UI error occurs
+        this.lastBackPressTime = 0;
+        this.clearExitToastTimer();
+        return true;
       }
     }
 
@@ -98,7 +114,7 @@ export class BackButtonManager {
       if (Capacitor.isNativePlatform()) {
         CapApp.exitApp();
       }
-      this.notifyToast(false);
+      this.clearExitToastTimer();
       this.lastBackPressTime = 0;
       return true;
     } else {
@@ -110,6 +126,32 @@ export class BackButtonManager {
 
   public resetLastBackPressTime() {
     this.lastBackPressTime = 0;
+  }
+
+  public clearExitToastTimer() {
+    if (this.exitToastTimer) {
+      clearTimeout(this.exitToastTimer);
+      this.exitToastTimer = null;
+    }
+    this.notifyToast(false);
+  }
+
+  public destroy() {
+    if (typeof window !== 'undefined' && this.keydownHandler) {
+      window.removeEventListener('keydown', this.keydownHandler);
+      this.keydownHandler = null;
+    }
+
+    if (this.capListenerHandle) {
+      this.capListenerHandle.remove();
+      this.capListenerHandle = null;
+    }
+
+    this.clearExitToastTimer();
+    this.handlers = [];
+    this.exitToastListeners.clear();
+    this.lastBackPressTime = 0;
+    this.isInitialized = false;
   }
 
   private triggerExitToast() {

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { BackButtonManager, BACK_PRIORITY } from '../services/backHandler';
 import { App as CapApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
@@ -25,6 +25,10 @@ describe('BackButtonManager', () => {
     manager = new BackButtonManager();
   });
 
+  afterEach(() => {
+    manager.destroy();
+  });
+
   it('executes highest priority handler first', () => {
     const order: string[] = [];
 
@@ -43,6 +47,21 @@ describe('BackButtonManager', () => {
     const handled = manager.handleBack();
     expect(handled).toBe(true);
     expect(order).toEqual(['nested']);
+  });
+
+  it('resolves equal-priority handlers in LIFO order (newer first)', () => {
+    const order: string[] = [];
+
+    manager.register('first_modal', () => {
+      order.push('first');
+    }, BACK_PRIORITY.GLOBAL_MODAL);
+
+    manager.register('second_modal', () => {
+      order.push('second');
+    }, BACK_PRIORITY.GLOBAL_MODAL);
+
+    manager.handleBack();
+    expect(order).toEqual(['second']);
   });
 
   it('executes next handler when higher priority is unregistered', () => {
@@ -121,5 +140,48 @@ describe('BackButtonManager', () => {
     expect(toastCallback).toHaveBeenCalledWith(true);
 
     vi.useRealTimers();
+  });
+
+  it('resets root exit countdown and toast when an active handler intercepts', () => {
+    const toastCallback = vi.fn();
+    manager.onExitToastChange(toastCallback);
+
+    // Press at root: shows toast
+    manager.handleBack();
+    expect(toastCallback).toHaveBeenCalledWith(true);
+
+    // Modal opens and intercepts back
+    const modalHandler = vi.fn();
+    manager.register('modal', modalHandler, BACK_PRIORITY.GLOBAL_MODAL);
+
+    manager.handleBack();
+    expect(modalHandler).toHaveBeenCalledTimes(1);
+    expect(toastCallback).toHaveBeenCalledWith(false);
+
+    // Unregister modal: pressing back now should trigger toast again, NOT exit
+    manager.unregister('modal');
+    manager.handleBack();
+    expect(CapApp.exitApp).not.toHaveBeenCalled();
+    expect(toastCallback).toHaveBeenCalledWith(true);
+  });
+
+  it('prevents app exit cascade if an active handler throws an error', () => {
+    const throwingHandler = vi.fn().mockImplementation(() => {
+      throw new Error('Unexpected UI error');
+    });
+
+    manager.register('faulty_modal', throwingHandler, BACK_PRIORITY.GLOBAL_MODAL);
+
+    const handled = manager.handleBack();
+    expect(handled).toBe(true);
+    expect(CapApp.exitApp).not.toHaveBeenCalled();
+  });
+
+  it('cleans up handlers and listeners on destroy', () => {
+    const handler = vi.fn();
+    manager.register('test', handler, BACK_PRIORITY.GLOBAL_MODAL);
+    manager.destroy();
+
+    expect(manager.getActiveHandlers()).toHaveLength(0);
   });
 });

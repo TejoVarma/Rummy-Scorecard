@@ -413,7 +413,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                             return (
                               <td
                                 key={playerId}
-                                className={`py-1 px-0.5 text-center border-r border-[var(--color-border)] last:border-r-0 text-[var(--color-muted)] font-mono text-xs ${
+                                className={`py-1 px-0.5 text-center border-b border-[var(--color-border)] border-r border-[var(--color-border)] last:border-r-0 text-[var(--color-muted)] font-mono text-xs ${
                                   isEdited && isFirstCol ? 'border-l-4 border-l-amber-500' : ''
                                 }`}
                               >
@@ -479,7 +479,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                           return (
                             <td
                               key={playerId}
-                              className={`py-1 px-0.5 text-center border-r border-[var(--color-border)] last:border-r-0 align-middle ${
+                              className={`py-1 px-0.5 text-center border-b border-[var(--color-border)] border-r border-[var(--color-border)] last:border-r-0 align-middle ${
                                 isEdited && isFirstCol ? 'border-l-4 border-l-amber-500' : ''
                               }`}
                             >
@@ -491,8 +491,8 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                     );
                   })}
 
-                  {/* Total Score Grid Row - appears as the next row directly below the rounds matching screenshot */}
-                  <tr className="border-t-2 border-[var(--color-border)]">
+                  {/* Total Score Grid Row - distinct dark theme with explicit top and bottom borders for clear separation */}
+                  <tr className="bg-[#111827] dark:bg-[#090d16]">
                     {seats.map(playerId => {
                       const score = latestScores[playerId] ?? 0;
                       const isDealer = currentDealerId === playerId;
@@ -506,17 +506,17 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                         ? 'text-rose-500 font-extrabold'
                         : dropStatus === 'one_drop'
                         ? 'text-yellow-400 font-extrabold'
-                        : 'text-white font-bold';
+                        : 'text-white font-extrabold';
 
                       return (
                         <td
                           key={playerId}
-                          className={`py-1 px-0.5 text-center border-r border-[var(--color-border)] last:border-r-0 align-middle ${
-                            isDealer ? 'bg-[var(--color-primary)]/10' : ''
+                          className={`py-2 px-0.5 text-center border-t-2 border-t-[var(--color-border)] border-b-2 border-b-[var(--color-border)] border-r border-[var(--color-border)] last:border-r-0 align-middle bg-[#111827] dark:bg-[#090d16] ${
+                            isDealer ? 'bg-[var(--color-primary)]/15' : ''
                           }`}
                         >
                           <div
-                            className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg bg-[#18181b] dark:bg-[#111827] shadow-sm text-center font-mono text-sm sm:text-base ${totalColorClass}`}
+                            className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg bg-black/70 border border-white/10 shadow-inner text-center font-mono text-sm sm:text-base font-extrabold leading-tight ${totalColorClass}`}
                           >
                             {score}
                           </div>

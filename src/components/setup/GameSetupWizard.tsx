@@ -27,6 +27,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
   const [middleDrop, setMiddleDrop] = useState<number>(DEFAULT_RULES.middleDrop);
   const [fullCount, setFullCount] = useState<number>(DEFAULT_RULES.fullCount);
   const [adjustReEntry, setAdjustReEntry] = useState(true);
+  const [entryAmount, setEntryAmount] = useState<string>('100');
 
   // No players selected by default
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -62,6 +63,9 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
     }
 
     const finalPool = customPool ? parseInt(customPool, 10) || poolLimit : poolLimit;
+    const parsedAmount = parseInt(entryAmount, 10);
+    const finalEntryAmount = isNaN(parsedAmount) || parsedAmount < 0 ? 0 : parsedAmount;
+
     const rules: GameRules = {
       poolLimit: finalPool,
       openDrop,
@@ -69,6 +73,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
       fullCount,
       allowReEntry: adjustReEntry,
       reEntryScoreMode: 'highest_plus_one',
+      entryAmount: finalEntryAmount,
     };
 
     const playerObjs: Player[] = selectedPlayers.map((p, idx) => ({
@@ -182,6 +187,58 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
                 onChange={e => setFullCount(Number(e.target.value))}
                 className="w-full text-center text-sm font-mono font-medium text-[var(--color-text)] bg-transparent focus:outline-none"
               />
+            </div>
+          </div>
+
+          {/* Entry Amount / Stake */}
+          <div className="pt-2 border-t border-[var(--color-border)] space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-[var(--color-text)]">
+                Entry Amount per Player (₹)
+              </label>
+              <div className="flex gap-1.5">
+                {[50, 100, 200, 500].map(val => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setEntryAmount(String(val))}
+                    className={`px-2 py-0.5 rounded text-[11px] font-mono font-medium transition ${
+                      entryAmount === String(val)
+                        ? 'bg-[var(--color-primary)] text-white'
+                        : 'bg-[var(--color-subtle)] text-[var(--color-muted)] hover:bg-black/5 dark:hover:bg-white/5'
+                    }`}
+                  >
+                    ₹{val}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1 border border-[var(--color-border)] rounded-lg px-3 py-1.5 bg-[var(--color-subtle)] flex items-center gap-2">
+                <span className="font-bold text-sm text-[var(--color-primary)] font-mono">₹</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={entryAmount}
+                  placeholder="0"
+                  onChange={e => {
+                    const clean = e.target.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+                    setEntryAmount(clean);
+                  }}
+                  className="w-full text-sm font-mono font-bold text-[var(--color-text)] bg-transparent focus:outline-none"
+                />
+              </div>
+
+              {selectedPlayers.length > 0 && (
+                <div className="text-right px-2.5 py-1 rounded bg-[var(--color-subtle)] border border-[var(--color-border)] text-[11px] shrink-0">
+                  <span className="text-[var(--color-muted)] block text-[10px]">Initial Pool</span>
+                  <strong className="text-emerald-500 font-mono font-bold text-xs">
+                    ₹{(parseInt(entryAmount, 10) || 0) * selectedPlayers.length}
+                  </strong>
+                </div>
+              )}
             </div>
           </div>
 

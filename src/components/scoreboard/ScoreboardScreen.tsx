@@ -39,6 +39,11 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
   // Eligible for re-entry: only players who got eliminated in the most recent round
   const eligibleReEntryPlayers = getEligibleForReEntryPlayers(rounds, seats, rules);
 
+  // Pool Stake & Total Amount calculation
+  const entryAmount = rules.entryAmount ?? 0;
+  const totalReEntries = seats.reduce((sum, id) => sum + (players[id]?.reEntryCount ?? 0), 0);
+  const totalPoolAmount = entryAmount * (seats.length + totalReEntries);
+
   const lastRound = rounds.length > 0 ? rounds[rounds.length - 1] : null;
   const isLastRoundEdited = Boolean(lastRound?.isEdited);
 
@@ -71,7 +76,8 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
         });
       } else if (typeof navigator !== 'undefined' && navigator.share) {
         // Fallback for Android WebView / mobile when file sharing is unavailable
-        const summary = `🎴 *Rummy Scorecard: ${title}*\nPool: ${rules.poolLimit} | Rounds: ${rounds.length}\n` +
+        const poolInfo = entryAmount > 0 ? ` | Prize Pool: ₹${totalPoolAmount}` : '';
+        const summary = `🎴 *Rummy Scorecard: ${title}*\nPool: ${rules.poolLimit}${poolInfo} | Rounds: ${rounds.length}\n` +
           seats.map(id => `${players[id]?.name}: ${latestScores[id] ?? 0} pts`).join('\n');
         await navigator.share({ title: `${title} Scorecard`, text: summary });
       } else {
@@ -89,9 +95,10 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
       if (err?.name !== 'AbortError') {
         // Fallback to text share
         if (navigator.share) {
-          const summary = `🎴 *Rummy Scorecard: ${title}*\nPool: ${rules.poolLimit} | Rounds: ${rounds.length}\n` +
+          const poolInfo = entryAmount > 0 ? ` | Prize Pool: ₹${totalPoolAmount}` : '';
+          const summary = `🎴 *Rummy Scorecard: ${title}*\nPool: ${rules.poolLimit}${poolInfo} | Rounds: ${rounds.length}\n` +
             seats.map(id => `${players[id]?.name}: ${latestScores[id] ?? 0} pts`).join('\n');
-          navigator.share({ title: 'Rummy Scorecard', text: summary }).catch(() => {});
+          navigator.share({ title: `${title} Scorecard`, text: summary }).catch(() => {});
         }
       }
     } finally {
@@ -186,7 +193,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
         </div>
 
         {/* Subheader info block matching Screenshot 5 */}
-        <div className="px-4 py-2.5 bg-[var(--color-subtle)] border-b border-[var(--color-border)] text-xs text-[var(--color-muted)] shrink-0">
+        <div className="px-4 py-2 bg-[var(--color-subtle)] border-b border-[var(--color-border)] text-xs text-[var(--color-muted)] shrink-0">
           <div className="flex justify-between items-center py-0.5">
             <span>Game Score: <strong className="text-[var(--color-text)] font-mono">{rules.poolLimit}</strong></span>
             <span>Open drop: <strong className="text-[var(--color-text)] font-mono">{rules.openDrop}</strong></span>
@@ -195,6 +202,23 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
             <span>Middle drop: <strong className="text-[var(--color-text)] font-mono">{rules.middleDrop}</strong></span>
             <span>Full count: <strong className="text-[var(--color-text)] font-mono">{rules.fullCount}</strong></span>
           </div>
+
+          {/* Pool Stake & Total Amount */}
+          {entryAmount > 0 && (
+            <div className="flex justify-between items-center py-1 border-t border-[var(--color-border)] mt-1">
+              <span>Stake: <strong className="text-[var(--color-text)] font-mono">₹{entryAmount}</strong></span>
+              <span className="flex items-center gap-1">
+                <span>Total Pool:</span>
+                <strong className="text-emerald-500 font-mono font-bold text-sm">₹{totalPoolAmount}</strong>
+                {totalReEntries > 0 && (
+                  <span className="text-[10px] text-amber-500 font-semibold font-mono">
+                    (+{totalReEntries * entryAmount})
+                  </span>
+                )}
+              </span>
+            </div>
+          )}
+
           <div className="text-center pt-1 font-medium text-[var(--color-text)]">
             Rounds Completed: <span className="font-mono text-[var(--color-primary)] font-bold">{rounds.length}</span>
           </div>
@@ -206,12 +230,17 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
             <Confetti />
             <div className="mx-3 my-2 p-2.5 rounded-lg bg-[#064e3b] border border-[#059669] flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-amber-400" />
+                <Trophy className="w-5 h-5 text-amber-400 shrink-0" />
                 <div>
                   <span className="text-[10px] text-emerald-300 font-bold uppercase tracking-wider block">Winner Declared</span>
-                  <span className="text-xs font-bold text-white">
+                  <span className="text-xs font-bold text-white block">
                     {players[winnerPlayerId]?.name} won the match!
                   </span>
+                  {entryAmount > 0 && (
+                    <span className="text-xs font-bold text-amber-300 font-mono block mt-0.5">
+                      Prize Pool: ₹{totalPoolAmount}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -229,7 +258,8 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                   const score = latestScores[playerId] ?? 0;
                   const isDealer = currentDealerId === playerId;
                   const isOut = score >= rules.poolLimit;
-                  const isReEntered = (player?.reEntryCount ?? 0) > 0;
+                  const reEntryCount = player?.reEntryCount ?? 0;
+                  const isReEntered = reEntryCount > 0;
 
                   return (
                     <th
@@ -247,16 +277,20 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                             className={`text-xs truncate block font-bold ${
                               isOut ? 'text-rose-400 line-through' : 'text-[var(--color-text)]'
                             }`}
-                            title={isReEntered ? `${player?.name} (re entry)` : player?.name}
+                            title={isReEntered ? `${player?.name} (re-entry x${reEntryCount})` : player?.name}
                           >
                             {player?.name}
                           </span>
                         </div>
 
-                        {/* Explicit (re entry) badge */}
-                        {isReEntered && !isOut && (
-                          <span className="text-[9px] text-[#ef4444] font-bold leading-tight tracking-tight block mt-0.5">
-                            (re entry)
+                        {/* Explicit re-entry badge showing the exact count */}
+                        {isReEntered && (
+                          <span
+                            className={`text-[9px] font-bold leading-tight tracking-tight block mt-0.5 ${
+                              isOut ? 'text-rose-400/80 line-through' : 'text-[#ef4444]'
+                            }`}
+                          >
+                            {reEntryCount === 1 ? '(re entry)' : `(re entry #${reEntryCount})`}
                           </span>
                         )}
                       </div>

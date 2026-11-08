@@ -329,4 +329,68 @@ describe('gameReducer integration tests', () => {
     expect(state.currentDealerIndex).toBe(4);
     expect(state.seats[state.currentDealerIndex]).toBe('p5');
   });
+
+  it('cancels re-entry and restores original seating order when editing the last round', () => {
+    const players = [
+      { id: 'p1', name: 'Tejo', avatarColor: '#3b82f6', reEntryCount: 0 },
+      { id: 'p2', name: 'Bava', avatarColor: '#10b981', reEntryCount: 0 },
+      { id: 'p3', name: 'Rohini', avatarColor: '#f59e0b', reEntryCount: 0 },
+    ];
+
+    let state = gameReducer(INITIAL_STATE, {
+      type: 'START_GAME',
+      payload: {
+        title: 'Re-entry Cancel on Edit Test',
+        rules: { ...DEFAULT_RULES, poolLimit: 100 },
+        players,
+        initialSeats: ['p1', 'p2', 'p3'],
+        initialDealerIndex: 0, // p1 is dealer
+      },
+    });
+
+    // Round 1: p3 gets 105 points and is eliminated!
+    state = gameReducer(state, {
+      type: 'SUBMIT_ROUND',
+      payload: {
+        roundScores: {
+          p1: { type: 'show', points: 0 },
+          p2: { type: 'middle_drop', points: 48 },
+          p3: { type: 'custom', points: 105 },
+        },
+      },
+    });
+
+    expect(state.seats).toEqual(['p1', 'p2', 'p3']);
+
+    // p3 re-enters!
+    state = gameReducer(state, {
+      type: 'RE_ENTER_PLAYER',
+      payload: { playerId: 'p3' },
+    });
+
+    // Seating was relocated to left of dealer p2: ['p1', 'p3', 'p2']
+    expect(state.seats).toEqual(['p1', 'p3', 'p2']);
+    expect(state.players['p3'].reEntryCount).toBe(1);
+
+    // Now edit Round 1: suppose p3 actually had open drop (24 points) instead of 105!
+    state = gameReducer(state, {
+      type: 'EDIT_LAST_ROUND',
+      payload: {
+        roundScores: {
+          p1: { type: 'show', points: 0 },
+          p2: { type: 'middle_drop', points: 48 },
+          p3: { type: 'open_drop', points: 24 }, // NOT eliminated!
+        },
+      },
+    });
+
+    // Re-entry must be cancelled! Seating order must be restored to original ['p1', 'p2', 'p3']
+    expect(state.seats).toEqual(['p1', 'p2', 'p3']);
+    // Re-entry count must be restored to 0
+    expect(state.players['p3'].reEntryCount).toBe(0);
+    expect(state.players['p3'].reEntryScore).toBeUndefined();
+    // Round cumulative scores reflect the edited score 24
+    expect(state.rounds[0].cumulativeScores['p3']).toBe(24);
+    expect(state.rounds[0].reEnteredInRound).toEqual([]);
+  });
 });

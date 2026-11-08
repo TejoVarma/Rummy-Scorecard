@@ -19,6 +19,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 }) => {
   const hasActiveGame = activeGame && activeGame.status === 'playing';
 
+  // Calculate active game pool stake
+  const entryAmount = activeGame?.rules.entryAmount ?? 0;
+  const totalReEntries = activeGame
+    ? activeGame.seats.reduce((sum, id) => sum + (activeGame.players[id]?.reEntryCount ?? 0), 0)
+    : 0;
+  const totalPool = activeGame ? entryAmount * (activeGame.seats.length + totalReEntries) : 0;
+
   return (
     <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] flex flex-col font-sans select-none transition-colors duration-200">
       {/* Top App Bar dynamically colored by current theme */}
@@ -97,6 +104,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               </div>
               <span className="text-[11px] text-[var(--color-muted)] block mt-0.5">
                 {activeGame.title} • Round {activeGame.rounds.length + 1} • {activeGame.seats.length} players
+                {totalPool > 0 && (
+                  <strong className="text-emerald-500 font-mono ml-1 font-bold">
+                    • ₹{totalPool} Pool
+                  </strong>
+                )}
               </span>
             </div>
             <span className="text-xs font-semibold text-[var(--color-primary)] underline">Resume →</span>

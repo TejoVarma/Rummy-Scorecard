@@ -55,14 +55,24 @@ export const ReEntryModal: React.FC<ReEntryModalProps> = ({
       <div className="space-y-4">
         {/* Info Box */}
         <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30 space-y-2">
-          <div className="flex items-center gap-2 text-blue-300 font-bold text-sm">
-            <RotateCw className="w-4 h-4 animate-spin" />
-            Re-entering: {player?.name}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-blue-300 font-bold text-sm">
+              <RotateCw className="w-4 h-4 animate-spin" />
+              Re-entering: {player?.name}
+            </div>
+            <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-200 border border-blue-500/30">
+              Re-entry #{(player?.reEntryCount ?? 0) + 1}
+            </span>
           </div>
           <p className="text-xs opacity-80 leading-relaxed">
             Highest score among active players is <span className="font-mono font-bold text-white">{highestActive}</span>.
             Standard re-entry formula sets their score to <span className="font-mono font-bold text-amber-300">{calculatedScore}</span> (Highest + 1).
           </p>
+          {(rules.entryAmount ?? 0) > 0 && (
+            <p className="text-xs font-semibold text-emerald-400 pt-1 border-t border-blue-500/20">
+              💰 Re-entry stake of <span className="font-mono font-bold">₹{rules.entryAmount}</span> will be added to the total prize pool!
+            </p>
+          )}
         </div>
 
         {/* Score adjustment */}

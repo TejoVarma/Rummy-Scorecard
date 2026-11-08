@@ -7,6 +7,7 @@ export const DEFAULT_RULES: GameRules = {
   fullCount: 80,
   allowReEntry: true,
   reEntryScoreMode: 'highest_plus_one',
+  entryAmount: 0,
 };
 
 export const POOL_PRESETS = [201, 200, 101, 100];

@@ -7,6 +7,7 @@ export interface GameRules {
   fullCount: number;          // default: 80
   allowReEntry: boolean;      // default: true
   reEntryScoreMode: 'highest_plus_one' | 'custom_fixed';
+  entryAmount?: number;       // Pool stake / entry amount per player (e.g. 100)
 }
 
 export type PlayerStatus = 'active' | 'eliminated' | 're_entered';

@@ -15,6 +15,7 @@ export const INITIAL_STATE: GameState = {
     fullCount: 80,
     allowReEntry: true,
     reEntryScoreMode: 'highest_plus_one',
+    entryAmount: 0,
   },
   players: {},
   seats: [],
@@ -119,17 +120,22 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       // Enforce: Edit once only for the last round!
       if (lastRound.isEdited) return state;
 
+      // When editing the last round, cancel any re-entries that occurred after it!
+      // Restore seating order and players to the pre-re-entry snapshot of this round.
+      const restoredSeats = lastRound.seatsSnapshot || state.seats;
+      const restoredPlayers = lastRound.playersSnapshot || state.players;
+
       // Calculate previous cumulative scores prior to the last round
       const prevCumulative: Record<PlayerId, number> =
         lastRoundIndex > 0
           ? state.rounds[lastRoundIndex - 1].cumulativeScores
-          : Object.fromEntries(state.seats.map(id => [id, 0]));
+          : Object.fromEntries(restoredSeats.map(id => [id, 0]));
 
       // Calculate new cumulative scores for the edited round
       const newCumulative: Record<PlayerId, number> = {};
       const eliminatedInRound: PlayerId[] = [];
 
-      for (const id of state.seats) {
+      for (const id of restoredSeats) {
         const prev = prevCumulative[id] ?? 0;
         const roundPts = roundScores[id]?.points ?? 0;
         const total = prev + roundPts;
@@ -140,8 +146,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         }
       }
 
-      // Check active players
-      const activeIds = getActivePlayerIds(state.seats, newCumulative, state.rules.poolLimit);
+      // Check active players on restored seats
+      const activeIds = getActivePlayerIds(restoredSeats, newCumulative, state.rules.poolLimit);
 
       // Check winner condition
       let winnerId: PlayerId | undefined = undefined;
@@ -151,10 +157,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         newStatus = 'completed';
       }
 
-      // Re-evaluate dealer index based on last round's dealer
-      const roundDealerIndex = state.seats.indexOf(lastRound.dealerPlayerId);
+      // Re-evaluate dealer index based on last round's dealer in restored seats
+      const roundDealerIndex = restoredSeats.indexOf(lastRound.dealerPlayerId);
       const nextDealerIdx = getNextDealerIndex(
-        state.seats,
+        restoredSeats,
         roundDealerIndex >= 0 ? roundDealerIndex : 0,
         activeIds,
         eliminatedInRound
@@ -165,6 +171,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         scores: roundScores,
         cumulativeScores: newCumulative,
         eliminatedInRound,
+        reEnteredInRound: [], // Re-entry cancelled upon score editing!
         isEdited: true,
         timestamp: Date.now(),
       };
@@ -176,6 +183,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         status: newStatus,
         winnerPlayerId: winnerId,
+        players: restoredPlayers,
+        seats: restoredSeats,
         currentDealerIndex: nextDealerIdx,
         rounds: newRounds,
       };

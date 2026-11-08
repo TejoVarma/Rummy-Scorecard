@@ -361,7 +361,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
               </tr>
             </thead>
 
-            {/* Table Body (Rounds) */}
+            {/* Table Body (Rounds + Next Grid Total Row) */}
             <tbody className="divide-y divide-[var(--color-border)]">
               {rounds.length === 0 ? (
                 <tr>
@@ -370,174 +370,163 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                   </td>
                 </tr>
               ) : (
-                rounds.map((round, rIdx) => {
-                  const isRowSelected = selectedRoundIndex === rIdx;
-                  const isEdited = Boolean(round.isEdited);
+                <>
+                  {rounds.map((round, rIdx) => {
+                    const isRowSelected = selectedRoundIndex === rIdx;
+                    const isEdited = Boolean(round.isEdited);
 
-                  // Detect if this round is an "All Drop" round (all active opponents took open drop 'D')
-                  const isAllDropRound = (() => {
-                    const scoreEntries = Object.entries(round.scores);
-                    if (scoreEntries.length <= 1) return false;
-                    let showCount = 0;
-                    let dropCount = 0;
-                    for (const [_, info] of scoreEntries) {
-                      if (info.type === 'show' || info.points === 0) {
-                        showCount++;
-                      } else if (info.type === 'open_drop') {
-                        dropCount++;
-                      } else {
-                        return false;
-                      }
-                    }
-                    return showCount === 1 && dropCount > 0;
-                  })();
-
-                  const cellBgClass = isAllDropRound ? 'bg-[#15803d]' : 'bg-[#0078d4]';
-
-                  return (
-                    <tr
-                      key={round.roundNumber}
-                      onClick={() => setSelectedRoundIndex(isRowSelected ? null : rIdx)}
-                      className={`transition-colors cursor-pointer ${
-                        isEdited ? 'bg-amber-500/15' : ''
-                      } ${
-                        isRowSelected ? 'bg-black/5 dark:bg-white/[0.06]' : 'hover:bg-black/[0.02] dark:hover:bg-white/[0.02]'
-                      }`}
-                    >
-                      {seats.map((playerId, colIdx) => {
-                        const scoreInfo = round.scores[playerId];
-                        const isFirstCol = colIdx === 0;
-
-                        if (!scoreInfo) {
-                          return (
-                            <td
-                              key={playerId}
-                              className={`py-1 px-0.5 text-center border-r border-[var(--color-border)] last:border-r-0 text-[var(--color-muted)] font-mono text-xs ${
-                                isEdited && isFirstCol ? 'border-l-4 border-l-amber-500' : ''
-                              }`}
-                            >
-                              -
-                            </td>
-                          );
+                    // Detect if this round is an "All Drop" round (all active opponents took open drop 'D')
+                    const isAllDropRound = (() => {
+                      const scoreEntries = Object.entries(round.scores);
+                      if (scoreEntries.length <= 1) return false;
+                      let showCount = 0;
+                      let dropCount = 0;
+                      for (const [_, info] of scoreEntries) {
+                        if (info.type === 'show' || info.points === 0) {
+                          showCount++;
+                        } else if (info.type === 'open_drop') {
+                          dropCount++;
+                        } else {
+                          return false;
                         }
+                      }
+                      return showCount === 1 && dropCount > 0;
+                    })();
 
-                        // Cell content matching blue or green rounded boxes
-                        const renderScoreCell = () => {
-                          switch (scoreInfo.type) {
-                            case 'show':
-                              return (
-                                <div className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg ${cellBgClass} text-[#facc15] font-bold text-sm text-center shadow-sm`}>
-                                  R
-                                </div>
-                              );
-                            case 'open_drop':
-                              return (
-                                <div className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg ${cellBgClass} text-white font-bold text-sm text-center shadow-sm`}>
-                                  D
-                                </div>
-                              );
-                            case 'middle_drop':
-                              return (
-                                <div className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg ${cellBgClass} text-white font-bold text-sm text-center shadow-sm`}>
-                                  MD
-                                </div>
-                              );
-                            case 'full_count':
-                              return (
-                                <div className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg ${cellBgClass} text-white font-bold text-sm text-center shadow-sm`}>
-                                  FC
-                                </div>
-                              );
-                            case 'out':
-                              return (
-                                <div className="w-full max-w-[48px] mx-auto py-1.5 rounded-lg bg-[#27272a] text-[#71717a] font-bold text-sm text-center">
-                                  X
-                                </div>
-                              );
-                            default: {
-                              const wasReEnteredHere = round.reEnteredInRound?.includes(playerId);
-                              if (wasReEnteredHere) {
+                    const cellBgClass = isAllDropRound ? 'bg-[#15803d]' : 'bg-[#0078d4]';
+
+                    return (
+                      <tr
+                        key={round.roundNumber}
+                        onClick={() => setSelectedRoundIndex(isRowSelected ? null : rIdx)}
+                        className={`transition-colors cursor-pointer ${
+                          isEdited ? 'bg-amber-500/15' : ''
+                        } ${
+                          isRowSelected ? 'bg-black/5 dark:bg-white/[0.06]' : 'hover:bg-black/[0.02] dark:hover:bg-white/[0.02]'
+                        }`}
+                      >
+                        {seats.map((playerId, colIdx) => {
+                          const scoreInfo = round.scores[playerId];
+                          const isFirstCol = colIdx === 0;
+
+                          if (!scoreInfo) {
+                            return (
+                              <td
+                                key={playerId}
+                                className={`py-1 px-0.5 text-center border-r border-[var(--color-border)] last:border-r-0 text-[var(--color-muted)] font-mono text-xs ${
+                                  isEdited && isFirstCol ? 'border-l-4 border-l-amber-500' : ''
+                                }`}
+                              >
+                                -
+                              </td>
+                            );
+                          }
+
+                          // Cell content matching blue or green rounded boxes
+                          const renderScoreCell = () => {
+                            switch (scoreInfo.type) {
+                              case 'show':
                                 return (
-                                  <div className={`w-full max-w-[48px] mx-auto py-1 rounded-lg ${cellBgClass} text-center shadow-sm flex items-center justify-center gap-0.5`}>
-                                    <span className="text-[#ef4444] font-extrabold text-xs">RE</span>
-                                    <span className="text-[#4ade80] font-mono font-bold text-[10px] align-sub">
-                                      {scoreInfo.points}
-                                    </span>
+                                  <div className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg ${cellBgClass} text-[#facc15] font-bold text-sm text-center shadow-sm`}>
+                                    R
+                                  </div>
+                                );
+                              case 'open_drop':
+                                return (
+                                  <div className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg ${cellBgClass} text-white font-bold text-sm text-center shadow-sm`}>
+                                    D
+                                  </div>
+                                );
+                              case 'middle_drop':
+                                return (
+                                  <div className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg ${cellBgClass} text-white font-bold text-sm text-center shadow-sm`}>
+                                    MD
+                                  </div>
+                                );
+                              case 'full_count':
+                                return (
+                                  <div className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg ${cellBgClass} text-white font-bold text-sm text-center shadow-sm`}>
+                                    FC
+                                  </div>
+                                );
+                              case 'out':
+                                return (
+                                  <div className="w-full max-w-[48px] mx-auto py-1.5 rounded-lg bg-[#27272a] text-[#71717a] font-bold text-sm text-center">
+                                    X
+                                  </div>
+                                );
+                              default: {
+                                const wasReEnteredHere = round.reEnteredInRound?.includes(playerId);
+                                if (wasReEnteredHere) {
+                                  return (
+                                    <div className={`w-full max-w-[48px] mx-auto py-1 rounded-lg ${cellBgClass} text-center shadow-sm flex items-center justify-center gap-0.5`}>
+                                      <span className="text-[#ef4444] font-extrabold text-xs">RE</span>
+                                      <span className="text-[#4ade80] font-mono font-bold text-[10px] align-sub">
+                                        {scoreInfo.points}
+                                      </span>
+                                    </div>
+                                  );
+                                }
+                                return (
+                                  <div className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg ${cellBgClass} text-white font-bold text-sm text-center shadow-sm font-mono`}>
+                                    {scoreInfo.points}
                                   </div>
                                 );
                               }
-                              return (
-                                <div className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg ${cellBgClass} text-white font-bold text-sm text-center shadow-sm font-mono`}>
-                                  {scoreInfo.points}
-                                </div>
-                              );
                             }
-                          }
-                        };
+                          };
 
-                        return (
-                          <td
-                            key={playerId}
-                            className={`py-1 px-0.5 text-center border-r border-[var(--color-border)] last:border-r-0 align-middle ${
-                              isEdited && isFirstCol ? 'border-l-4 border-l-amber-500' : ''
-                            }`}
+                          return (
+                            <td
+                              key={playerId}
+                              className={`py-1 px-0.5 text-center border-r border-[var(--color-border)] last:border-r-0 align-middle ${
+                                isEdited && isFirstCol ? 'border-l-4 border-l-amber-500' : ''
+                              }`}
+                            >
+                              {renderScoreCell()}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+
+                  {/* Total Score Grid Row - appears as the next row directly below the rounds matching screenshot */}
+                  <tr className="border-t-2 border-[var(--color-border)]">
+                    {seats.map(playerId => {
+                      const score = latestScores[playerId] ?? 0;
+                      const isDealer = currentDealerId === playerId;
+                      const isOut = score >= rules.poolLimit;
+                      const dropAnalysis = dropAnalysisMap[playerId];
+                      const dropStatus = dropAnalysis?.status ?? 'safe';
+
+                      const totalColorClass = isOut
+                        ? 'text-rose-400 line-through'
+                        : dropStatus === 'compulsory'
+                        ? 'text-rose-500 font-extrabold'
+                        : dropStatus === 'one_drop'
+                        ? 'text-yellow-400 font-extrabold'
+                        : 'text-white font-bold';
+
+                      return (
+                        <td
+                          key={playerId}
+                          className={`py-1 px-0.5 text-center border-r border-[var(--color-border)] last:border-r-0 align-middle ${
+                            isDealer ? 'bg-[var(--color-primary)]/10' : ''
+                          }`}
+                        >
+                          <div
+                            className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg bg-[#18181b] dark:bg-[#111827] shadow-sm text-center font-mono text-sm sm:text-base ${totalColorClass}`}
                           >
-                            {renderScoreCell()}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  );
-                })
+                            {score}
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                </>
               )}
             </tbody>
-
-            {/* Sticky Total Footer below all round rows */}
-            <tfoot className="sticky bottom-0 z-20 bg-[#18181b] dark:bg-[#111827] border-t-2 border-[var(--color-border)] shadow-[0_-2px_8px_rgba(0,0,0,0.12)]">
-              <tr>
-                {seats.map(playerId => {
-                  const score = latestScores[playerId] ?? 0;
-                  const isDealer = currentDealerId === playerId;
-                  const isOut = score >= rules.poolLimit;
-                  const dropAnalysis = dropAnalysisMap[playerId];
-                  const dropStatus = dropAnalysis?.status ?? 'safe';
-
-                  const totalColorClass = isOut
-                    ? 'text-rose-400 line-through'
-                    : dropStatus === 'compulsory'
-                    ? 'text-rose-500 font-extrabold'
-                    : dropStatus === 'one_drop'
-                    ? 'text-yellow-400 font-extrabold'
-                    : 'text-white font-extrabold';
-
-                  const oneDropFooterLabel = dropAnalysis.canMiddleDrop ? '1 DROP' : '1 DROP (NO MD)';
-
-                  return (
-                    <td
-                      key={playerId}
-                      style={isCompactFit ? { width: `${100 / seats.length}%` } : { minWidth: '60px' }}
-                      className={`py-2 px-1 text-center border-r border-[var(--color-border)] last:border-r-0 ${
-                        isDealer ? 'bg-[var(--color-primary)]/15' : ''
-                      }`}
-                    >
-                      <div className={`text-base sm:text-lg font-extrabold font-mono leading-tight ${totalColorClass}`}>
-                        {score}
-                      </div>
-                      {!isOut && dropStatus === 'compulsory' && (
-                        <div className="text-[8px] font-extrabold uppercase text-rose-500 tracking-tight leading-none mt-0.5">
-                          COMPULSORY
-                        </div>
-                      )}
-                      {!isOut && dropStatus === 'one_drop' && (
-                        <div className="text-[8px] font-extrabold uppercase text-yellow-400 tracking-tight leading-none mt-0.5">
-                          {oneDropFooterLabel}
-                        </div>
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
-            </tfoot>
           </table>
         </div>
       </div>

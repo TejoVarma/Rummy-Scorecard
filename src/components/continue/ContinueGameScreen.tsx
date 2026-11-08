@@ -92,6 +92,10 @@ export const ContinueGameScreen: React.FC<ContinueGameScreenProps> = ({
                       <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)] animate-pulse" />
                       Round {game.rounds.length + 1}
                     </span>
+                  ) : game.dealSplit ? (
+                    <span className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/20 text-amber-500 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1">
+                      🤝 Deal (₹{game.dealSplit.totalPool})
+                    </span>
                   ) : (
                     <span className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
                       <Trophy className="w-2.5 h-2.5" /> Won: {winner?.name || 'Complete'}
@@ -100,7 +104,7 @@ export const ContinueGameScreen: React.FC<ContinueGameScreenProps> = ({
                 </div>
 
                 {/* Sub details: Pool and Players */}
-                <div className="space-y-1 text-xs text-[var(--color-muted)]">
+                <div className="space-y-1.5 text-xs text-[var(--color-muted)]">
                   <div className="flex items-center gap-2">
                     <span className="px-1.5 py-0.5 rounded bg-[var(--color-subtle)] font-mono text-[11px] text-[var(--color-text)]">
                       {game.rules.poolLimit} Pool
@@ -108,6 +112,12 @@ export const ContinueGameScreen: React.FC<ContinueGameScreenProps> = ({
                     <span>•</span>
                     <span>{game.rounds.length} rounds played</span>
                   </div>
+
+                  {game.dealSplit && (
+                    <div className="text-[11px] text-amber-400 font-mono bg-amber-500/10 px-2.5 py-1 rounded-md border border-amber-500/20 truncate">
+                      🤝 {Object.entries(game.dealSplit.payouts).map(([id, amt]) => `${game.players[id]?.name || 'Player'}: ₹${amt}`).join(', ')}
+                    </div>
+                  )}
 
                   <div className="flex items-center gap-1.5 text-[11px] text-[var(--color-muted)] truncate">
                     <Users className="w-3.5 h-3.5 opacity-60 shrink-0" />

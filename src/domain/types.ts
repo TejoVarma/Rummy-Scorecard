@@ -47,6 +47,16 @@ export interface RoundRecord {
   isEdited?: boolean;
 }
 
+export type DealMode = 'proportional' | 'equal' | 'custom';
+
+export interface DealSplit {
+  mode: DealMode;
+  payouts: Record<PlayerId, number>;       // PlayerId -> payout amount in currency (₹)
+  scoresSnapshot: Record<PlayerId, number>; // Scores when deal was finalized
+  totalPool: number;                       // Total pool distributed
+  timestamp: number;
+}
+
 export interface GameState {
   gameId: string;
   title: string;
@@ -58,4 +68,5 @@ export interface GameState {
   currentDealerIndex: number;        // Index in seats array
   rounds: RoundRecord[];
   winnerPlayerId?: PlayerId;
+  dealSplit?: DealSplit;
 }

@@ -133,6 +133,8 @@ export const App: React.FC = () => {
           onOpenSettings={() => setIsSettingsOpen(true)}
           onPromptReEntry={id => setReEntryTargetPlayerId(id)}
           onDeleteGame={handleDeleteGame}
+          onAcceptDeal={dealSplit => dispatch({ type: 'ACCEPT_DEAL', payload: { dealSplit } })}
+          onCancelDeal={() => dispatch({ type: 'CANCEL_DEAL' })}
         />
       )}
 

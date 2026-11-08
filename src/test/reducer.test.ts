@@ -393,4 +393,47 @@ describe('gameReducer integration tests', () => {
     expect(state.rounds[0].cumulativeScores['p3']).toBe(24);
     expect(state.rounds[0].reEnteredInRound).toEqual([]);
   });
+
+  it('completes game on ACCEPT_DEAL and reopens on CANCEL_DEAL', () => {
+    const players = [
+      { id: 'p1', name: 'Akka', avatarColor: '#10b981', reEntryCount: 0 },
+      { id: 'p2', name: 'Pavan', avatarColor: '#3b82f6', reEntryCount: 0 },
+    ];
+
+    let state = gameReducer(INITIAL_STATE, {
+      type: 'START_GAME',
+      payload: {
+        title: 'Deal Test',
+        rules: { ...DEFAULT_RULES, poolLimit: 201, entryAmount: 100 },
+        players,
+        initialSeats: ['p1', 'p2'],
+        initialDealerIndex: 0,
+      },
+    });
+
+    expect(state.status).toBe('playing');
+    expect(state.dealSplit).toBeUndefined();
+
+    state = gameReducer(state, {
+      type: 'ACCEPT_DEAL',
+      payload: {
+        dealSplit: {
+          mode: 'proportional',
+          payouts: { p1: 140, p2: 60 },
+          scoresSnapshot: { p1: 50, p2: 120 },
+          totalPool: 200,
+          timestamp: 12345678,
+        },
+      },
+    });
+
+    expect(state.status).toBe('completed');
+    expect(state.dealSplit).toBeDefined();
+    expect(state.dealSplit?.payouts).toEqual({ p1: 140, p2: 60 });
+
+    // Cancel / Reopen deal
+    state = gameReducer(state, { type: 'CANCEL_DEAL' });
+    expect(state.status).toBe('playing');
+    expect(state.dealSplit).toBeUndefined();
+  });
 });

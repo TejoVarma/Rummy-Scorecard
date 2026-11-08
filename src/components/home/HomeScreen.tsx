@@ -104,8 +104,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 <span className={`w-2 h-2 rounded-full ${activeGame.status === 'playing' ? 'bg-[var(--color-primary)] animate-pulse' : 'bg-emerald-500'}`} />
                 <span className="font-semibold text-xs text-[var(--color-text)]">Last Game</span>
                 {activeGame.status === 'completed' && (
-                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">
-                    Finished
+                  <span
+                    className={`text-[10px] px-1.5 py-0.2 rounded font-bold border ${
+                      activeGame.dealSplit
+                        ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                        : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                    }`}
+                  >
+                    {activeGame.dealSplit ? '🤝 Deal Split' : 'Finished'}
                   </span>
                 )}
               </div>

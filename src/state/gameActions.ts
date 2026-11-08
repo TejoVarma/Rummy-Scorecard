@@ -41,6 +41,15 @@ export type GameAction =
       };
     }
   | {
+      type: 'ACCEPT_DEAL';
+      payload: {
+        dealSplit: import('../domain/types').DealSplit;
+      };
+    }
+  | {
+      type: 'CANCEL_DEAL';
+    }
+  | {
       type: 'RESET_GAME';
     }
   | {

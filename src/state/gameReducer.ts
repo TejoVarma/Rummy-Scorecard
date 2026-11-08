@@ -313,6 +313,22 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
     }
 
+    case 'ACCEPT_DEAL': {
+      return {
+        ...state,
+        status: 'completed',
+        dealSplit: action.payload.dealSplit,
+      };
+    }
+
+    case 'CANCEL_DEAL': {
+      const { dealSplit: _removed, ...rest } = state;
+      return {
+        ...rest,
+        status: 'playing',
+      };
+    }
+
     case 'RESET_GAME': {
       return INITIAL_STATE;
     }

@@ -421,7 +421,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
           disabled={rounds.length === 0 || isLastRoundEdited}
           className="w-full py-2.5 rounded-full font-semibold text-xs border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 disabled:opacity-40 transition active:scale-[0.99] tracking-wider"
         >
-          {isLastRoundEdited ? 'EDIT SCORE (1/1 USED)' : 'EDIT SCORE'}
+          EDIT SCORE
         </button>
       </div>
     </div>

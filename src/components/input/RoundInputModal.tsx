@@ -72,9 +72,14 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
     });
   };
 
-  const handleCustomScoreChange = (playerId: PlayerId, val: string) => {
+  const handleCustomScoreChange = (playerId: PlayerId, rawVal: string) => {
     setErrorMessage(null);
-    if (val.trim() === '') {
+    // Remove all non-digits
+    let clean = rawVal.replace(/\D/g, '');
+    // Strip leading zeroes when followed by digits (e.g. "05" -> "5", "056" -> "56")
+    clean = clean.replace(/^0+(?=\d)/, '');
+
+    if (clean === '') {
       setScores(prev => {
         const next = { ...prev };
         delete next[playerId];
@@ -83,7 +88,7 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
       return;
     }
 
-    const parsed = parseInt(val, 10);
+    const parsed = parseInt(clean, 10);
     const pts = isNaN(parsed) ? 0 : Math.min(Math.max(0, parsed), rules.fullCount);
     setScores(prev => ({
       ...prev,
@@ -186,52 +191,92 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
 
                   {/* Render Badge when selected, exactly like screenshot */}
                   {currentInput?.type === 'show' && (
-                    <span className="px-3.5 py-1 rounded-full bg-[#16a34a] text-white font-medium text-xs leading-none shadow-sm">
+                    <span
+                      onClick={() => {
+                        setScores(prev => {
+                          const next = { ...prev };
+                          delete next[playerId];
+                          return next;
+                        });
+                      }}
+                      className="px-3.5 py-1 rounded-full bg-[#16a34a] text-white font-medium text-xs leading-none shadow-sm cursor-pointer"
+                      title="Tap to clear"
+                    >
                       Show
                     </span>
                   )}
                   {currentInput?.type === 'open_drop' && (
-                    <span className="px-3.5 py-1 rounded-full bg-[#ea580c] text-white font-medium text-xs leading-none shadow-sm">
+                    <span
+                      onClick={() => {
+                        setScores(prev => {
+                          const next = { ...prev };
+                          delete next[playerId];
+                          return next;
+                        });
+                      }}
+                      className="px-3.5 py-1 rounded-full bg-[#ea580c] text-white font-medium text-xs leading-none shadow-sm cursor-pointer"
+                      title="Tap to clear"
+                    >
                       Drop
                     </span>
                   )}
                   {currentInput?.type === 'middle_drop' && (
-                    <span className="px-3.5 py-1 rounded-full bg-[#ca8a04] text-white font-medium text-xs leading-none shadow-sm">
+                    <span
+                      onClick={() => {
+                        setScores(prev => {
+                          const next = { ...prev };
+                          delete next[playerId];
+                          return next;
+                        });
+                      }}
+                      className="px-3.5 py-1 rounded-full bg-[#ca8a04] text-white font-medium text-xs leading-none shadow-sm cursor-pointer"
+                      title="Tap to clear"
+                    >
                       M Drop
                     </span>
                   )}
                   {currentInput?.type === 'full_count' && (
-                    <span className="px-3.5 py-1 rounded-full bg-[#7c3aed] text-white font-medium text-xs leading-none shadow-sm">
+                    <span
+                      onClick={() => {
+                        setScores(prev => {
+                          const next = { ...prev };
+                          delete next[playerId];
+                          return next;
+                        });
+                      }}
+                      className="px-3.5 py-1 rounded-full bg-[#7c3aed] text-white font-medium text-xs leading-none shadow-sm cursor-pointer"
+                      title="Tap to clear"
+                    >
                       Full
                     </span>
                   )}
                   {currentInput?.type === 'out' && (
-                    <span className="px-3.5 py-1 rounded-full bg-[#dc2626] text-white font-medium text-xs leading-none shadow-sm">
+                    <span
+                      onClick={() => {
+                        setScores(prev => {
+                          const next = { ...prev };
+                          delete next[playerId];
+                          return next;
+                        });
+                      }}
+                      className="px-3.5 py-1 rounded-full bg-[#dc2626] text-white font-medium text-xs leading-none shadow-sm cursor-pointer"
+                      title="Tap to clear"
+                    >
                       Out
                     </span>
                   )}
 
-                  {/* If custom numeric score */}
-                  {currentInput?.type === 'custom' && (
+                  {/* Single controlled numeric text input when no preset pill badge is active */}
+                  {(!currentInput || currentInput.type === 'custom') && (
                     <input
-                      type="number"
-                      min={0}
-                      max={rules.fullCount}
-                      value={currentInput.points}
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={3}
+                      placeholder=""
+                      value={currentInput?.type === 'custom' ? currentInput.points : ''}
                       onChange={e => handleCustomScoreChange(playerId, e.target.value)}
                       className="w-full text-center font-mono font-bold text-sm bg-transparent border-none text-[var(--color-text)] focus:outline-none"
-                    />
-                  )}
-
-                  {/* If empty / unselected */}
-                  {!currentInput && (
-                    <input
-                      type="number"
-                      min={0}
-                      max={rules.fullCount}
-                      placeholder=""
-                      onChange={e => handleCustomScoreChange(playerId, e.target.value)}
-                      className="w-full text-center font-mono text-sm bg-transparent border-none text-[var(--color-text)] focus:outline-none placeholder-zinc-500"
                     />
                   )}
                 </div>

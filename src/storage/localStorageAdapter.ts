@@ -26,6 +26,7 @@ export function loadAllSavedGames(): GameState[] {
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed.filter(isValidGameState) : [];
   } catch (e) {
+    console.warn('Failed to parse saved games list from storage:', e);
     return [];
   }
 }

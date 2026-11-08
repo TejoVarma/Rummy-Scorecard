@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { GameState, PlayerId } from '../../domain/types';
 import { getEligibleForReEntryPlayers, analyzePlayerDrops } from '../../domain/elimination';
 import { Confetti } from '../common/Confetti';
@@ -44,6 +44,22 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
     rounds.length > 0
       ? rounds[rounds.length - 1].cumulativeScores
       : Object.fromEntries(seats.map(id => [id, 0]));
+
+  // Memoized drop analysis for each seat (avoids recalculating in header and footer)
+  const dropAnalysisMap = useMemo(() => {
+    return Object.fromEntries(
+      seats.map(id => [
+        id,
+        analyzePlayerDrops(
+          latestScores[id] ?? 0,
+          rules.poolLimit,
+          rules.openDrop,
+          rules.middleDrop,
+          rules.fullCount
+        ),
+      ])
+    );
+  }, [seats, latestScores, rules]);
 
   // Eligible for re-entry: only players who got eliminated in the most recent round
   const eligibleReEntryPlayers = getEligibleForReEntryPlayers(rounds, seats, rules);
@@ -267,8 +283,8 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                   const score = latestScores[playerId] ?? 0;
                   const isDealer = currentDealerId === playerId;
                   const isOut = score >= rules.poolLimit;
-                  const dropAnalysis = analyzePlayerDrops(score, rules.poolLimit, rules.openDrop, rules.middleDrop, rules.fullCount);
-                  const dropStatus = dropAnalysis.status;
+                  const dropAnalysis = dropAnalysisMap[playerId];
+                  const dropStatus = dropAnalysis?.status ?? 'safe';
                   const reEntryCount = player?.reEntryCount ?? 0;
                   const isReEntered = reEntryCount > 0;
 
@@ -449,8 +465,8 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                   const score = latestScores[playerId] ?? 0;
                   const isDealer = currentDealerId === playerId;
                   const isOut = score >= rules.poolLimit;
-                  const dropAnalysis = analyzePlayerDrops(score, rules.poolLimit, rules.openDrop, rules.middleDrop, rules.fullCount);
-                  const dropStatus = dropAnalysis.status;
+                  const dropAnalysis = dropAnalysisMap[playerId];
+                  const dropStatus = dropAnalysis?.status ?? 'safe';
 
                   const totalColorClass = isOut
                     ? 'text-rose-500 line-through'

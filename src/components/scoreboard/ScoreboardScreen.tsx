@@ -491,8 +491,8 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                     );
                   })}
 
-                  {/* Total Score Grid Row - distinct dark theme with explicit top and bottom borders for clear separation */}
-                  <tr className="bg-[#111827] dark:bg-[#090d16]">
+                  {/* Total Score Grid Row - clean, elegant dark tile matching the grid seamlessly */}
+                  <tr className="bg-black/[0.03] dark:bg-white/[0.02]">
                     {seats.map(playerId => {
                       const score = latestScores[playerId] ?? 0;
                       const isDealer = currentDealerId === playerId;
@@ -501,22 +501,22 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                       const dropStatus = dropAnalysis?.status ?? 'safe';
 
                       const totalColorClass = isOut
-                        ? 'text-rose-400 line-through'
+                        ? 'text-rose-400/70 line-through'
                         : dropStatus === 'compulsory'
-                        ? 'text-rose-500 font-extrabold'
+                        ? 'text-rose-400 font-bold'
                         : dropStatus === 'one_drop'
-                        ? 'text-yellow-400 font-extrabold'
-                        : 'text-white font-extrabold';
+                        ? 'text-yellow-400 font-bold'
+                        : 'text-white font-bold';
 
                       return (
                         <td
                           key={playerId}
-                          className={`py-2 px-0.5 text-center border-t-2 border-t-[var(--color-border)] border-b-2 border-b-[var(--color-border)] border-r border-[var(--color-border)] last:border-r-0 align-middle bg-[#111827] dark:bg-[#090d16] ${
-                            isDealer ? 'bg-[var(--color-primary)]/15' : ''
+                          className={`py-1 px-0.5 text-center border-b border-[var(--color-border)] border-r border-[var(--color-border)] last:border-r-0 align-middle ${
+                            isDealer ? 'bg-[var(--color-primary)]/10' : ''
                           }`}
                         >
                           <div
-                            className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg bg-black/70 border border-white/10 shadow-inner text-center font-mono text-sm sm:text-base font-extrabold leading-tight ${totalColorClass}`}
+                            className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg bg-[#1e293b] dark:bg-[#18181b] text-center font-mono text-sm shadow-sm ${totalColorClass}`}
                           >
                             {score}
                           </div>

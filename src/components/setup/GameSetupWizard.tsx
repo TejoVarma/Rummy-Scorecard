@@ -28,11 +28,8 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
   const [fullCount, setFullCount] = useState<number>(DEFAULT_RULES.fullCount);
   const [adjustReEntry, setAdjustReEntry] = useState(true);
 
-  // Load initial players from roster
-  const [selectedIds, setSelectedIds] = useState<string[]>(() => {
-    const saved = loadPlayerRoster();
-    return saved.slice(0, 4).map(p => p.id);
-  });
+  // No players selected by default
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const [isSelectModalOpen, setIsSelectModalOpen] = useState(false);
 
@@ -55,10 +52,6 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
   };
 
   const removePlayer = (id: string) => {
-    if (selectedIds.length <= 2) {
-      alert('A rummy game requires at least 2 players.');
-      return;
-    }
     setSelectedIds(prev => prev.filter(item => item !== id));
   };
 
@@ -226,7 +219,17 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
 
           {/* Selected Players list */}
           <div className="space-y-1.5 pt-1">
-            {selectedPlayers.map((player, idx) => {
+            {selectedPlayers.length === 0 ? (
+              <div
+                onClick={() => setIsSelectModalOpen(true)}
+                className="py-6 px-4 rounded-lg border border-dashed border-[var(--color-border)] text-center cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition"
+              >
+                <span className="text-xs text-[var(--color-muted)]">
+                  No players selected yet.<br />Tap <strong className="text-[var(--color-primary)]">SELECT PLAYERS</strong> to choose players in seating order.
+                </span>
+              </div>
+            ) : (
+              selectedPlayers.map((player, idx) => {
               const isHighest = idx === 0;
               const isLeast = idx === selectedPlayers.length - 1;
 
@@ -285,7 +288,8 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
                   </div>
                 </div>
               );
-            })}
+            })
+          )}
           </div>
         </div>
 

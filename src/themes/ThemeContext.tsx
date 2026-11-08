@@ -23,13 +23,21 @@ const isValidColorMode = (mode: unknown): mode is ColorMode =>
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [themeId, setThemeIdState] = useState<ThemeId>(() => {
-    const raw = localStorage.getItem(THEME_STORAGE_KEY);
-    return isValidThemeId(raw) ? raw : 'slate_dark';
+    try {
+      const raw = localStorage.getItem(THEME_STORAGE_KEY);
+      return isValidThemeId(raw) ? raw : 'slate_dark';
+    } catch {
+      return 'slate_dark';
+    }
   });
 
   const [colorMode, setColorModeState] = useState<ColorMode>(() => {
-    const raw = localStorage.getItem(MODE_STORAGE_KEY);
-    return isValidColorMode(raw) ? raw : 'dark';
+    try {
+      const raw = localStorage.getItem(MODE_STORAGE_KEY);
+      return isValidColorMode(raw) ? raw : 'dark';
+    } catch {
+      return 'dark';
+    }
   });
 
   const theme = THEMES[themeId] || THEMES.slate_dark;
@@ -37,13 +45,21 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const setThemeId = (id: ThemeId) => {
     if (!isValidThemeId(id)) return;
     setThemeIdState(id);
-    localStorage.setItem(THEME_STORAGE_KEY, id);
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, id);
+    } catch {
+      // Storage unavailable or quota exceeded
+    }
   };
 
   const setColorMode = (mode: ColorMode) => {
     if (!isValidColorMode(mode)) return;
     setColorModeState(mode);
-    localStorage.setItem(MODE_STORAGE_KEY, mode);
+    try {
+      localStorage.setItem(MODE_STORAGE_KEY, mode);
+    } catch {
+      // Storage unavailable or quota exceeded
+    }
   };
 
   const toggleColorMode = () => {

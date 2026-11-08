@@ -1,4 +1,4 @@
-import { GameRules, Player, PlayerId, ScoreInputType } from '../domain/types';
+import { GameRules, GameState, Player, PlayerId, ScoreInputType } from '../domain/types';
 
 export type GameAction =
   | {
@@ -45,5 +45,5 @@ export type GameAction =
     }
   | {
       type: 'LOAD_GAME';
-      payload: any;
+      payload: GameState;
     };

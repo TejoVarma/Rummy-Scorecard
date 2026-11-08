@@ -4,6 +4,11 @@ export const Confetti: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
+    // Respect user's motion preferences
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -25,8 +30,18 @@ export const Confetti: React.FC = () => {
     }));
 
     let animationFrameId: number;
+    let isRunning = true;
+
+    // Auto-stop confetti after 5 seconds to prevent battery drain
+    const stopTimer = setTimeout(() => {
+      isRunning = false;
+      if (ctx && canvas) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }, 5000);
 
     const render = () => {
+      if (!isRunning) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       particles.forEach(p => {
@@ -60,6 +75,8 @@ export const Confetti: React.FC = () => {
 
     window.addEventListener('resize', handleResize);
     return () => {
+      isRunning = false;
+      clearTimeout(stopTimer);
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', handleResize);
     };

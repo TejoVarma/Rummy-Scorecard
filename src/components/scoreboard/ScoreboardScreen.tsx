@@ -2,8 +2,7 @@ import React, { useState, useRef, useMemo } from 'react';
 import { GameState, PlayerId } from '../../domain/types';
 import { getEligibleForReEntryPlayers, analyzePlayerDrops } from '../../domain/elimination';
 import { Confetti } from '../common/Confetti';
-import { toBlob } from 'html-to-image';
-import { Settings, Trophy, Crown, Share2, Trash2, ArrowLeft, UserPlus, Loader2 } from 'lucide-react';
+import { Settings, Trophy, Share2, Trash2, ArrowLeft, UserPlus, Loader2 } from 'lucide-react';
 import { useBackButton, BACK_PRIORITY } from '../../hooks/useBackButton';
 
 interface ScoreboardScreenProps {
@@ -71,6 +70,18 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
 
   const lastRound = rounds.length > 0 ? rounds[rounds.length - 1] : null;
   const isLastRoundEdited = Boolean(lastRound?.isEdited);
+  const [dismissedRoundToast, setDismissedRoundToast] = useState<number | null>(null);
+
+  // Identify winner of the last completed round for congrats toast
+  const lastRoundWinnerId = useMemo(() => {
+    if (!lastRound) return null;
+    for (const [pId, scoreInfo] of Object.entries(lastRound.scores)) {
+      if (scoreInfo.type === 'show' || scoreInfo.points === 0) {
+        return pId;
+      }
+    }
+    return null;
+  }, [lastRound]);
 
   // Generate and share or download image of current scoreboard matrix
   const handleShareScorecard = async () => {
@@ -78,6 +89,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
     setIsSharingImage(true);
 
     try {
+      const { toBlob } = await import('html-to-image');
       const rootStyles = getComputedStyle(document.documentElement);
       const bgColor = rootStyles.getPropertyValue('--color-bg').trim() || '#0f172a';
 
@@ -93,18 +105,20 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
       const fileName = `${safeTitle}-round-${rounds.length}.png`;
       const file = new File([blob], fileName, { type: 'image/png' });
 
+      const safeShareTitle = title.replace(/[\r\n]/g, ' ').trim();
+      const poolInfo = entryAmount > 0 ? ` | Prize Pool: ₹${totalPoolAmount}` : '';
+      const summary = `🎴 *Rummy Scorecard: ${safeShareTitle}*\nPool: ${rules.poolLimit}${poolInfo} | Rounds: ${rounds.length}\n` +
+        seats.map(id => `${players[id]?.name}: ${latestScores[id] ?? 0} pts`).join('\n');
+
       if (typeof navigator !== 'undefined' && navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
-          title: `${title} Scorecard`,
-          text: `Rummy Scorecard: ${title} (Pool ${rules.poolLimit})`,
+          title: `${safeShareTitle} Scorecard`,
+          text: `Rummy Scorecard: ${safeShareTitle} (Pool ${rules.poolLimit})`,
           files: [file],
         });
       } else if (typeof navigator !== 'undefined' && navigator.share) {
         // Fallback for Android WebView / mobile when file sharing is unavailable
-        const poolInfo = entryAmount > 0 ? ` | Prize Pool: ₹${totalPoolAmount}` : '';
-        const summary = `🎴 *Rummy Scorecard: ${title}*\nPool: ${rules.poolLimit}${poolInfo} | Rounds: ${rounds.length}\n` +
-          seats.map(id => `${players[id]?.name}: ${latestScores[id] ?? 0} pts`).join('\n');
-        await navigator.share({ title: `${title} Scorecard`, text: summary });
+        await navigator.share({ title: `${safeShareTitle} Scorecard`, text: summary });
       } else {
         // Desktop browser download fallback
         const downloadUrl = URL.createObjectURL(blob);
@@ -120,10 +134,11 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
       if (err?.name !== 'AbortError') {
         // Fallback to text share
         if (navigator.share) {
+          const safeShareTitle = title.replace(/[\r\n]/g, ' ').trim();
           const poolInfo = entryAmount > 0 ? ` | Prize Pool: ₹${totalPoolAmount}` : '';
-          const summary = `🎴 *Rummy Scorecard: ${title}*\nPool: ${rules.poolLimit}${poolInfo} | Rounds: ${rounds.length}\n` +
+          const summary = `🎴 *Rummy Scorecard: ${safeShareTitle}*\nPool: ${rules.poolLimit}${poolInfo} | Rounds: ${rounds.length}\n` +
             seats.map(id => `${players[id]?.name}: ${latestScores[id] ?? 0} pts`).join('\n');
-          navigator.share({ title: `${title} Scorecard`, text: summary }).catch(() => {});
+          navigator.share({ title: `${safeShareTitle} Scorecard`, text: summary }).catch(() => {});
         }
       }
     } finally {
@@ -217,26 +232,26 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
           {title} • Scoreboard
         </div>
 
-        {/* Subheader info block matching Screenshot 5 */}
-        <div className="px-4 py-2 bg-[var(--color-subtle)] border-b border-[var(--color-border)] text-xs text-[var(--color-muted)] shrink-0">
+        {/* Subheader info block matching Screenshot 1 & 2 */}
+        <div className="px-4 py-2.5 bg-gradient-to-r from-[#0078d4] via-[#0284c7] to-[#1e40af] text-white border-b border-black/10 text-xs shadow-inner shrink-0">
           <div className="flex justify-between items-center py-0.5">
-            <span>Game Score: <strong className="text-[var(--color-text)] font-mono">{rules.poolLimit}</strong></span>
-            <span>Open drop: <strong className="text-[var(--color-text)] font-mono">{rules.openDrop}</strong></span>
+            <span className="text-white/90">Game Score: <strong className="text-white font-mono font-bold text-sm">{rules.poolLimit}</strong></span>
+            <span className="text-white/90">Open drop: <strong className="text-white font-mono font-bold text-sm">{rules.openDrop}</strong></span>
           </div>
           <div className="flex justify-between items-center py-0.5">
-            <span>Middle drop: <strong className="text-[var(--color-text)] font-mono">{rules.middleDrop}</strong></span>
-            <span>Full count: <strong className="text-[var(--color-text)] font-mono">{rules.fullCount}</strong></span>
+            <span className="text-white/90">Middle drop: <strong className="text-white font-mono font-bold text-sm">{rules.middleDrop}</strong></span>
+            <span className="text-white/90">Full count: <strong className="text-white font-mono font-bold text-sm">{rules.fullCount}</strong></span>
           </div>
 
           {/* Pool Stake & Total Amount */}
           {entryAmount > 0 && (
-            <div className="flex justify-between items-center py-1 border-t border-[var(--color-border)] mt-1">
-              <span>Stake: <strong className="text-[var(--color-text)] font-mono">₹{entryAmount}</strong></span>
+            <div className="flex justify-between items-center py-1 border-t border-white/20 mt-1">
+              <span className="text-white/90">Stake: <strong className="text-white font-mono">₹{entryAmount}</strong></span>
               <span className="flex items-center gap-1">
-                <span>Total Pool:</span>
-                <strong className="text-emerald-500 font-mono font-bold text-sm">₹{totalPoolAmount}</strong>
+                <span className="text-white/90">Total Pool:</span>
+                <strong className="text-emerald-300 font-mono font-bold text-sm">₹{totalPoolAmount}</strong>
                 {totalReEntries > 0 && (
-                  <span className="text-[10px] text-amber-500 font-semibold font-mono">
+                  <span className="text-[10px] text-amber-300 font-semibold font-mono">
                     (+{totalReEntries * entryAmount})
                   </span>
                 )}
@@ -244,8 +259,8 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
             </div>
           )}
 
-          <div className="text-center pt-1 font-medium text-[var(--color-text)]">
-            Rounds Completed: <span className="font-mono text-[var(--color-primary)] font-bold">{rounds.length}</span>
+          <div className="text-center pt-1 font-semibold text-white text-xs sm:text-sm tracking-wide">
+            Rounds Completed: <span className="font-mono text-yellow-300 font-extrabold text-sm sm:text-base">{rounds.length}</span>
           </div>
         </div>
 
@@ -276,7 +291,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
         <div className={`flex-1 ${isCompactFit ? 'overflow-y-auto overflow-x-hidden' : 'overflow-auto'} relative bg-[var(--color-bg)]`}>
           <table className={`w-full border-collapse ${isCompactFit ? 'table-fixed' : 'min-w-max'}`}>
             {/* Sticky Player Headers */}
-            <thead className="sticky top-0 z-30 bg-[var(--color-card)] border-b border-[var(--color-border)] shadow-sm">
+            <thead className="sticky top-0 z-30 bg-[#1f2937] dark:bg-[#18181b] text-white border-b border-[var(--color-border)] shadow-sm">
               <tr>
                 {seats.map(playerId => {
                   const player = players[playerId];
@@ -289,12 +304,12 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                   const isReEntered = reEntryCount > 0;
 
                   const nameColorClass = isOut
-                    ? 'text-rose-400 line-through'
+                    ? 'text-rose-400/80 line-through'
                     : dropStatus === 'compulsory'
-                    ? 'text-rose-600 dark:text-rose-500 font-extrabold'
+                    ? 'text-rose-500 font-extrabold'
                     : dropStatus === 'one_drop'
-                    ? 'text-amber-600 dark:text-yellow-400 font-extrabold'
-                    : 'text-[var(--color-text)] font-bold';
+                    ? 'text-yellow-400 font-extrabold'
+                    : 'text-white font-bold';
 
                   const oneDropLabel = dropAnalysis.canMiddleDrop ? '1 DROP' : '1 DROP (NO MD)';
 
@@ -303,29 +318,28 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                       key={playerId}
                       style={isCompactFit ? { width: `${100 / seats.length}%` } : { minWidth: '60px' }}
                       className={`py-2 px-1 text-center font-normal border-r border-[var(--color-border)] last:border-r-0 ${
-                        isDealer ? 'bg-[var(--color-primary)]/10' : ''
+                        isDealer ? 'bg-[var(--color-primary)]/15' : ''
                       }`}
                     >
                       <div className="flex flex-col items-center justify-center min-h-[30px]">
-                        {/* Player Name */}
+                        {/* Player Name with dealer asterisk * matching screenshots */}
                         <div className="flex items-center justify-center gap-0.5 max-w-full">
-                          {isDealer && <Crown className="w-3 h-3 text-[var(--color-primary)] shrink-0" />}
                           <span
                             className={`text-xs truncate block ${nameColorClass}`}
                             title={isReEntered ? `${player?.name} (re-entry x${reEntryCount})` : player?.name}
                           >
-                            {player?.name}
+                            {isDealer ? `*${player?.name}` : player?.name}
                           </span>
                         </div>
 
                         {/* Drop Warning / Compulsory Pill */}
                         {!isOut && dropStatus === 'compulsory' && (
-                          <span className="text-[8px] sm:text-[9px] font-extrabold leading-tight tracking-tight text-rose-600 dark:text-rose-500 block uppercase mt-0.5">
+                          <span className="text-[8px] sm:text-[9px] font-extrabold leading-tight tracking-tight text-rose-500 block uppercase mt-0.5">
                             COMPULSORY
                           </span>
                         )}
                         {!isOut && dropStatus === 'one_drop' && (
-                          <span className="text-[8px] sm:text-[9px] font-extrabold leading-tight tracking-tight text-amber-600 dark:text-yellow-400 block uppercase mt-0.5">
+                          <span className="text-[8px] sm:text-[9px] font-extrabold leading-tight tracking-tight text-yellow-400 block uppercase mt-0.5">
                             {oneDropLabel}
                           </span>
                         )}
@@ -360,6 +374,26 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                   const isRowSelected = selectedRoundIndex === rIdx;
                   const isEdited = Boolean(round.isEdited);
 
+                  // Detect if this round is an "All Drop" round (all active opponents took open drop 'D')
+                  const isAllDropRound = (() => {
+                    const scoreEntries = Object.entries(round.scores);
+                    if (scoreEntries.length <= 1) return false;
+                    let showCount = 0;
+                    let dropCount = 0;
+                    for (const [_, info] of scoreEntries) {
+                      if (info.type === 'show' || info.points === 0) {
+                        showCount++;
+                      } else if (info.type === 'open_drop') {
+                        dropCount++;
+                      } else {
+                        return false;
+                      }
+                    }
+                    return showCount === 1 && dropCount > 0;
+                  })();
+
+                  const cellBgClass = isAllDropRound ? 'bg-[#15803d]' : 'bg-[#0078d4]';
+
                   return (
                     <tr
                       key={round.roundNumber}
@@ -387,30 +421,30 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                           );
                         }
 
-                        // Cell content matching blue rounded boxes
+                        // Cell content matching blue or green rounded boxes
                         const renderScoreCell = () => {
                           switch (scoreInfo.type) {
                             case 'show':
                               return (
-                                <div className="w-full max-w-[48px] mx-auto py-1.5 rounded-lg bg-[#0078d4] text-[#facc15] font-bold text-sm text-center shadow-sm">
+                                <div className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg ${cellBgClass} text-[#facc15] font-bold text-sm text-center shadow-sm`}>
                                   R
                                 </div>
                               );
                             case 'open_drop':
                               return (
-                                <div className="w-full max-w-[48px] mx-auto py-1.5 rounded-lg bg-[#0078d4] text-white font-bold text-sm text-center shadow-sm">
+                                <div className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg ${cellBgClass} text-white font-bold text-sm text-center shadow-sm`}>
                                   D
                                 </div>
                               );
                             case 'middle_drop':
                               return (
-                                <div className="w-full max-w-[48px] mx-auto py-1.5 rounded-lg bg-[#0078d4] text-white font-bold text-sm text-center shadow-sm">
+                                <div className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg ${cellBgClass} text-white font-bold text-sm text-center shadow-sm`}>
                                   MD
                                 </div>
                               );
                             case 'full_count':
                               return (
-                                <div className="w-full max-w-[48px] mx-auto py-1.5 rounded-lg bg-[#0078d4] text-white font-bold text-sm text-center shadow-sm">
+                                <div className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg ${cellBgClass} text-white font-bold text-sm text-center shadow-sm`}>
                                   FC
                                 </div>
                               );
@@ -424,16 +458,16 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                               const wasReEnteredHere = round.reEnteredInRound?.includes(playerId);
                               if (wasReEnteredHere) {
                                 return (
-                                  <div className="w-full max-w-[48px] mx-auto py-0.5 rounded-lg bg-[#0078d4] text-white text-center shadow-sm">
-                                    <div className="text-[11px] font-bold leading-tight">RE</div>
-                                    <div className="text-[9px] font-mono text-emerald-300 font-bold leading-tight">
+                                  <div className={`w-full max-w-[48px] mx-auto py-1 rounded-lg ${cellBgClass} text-center shadow-sm flex items-center justify-center gap-0.5`}>
+                                    <span className="text-[#ef4444] font-extrabold text-xs">RE</span>
+                                    <span className="text-[#4ade80] font-mono font-bold text-[10px] align-sub">
                                       {scoreInfo.points}
-                                    </div>
+                                    </span>
                                   </div>
                                 );
                               }
                               return (
-                                <div className="w-full max-w-[48px] mx-auto py-1.5 rounded-lg bg-[#0078d4] text-white font-bold text-sm text-center shadow-sm font-mono">
+                                <div className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg ${cellBgClass} text-white font-bold text-sm text-center shadow-sm font-mono`}>
                                   {scoreInfo.points}
                                 </div>
                               );
@@ -459,7 +493,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
             </tbody>
 
             {/* Sticky Total Footer below all round rows */}
-            <tfoot className="sticky bottom-0 z-20 bg-[var(--color-card)] border-t-2 border-[var(--color-border)] shadow-[0_-2px_8px_rgba(0,0,0,0.12)]">
+            <tfoot className="sticky bottom-0 z-20 bg-[#18181b] dark:bg-[#111827] border-t-2 border-[var(--color-border)] shadow-[0_-2px_8px_rgba(0,0,0,0.12)]">
               <tr>
                 {seats.map(playerId => {
                   const score = latestScores[playerId] ?? 0;
@@ -469,12 +503,12 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                   const dropStatus = dropAnalysis?.status ?? 'safe';
 
                   const totalColorClass = isOut
-                    ? 'text-rose-500 line-through'
+                    ? 'text-rose-400 line-through'
                     : dropStatus === 'compulsory'
-                    ? 'text-rose-600 dark:text-rose-500'
+                    ? 'text-rose-500 font-extrabold'
                     : dropStatus === 'one_drop'
-                    ? 'text-amber-600 dark:text-yellow-400'
-                    : 'text-[var(--color-primary)]';
+                    ? 'text-yellow-400 font-extrabold'
+                    : 'text-white font-extrabold';
 
                   const oneDropFooterLabel = dropAnalysis.canMiddleDrop ? '1 DROP' : '1 DROP (NO MD)';
 
@@ -483,22 +517,19 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                       key={playerId}
                       style={isCompactFit ? { width: `${100 / seats.length}%` } : { minWidth: '60px' }}
                       className={`py-2 px-1 text-center border-r border-[var(--color-border)] last:border-r-0 ${
-                        isDealer ? 'bg-[var(--color-primary)]/10' : ''
+                        isDealer ? 'bg-[var(--color-primary)]/15' : ''
                       }`}
                     >
-                      <div className="text-[10px] uppercase font-sans font-bold text-[var(--color-muted)] tracking-wider">
-                        TOTAL
-                      </div>
-                      <div className={`text-base font-extrabold font-mono leading-tight mt-0.5 ${totalColorClass}`}>
+                      <div className={`text-base sm:text-lg font-extrabold font-mono leading-tight ${totalColorClass}`}>
                         {score}
                       </div>
                       {!isOut && dropStatus === 'compulsory' && (
-                        <div className="text-[8px] font-extrabold uppercase text-rose-600 dark:text-rose-500 tracking-tight leading-none mt-0.5">
+                        <div className="text-[8px] font-extrabold uppercase text-rose-500 tracking-tight leading-none mt-0.5">
                           COMPULSORY
                         </div>
                       )}
                       {!isOut && dropStatus === 'one_drop' && (
-                        <div className="text-[8px] font-extrabold uppercase text-amber-600 dark:text-yellow-400 tracking-tight leading-none mt-0.5">
+                        <div className="text-[8px] font-extrabold uppercase text-yellow-400 tracking-tight leading-none mt-0.5">
                           {oneDropFooterLabel}
                         </div>
                       )}
@@ -522,6 +553,22 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
               ✏️ Edited
             </span>
           )}
+        </div>
+      )}
+
+      {/* Round Winner Toast matching Screenshot 2 */}
+      {lastRoundWinnerId && !winnerPlayerId && dismissedRoundToast !== rounds[rounds.length - 1]?.roundNumber && (
+        <div className="mx-3 my-1.5 px-3 py-2 rounded-lg bg-[#0284c7] text-white flex items-center justify-between shadow-md shrink-0">
+          <span className="font-semibold text-xs text-white truncate mr-2">
+            Congrats {players[lastRoundWinnerId]?.name}
+          </span>
+          <button
+            type="button"
+            onClick={() => setDismissedRoundToast(rounds[rounds.length - 1]?.roundNumber)}
+            className="text-[11px] font-bold px-2 py-0.5 rounded bg-black/20 hover:bg-black/30 tracking-wider uppercase text-cyan-100 transition active:scale-95 shrink-0"
+          >
+            DISMISS
+          </button>
         </div>
       )}
 

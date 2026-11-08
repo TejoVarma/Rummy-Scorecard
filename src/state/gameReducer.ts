@@ -80,6 +80,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (activeIds.size === 1) {
         winnerId = Array.from(activeIds)[0];
         newStatus = 'completed';
+      } else if (activeIds.size === 0) {
+        // Tie-breaker: if all players cross pool limit in the same round, lowest cumulative score wins
+        winnerId = state.seats
+          .slice()
+          .sort((a, b) => (newCumulative[a] ?? 0) - (newCumulative[b] ?? 0))[0];
+        newStatus = 'completed';
       }
 
       // Advance dealer to next active player (or retain current dealer if the first player after dealer was eliminated)
@@ -155,6 +161,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (activeIds.size === 1) {
         winnerId = Array.from(activeIds)[0];
         newStatus = 'completed';
+      } else if (activeIds.size === 0) {
+        // Tie-breaker: if all players cross pool limit in the same round, lowest cumulative score wins
+        winnerId = state.seats
+          .slice()
+          .sort((a, b) => (newCumulative[a] ?? 0) - (newCumulative[b] ?? 0))[0];
+        newStatus = 'completed';
       }
 
       // Re-evaluate dealer index based on last round's dealer in restored seats
@@ -207,7 +219,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       const newScore = customReEntryScore ?? calculateReEntryScore(activeScores, state.rules);
 
-      // Relocate seating order immediately after the current distributor/dealer
+      // Relocate seating order immediately before dealer (to dealer's left) so they receive cards last
       const updatedSeats = relocateReEnteredPlayer(state.seats, currentDealerId, playerId);
       const newDealerIndex = updatedSeats.indexOf(currentDealerId);
 
@@ -300,7 +312,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'LOAD_GAME': {
-      return action.payload;
+      if (action.payload && typeof action.payload === 'object' && Array.isArray(action.payload.seats)) {
+        return action.payload;
+      }
+      return state;
     }
 
     default:

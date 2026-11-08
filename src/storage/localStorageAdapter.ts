@@ -42,6 +42,8 @@ export async function saveGameToList(state: GameState): Promise<void> {
     } else {
       updated = [state, ...all];
     }
+    // Cap to the most recent 30 games to prevent storage quota exhaustion
+    updated = updated.slice(0, 30);
     const serialized = JSON.stringify(updated);
     localStorage.setItem(SAVED_GAMES_LIST_KEY, serialized);
     await Preferences.set({ key: SAVED_GAMES_LIST_KEY, value: serialized });
@@ -70,9 +72,11 @@ export async function deleteGameFromList(gameId: string): Promise<void> {
 export async function loadActiveGameAsync(): Promise<GameState | null> {
   try {
     const { value } = await Preferences.get({ key: ACTIVE_GAME_KEY });
-    if (value) return JSON.parse(value);
-    const raw = localStorage.getItem(ACTIVE_GAME_KEY);
-    return raw ? JSON.parse(raw) : null;
+    if (value) {
+      const parsed = JSON.parse(value);
+      if (isValidGameState(parsed)) return parsed;
+    }
+    return loadActiveGame();
   } catch (e) {
     return loadActiveGame();
   }
@@ -132,7 +136,9 @@ const LEGACY_SAMPLE_IDS = new Set([
 
 export function savePlayerRoster(players: SavedRosterPlayer[]): void {
   try {
-    localStorage.setItem(SAVED_PLAYERS_KEY, JSON.stringify(players));
+    const serialized = JSON.stringify(players);
+    localStorage.setItem(SAVED_PLAYERS_KEY, serialized);
+    Preferences.set({ key: SAVED_PLAYERS_KEY, value: serialized }).catch(() => {});
   } catch (e) {
     console.error('Failed to save players', e);
   }

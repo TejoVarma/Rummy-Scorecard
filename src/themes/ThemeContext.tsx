@@ -24,7 +24,7 @@ const isValidColorMode = (mode: unknown): mode is ColorMode =>
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [themeId, setThemeIdState] = useState<ThemeId>(() => {
     const raw = localStorage.getItem(THEME_STORAGE_KEY);
-    return isValidThemeId(raw) ? raw : 'casino_green';
+    return isValidThemeId(raw) ? raw : 'slate_dark';
   });
 
   const [colorMode, setColorModeState] = useState<ColorMode>(() => {
@@ -32,7 +32,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return isValidColorMode(raw) ? raw : 'dark';
   });
 
-  const theme = THEMES[themeId] || THEMES.casino_green;
+  const theme = THEMES[themeId] || THEMES.slate_dark;
 
   const setThemeId = (id: ThemeId) => {
     if (!isValidThemeId(id)) return;
@@ -55,11 +55,11 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const styles = colorMode === 'dark' ? theme.darkStyles : theme.lightStyles;
 
     root.style.setProperty('--color-bg', styles.bg);
-    root.style.setProperty('--color-felt', styles.felt);
     root.style.setProperty('--color-card', styles.card);
     root.style.setProperty('--color-border', styles.border);
-    root.style.setProperty('--color-accent', styles.accent);
+    root.style.setProperty('--color-primary', styles.primary);
     root.style.setProperty('--color-text', styles.text);
+    root.style.setProperty('--color-muted', styles.muted);
 
     if (colorMode === 'dark') {
       root.classList.add('dark');

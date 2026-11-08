@@ -65,7 +65,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#111113] text-[#f4f4f5]">
+    <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] transition-colors duration-200">
       {/* Screen Router */}
       {currentScreen === 'home' && (
         <HomeScreen

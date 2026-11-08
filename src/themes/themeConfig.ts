@@ -1,48 +1,46 @@
 export type ThemeId = 'slate_dark' | 'midnight_navy' | 'classic_charcoal' | 'forest_felt';
 export type ColorMode = 'dark' | 'light';
 
+export interface ThemeStyles {
+  bg: string;
+  card: string;
+  border: string;
+  primary: string;
+  text: string;
+  muted: string;
+  subtle: string;
+}
+
 export interface ThemeOption {
   id: ThemeId;
   name: string;
   previewColor: string;
-  darkStyles: {
-    bg: string;
-    card: string;
-    border: string;
-    primary: string;
-    text: string;
-    muted: string;
-  };
-  lightStyles: {
-    bg: string;
-    card: string;
-    border: string;
-    primary: string;
-    text: string;
-    muted: string;
-  };
+  darkStyles: ThemeStyles;
+  lightStyles: ThemeStyles;
 }
 
 export const THEMES: Record<ThemeId, ThemeOption> = {
   slate_dark: {
     id: 'slate_dark',
-    name: 'Classic Dark (Original App)',
-    previewColor: '#0284c7',
+    name: 'Classic (Original App)',
+    previewColor: '#00a2ed',
     darkStyles: {
-      bg: '#121214',
-      card: '#1e1e24',
-      border: '#2e2e38',
-      primary: '#0284c7',
+      bg: '#111113',
+      card: '#222226',
+      border: '#33333d',
+      primary: '#00a2ed',
       text: '#f4f4f5',
-      muted: '#9ca3af',
+      muted: '#a1a1aa',
+      subtle: '#18181e',
     },
     lightStyles: {
       bg: '#f8fafc',
       card: '#ffffff',
       border: '#e2e8f0',
-      primary: '#0284c7',
+      primary: '#00a2ed',
       text: '#0f172a',
       muted: '#64748b',
+      subtle: '#f1f5f9',
     },
   },
   midnight_navy: {
@@ -50,20 +48,22 @@ export const THEMES: Record<ThemeId, ThemeOption> = {
     name: 'Midnight Navy',
     previewColor: '#2563eb',
     darkStyles: {
-      bg: '#0f172a',
-      card: '#1e293b',
-      border: '#334155',
+      bg: '#0a0f1d',
+      card: '#151e32',
+      border: '#23304a',
       primary: '#3b82f6',
       text: '#f8fafc',
       muted: '#94a3b8',
+      subtle: '#101726',
     },
     lightStyles: {
-      bg: '#f1f5f9',
+      bg: '#f0f4f9',
       card: '#ffffff',
       border: '#cbd5e1',
       primary: '#2563eb',
       text: '#0f172a',
       muted: '#64748b',
+      subtle: '#e2e8f0',
     },
   },
   classic_charcoal: {
@@ -77,6 +77,7 @@ export const THEMES: Record<ThemeId, ThemeOption> = {
       primary: '#71717a',
       text: '#fafafa',
       muted: '#a1a1aa',
+      subtle: '#202024',
     },
     lightStyles: {
       bg: '#fafafa',
@@ -85,6 +86,7 @@ export const THEMES: Record<ThemeId, ThemeOption> = {
       primary: '#27272a',
       text: '#18181b',
       muted: '#71717a',
+      subtle: '#f4f4f5',
     },
   },
   forest_felt: {
@@ -92,12 +94,13 @@ export const THEMES: Record<ThemeId, ThemeOption> = {
     name: 'Muted Forest',
     previewColor: '#059669',
     darkStyles: {
-      bg: '#0f1715',
-      card: '#16231f',
-      border: '#233832',
+      bg: '#0b1613',
+      card: '#142520',
+      border: '#1f3830',
       primary: '#059669',
       text: '#f0fdf4',
       muted: '#86efac',
+      subtle: '#0e1c18',
     },
     lightStyles: {
       bg: '#f0fdf4',
@@ -106,6 +109,7 @@ export const THEMES: Record<ThemeId, ThemeOption> = {
       primary: '#059669',
       text: '#064e3b',
       muted: '#15803d',
+      subtle: '#dcfce7',
     },
   },
 };

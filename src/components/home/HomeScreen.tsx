@@ -34,7 +34,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#111113] text-[#f4f4f5] flex flex-col font-sans select-none">
+    <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] flex flex-col font-sans select-none transition-colors duration-200">
       {/* Top App Bar matching original app */}
       <div className="px-4 py-3.5 bg-[#00a2ed] text-white shadow flex items-center justify-between">
         <h1 className="font-semibold text-lg tracking-normal">Rummy Score Board</h1>
@@ -110,14 +110,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         {hasActiveGame && (
           <div
             onClick={onContinueGame}
-            className="mt-4 p-3.5 rounded-xl border border-[#00a2ed]/40 bg-[#18181f] flex items-center justify-between cursor-pointer hover:bg-[#1f1f28] transition"
+            className="mt-4 p-3.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] shadow-sm flex items-center justify-between cursor-pointer hover:opacity-90 transition"
           >
             <div>
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-[#00a2ed] animate-pulse" />
-                <span className="font-semibold text-xs text-white">Active Game</span>
+                <span className="font-semibold text-xs text-[var(--color-text)]">Active Game</span>
               </div>
-              <span className="text-[11px] text-[#9ca3af] block mt-0.5">
+              <span className="text-[11px] text-[var(--color-muted)] block mt-0.5">
                 {activeGame.title} • Round {activeGame.rounds.length + 1} • {activeGame.seats.length} players
               </span>
             </div>

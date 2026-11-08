@@ -60,6 +60,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     root.style.setProperty('--color-primary', styles.primary);
     root.style.setProperty('--color-text', styles.text);
     root.style.setProperty('--color-muted', styles.muted);
+    root.style.setProperty('--color-subtle', styles.subtle);
 
     if (colorMode === 'dark') {
       root.classList.add('dark');

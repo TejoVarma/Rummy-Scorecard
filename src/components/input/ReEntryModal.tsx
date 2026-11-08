@@ -66,14 +66,14 @@ export const ReEntryModal: React.FC<ReEntryModalProps> = ({
         </div>
 
         {/* Score adjustment */}
-        <div className="p-3 rounded-xl border border-white/10 bg-black/20 space-y-2">
-          <label className="block text-xs font-semibold opacity-75">Re-entry Score</label>
+        <div className="p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-subtle)] space-y-2">
+          <label className="block text-xs font-semibold text-[var(--color-muted)]">Re-entry Score</label>
           <div className="flex items-center gap-2">
             <input
               type="number"
               value={scoreInput}
               onChange={e => setScoreInput(e.target.value)}
-              className="w-full px-3 py-2 font-mono font-bold text-base rounded-lg bg-white/5 border border-white/10 focus:outline-none focus:border-blue-400"
+              className="w-full px-3 py-2 font-mono font-bold text-base rounded-lg bg-[var(--color-card)] border border-[var(--color-border)] text-[var(--color-text)] focus:outline-none focus:border-[#00a2ed]"
             />
           </div>
         </div>
@@ -84,7 +84,7 @@ export const ReEntryModal: React.FC<ReEntryModalProps> = ({
           <div className="space-y-1">
             <span className="font-bold text-amber-300 block">Automatic Seating Relocation:</span>
             <p className="opacity-90 leading-relaxed">
-              Upon re-entry, <span className="font-bold text-white">{player?.name}</span>'s chair position will automatically move to sit <span className="font-bold underline text-amber-300">immediately below/after Distributor ({dealerPlayer?.name})</span> in the playing turn order!
+              Upon re-entry, <span className="font-bold text-[var(--color-text)]">{player?.name}</span>'s chair position will automatically move to sit <span className="font-bold underline text-amber-300">immediately to the LEFT of Distributor ({dealerPlayer?.name})</span> in the playing turn order!
             </p>
           </div>
         </div>

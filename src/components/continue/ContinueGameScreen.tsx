@@ -25,7 +25,7 @@ export const ContinueGameScreen: React.FC<ContinueGameScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#111113] text-[#f4f4f5] flex flex-col font-sans select-none">
+    <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] flex flex-col font-sans select-none transition-colors duration-200">
       {/* Top App Bar matching original app */}
       <div className="px-4 py-3.5 bg-[#00a2ed] text-white shadow flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -80,11 +80,11 @@ export const ContinueGameScreen: React.FC<ContinueGameScreenProps> = ({
               <div
                 key={game.gameId}
                 onClick={() => onResumeGame(game)}
-                className="p-4 rounded-xl bg-[#222226] border border-[#33333d] hover:border-[#00a2ed]/50 shadow-sm cursor-pointer transition active:scale-[0.99] space-y-2.5 group"
+                className="p-4 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)] hover:border-[#00a2ed]/50 shadow-sm cursor-pointer transition active:scale-[0.99] space-y-2.5 group"
               >
                 {/* Header row: Title & Status badge */}
                 <div className="flex items-center justify-between gap-2">
-                  <h2 className="font-semibold text-sm text-white group-hover:text-[#00a2ed] transition truncate">
+                  <h2 className="font-semibold text-sm text-[var(--color-text)] group-hover:text-[#00a2ed] transition truncate">
                     {game.title}
                   </h2>
                   {isPlaying ? (
@@ -93,24 +93,24 @@ export const ContinueGameScreen: React.FC<ContinueGameScreenProps> = ({
                       Round {game.rounds.length + 1}
                     </span>
                   ) : (
-                    <span className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-950/80 text-emerald-400 border border-emerald-800 flex items-center gap-1">
+                    <span className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
                       <Trophy className="w-2.5 h-2.5" /> Won: {winner?.name || 'Complete'}
                     </span>
                   )}
                 </div>
 
                 {/* Sub details: Pool and Players */}
-                <div className="space-y-1 text-xs text-zinc-400">
+                <div className="space-y-1 text-xs text-[var(--color-muted)]">
                   <div className="flex items-center gap-2">
-                    <span className="px-1.5 py-0.2 rounded bg-black/30 font-mono text-[11px] text-zinc-300">
+                    <span className="px-1.5 py-0.2 rounded bg-[var(--color-subtle)] font-mono text-[11px] text-[var(--color-text)]">
                       {game.rules.poolLimit} Pool
                     </span>
                     <span>•</span>
                     <span>{game.rounds.length} rounds played</span>
                   </div>
 
-                  <div className="flex items-center gap-1.5 text-[11px] text-zinc-400 truncate">
-                    <Users className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+                  <div className="flex items-center gap-1.5 text-[11px] text-[var(--color-muted)] truncate">
+                    <Users className="w-3.5 h-3.5 opacity-60 shrink-0" />
                     <span className="truncate">
                       {playerNames.join(', ')}
                     </span>
@@ -118,7 +118,7 @@ export const ContinueGameScreen: React.FC<ContinueGameScreenProps> = ({
                 </div>
 
                 {/* Action Footer */}
-                <div className="flex items-center justify-between pt-2 border-t border-[#2e2e38]">
+                <div className="flex items-center justify-between pt-2 border-t border-[var(--color-border)]">
                   <span className="text-[11px] font-semibold text-[#00a2ed] flex items-center gap-1 group-hover:underline">
                     <Play className="w-3 h-3 fill-current" /> Resume Game
                   </span>

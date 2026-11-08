@@ -52,7 +52,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
   const isCompactFit = seats.length <= 6;
 
   return (
-    <div className="flex flex-col h-screen w-full max-w-2xl mx-auto overflow-hidden bg-[#111113] text-[#f4f4f5] font-sans select-none">
+    <div className="flex flex-col h-screen w-full max-w-2xl mx-auto overflow-hidden bg-[var(--color-bg)] text-[var(--color-text)] font-sans select-none transition-colors duration-200">
       {/* Top App Bar matching Screenshot 5 */}
       <div className="flex items-center justify-between px-3.5 py-3 bg-[#00a2ed] text-white shadow-sm shrink-0">
         <div className="flex items-center gap-3">
@@ -111,24 +111,24 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
       </div>
 
       {/* Subheader info block matching Screenshot 5 */}
-      <div className="px-4 py-2.5 bg-[#17171c] border-b border-[#282830] text-xs text-[#d4d4d8] shrink-0">
+      <div className="px-4 py-2.5 bg-[var(--color-subtle)] border-b border-[var(--color-border)] text-xs text-[var(--color-muted)] shrink-0">
         <div className="flex justify-between items-center py-0.5">
-          <span>Game Score: <strong className="text-white font-mono">{rules.poolLimit}</strong></span>
-          <span>Open drop: <strong className="text-white font-mono">{rules.openDrop}</strong></span>
+          <span>Game Score: <strong className="text-[var(--color-text)] font-mono">{rules.poolLimit}</strong></span>
+          <span>Open drop: <strong className="text-[var(--color-text)] font-mono">{rules.openDrop}</strong></span>
         </div>
         <div className="flex justify-between items-center py-0.5">
-          <span>Middle drop: <strong className="text-white font-mono">{rules.middleDrop}</strong></span>
-          <span>Full count: <strong className="text-white font-mono">{rules.fullCount}</strong></span>
+          <span>Middle drop: <strong className="text-[var(--color-text)] font-mono">{rules.middleDrop}</strong></span>
+          <span>Full count: <strong className="text-[var(--color-text)] font-mono">{rules.fullCount}</strong></span>
         </div>
-        <div className="text-center pt-1 font-medium text-white/90">
+        <div className="text-center pt-1 font-medium text-[var(--color-text)]">
           Rounds Completed: <span className="font-mono text-[#00a2ed] font-bold">{rounds.length}</span>
         </div>
       </div>
 
       {/* Re-Entry Action Banner */}
       {eliminatedPlayers.length > 0 && rules.allowReEntry && (
-        <div className="px-3 py-2 bg-[#27272a] border-b border-[#3f3f46] flex items-center justify-between gap-2 shrink-0">
-          <span className="text-xs text-[#f4f4f5] truncate">
+        <div className="px-3 py-2 bg-[var(--color-card)] border-b border-[var(--color-border)] flex items-center justify-between gap-2 shrink-0">
+          <span className="text-xs text-[var(--color-text)] truncate">
             {eliminatedPlayers.map(id => players[id]?.name).join(', ')} eliminated!
           </span>
           <div className="flex gap-1.5 shrink-0">
@@ -165,10 +165,10 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
       )}
 
       {/* Score Matrix Table - NO horizontal scroll for <= 6 players! */}
-      <div className={`flex-1 ${isCompactFit ? 'overflow-y-auto overflow-x-hidden' : 'overflow-auto'} relative bg-[#111113]`}>
+      <div className={`flex-1 ${isCompactFit ? 'overflow-y-auto overflow-x-hidden' : 'overflow-auto'} relative bg-[var(--color-bg)]`}>
         <table className={`w-full border-collapse ${isCompactFit ? 'table-fixed' : 'min-w-max'}`}>
           {/* Sticky Player Headers matching Screenshot 5 */}
-          <thead className="sticky top-0 z-30 bg-[#222226] border-b border-[#33333d] shadow-sm">
+          <thead className="sticky top-0 z-30 bg-[var(--color-card)] border-b border-[var(--color-border)] shadow-sm">
             <tr>
               {seats.map(playerId => {
                 const player = players[playerId];
@@ -181,7 +181,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                   <th
                     key={playerId}
                     style={isCompactFit ? { width: `${100 / seats.length}%` } : { minWidth: '60px' }}
-                    className={`py-2 px-1 text-center font-normal border-r border-[#2d2d38] last:border-r-0 ${
+                    className={`py-2 px-1 text-center font-normal border-r border-[var(--color-border)] last:border-r-0 ${
                       isDealer ? 'bg-[#00a2ed]/10' : ''
                     }`}
                   >
@@ -191,7 +191,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                         {isDealer && <Crown className="w-3 h-3 text-[#00a2ed] shrink-0" />}
                         <span
                           className={`text-xs truncate block ${
-                            isOut || isReEntered ? 'text-[#ef4444] font-semibold' : 'text-[#f4f4f5]'
+                            isOut || isReEntered ? 'text-[#ef4444] font-semibold' : 'text-[var(--color-text)]'
                           }`}
                           title={player?.name}
                         >
@@ -202,7 +202,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                       {/* Cumulative Total under player name */}
                       <span
                         className={`text-[11px] font-mono font-semibold block leading-tight mt-0.5 ${
-                          isOut ? 'text-rose-400' : 'text-zinc-400'
+                          isOut ? 'text-rose-400' : 'text-[var(--color-muted)]'
                         }`}
                       >
                         {score}
@@ -215,10 +215,10 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
           </thead>
 
           {/* Table Body (Rounds) */}
-          <tbody className="divide-y divide-[#24242e]">
+          <tbody className="divide-y divide-[var(--color-border)]">
             {rounds.length === 0 ? (
               <tr>
-                <td colSpan={seats.length} className="py-20 text-center text-xs text-[#71717a]">
+                <td colSpan={seats.length} className="py-20 text-center text-xs text-[var(--color-muted)]">
                   No rounds recorded yet.<br />Tap <strong className="text-[#00a2ed]">"ENTER SCORE"</strong> below to begin.
                 </td>
               </tr>
@@ -231,7 +231,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                     key={round.roundNumber}
                     onClick={() => setSelectedRoundIndex(isRowSelected ? null : rIdx)}
                     className={`transition-colors cursor-pointer ${
-                      isRowSelected ? 'bg-white/[0.06]' : 'hover:bg-white/[0.02]'
+                      isRowSelected ? 'bg-black/5 dark:bg-white/[0.06]' : 'hover:bg-black/[0.02] dark:hover:bg-white/[0.02]'
                     }`}
                   >
                     {seats.map(playerId => {
@@ -241,7 +241,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                         return (
                           <td
                             key={playerId}
-                            className="py-1 px-0.5 text-center border-r border-[#24242e] last:border-r-0 text-[#52525b] font-mono text-xs"
+                            className="py-1 px-0.5 text-center border-r border-[var(--color-border)] last:border-r-0 text-[var(--color-muted)] font-mono text-xs"
                           >
                             -
                           </td>
@@ -322,13 +322,13 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
 
       {/* Selected Round Info Toast */}
       {selectedRoundIndex !== null && rounds[selectedRoundIndex] && (
-        <div className="px-4 py-1.5 bg-[#1f1f26] border-t border-[#33333e] text-center text-[11px] text-[#a1a1aa] shrink-0">
+        <div className="px-4 py-1.5 bg-[var(--color-subtle)] border-t border-[var(--color-border)] text-center text-[11px] text-[var(--color-muted)] shrink-0">
           Showing Round {selectedRoundIndex + 1} • Dealer was {players[rounds[selectedRoundIndex].dealerPlayerId]?.name || 'Unknown'}
         </div>
       )}
 
       {/* Bottom Action Pill Buttons matching Screenshot 5 */}
-      <div className="p-3 bg-[#111113] border-t border-[#24242e] space-y-2 shrink-0">
+      <div className="p-3 bg-[var(--color-bg)] border-t border-[var(--color-border)] space-y-2 shrink-0">
         <button
           type="button"
           onClick={onOpenScoreInput}

@@ -8,11 +8,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        table: {
-          felt: 'var(--color-felt)',
-          border: 'var(--color-border)',
+        app: {
+          bg: 'var(--color-bg)',
           card: 'var(--color-card)',
-          accent: 'var(--color-accent)',
+          border: 'var(--color-border)',
+          primary: 'var(--color-primary)',
+          text: 'var(--color-text)',
+          muted: 'var(--color-muted)',
+          subtle: 'var(--color-subtle)',
         }
       }
     },

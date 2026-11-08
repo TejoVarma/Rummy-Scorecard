@@ -48,7 +48,7 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
   };
 
   return (
-    <div className="min-h-screen bg-[#121214] text-[#f4f4f5] flex flex-col font-sans select-none">
+    <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] flex flex-col font-sans select-none transition-colors duration-200">
       {/* Top App Bar matching Screenshot 2 */}
       <div className="px-4 py-3.5 bg-[#00a2ed] text-white shadow flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -75,13 +75,13 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
         {roster.map(player => (
           <div
             key={player.id}
-            className="flex items-center justify-between p-3.5 rounded-lg bg-[#333333] border border-[#3e3e3e] shadow-sm"
+            className="flex items-center justify-between p-3.5 rounded-lg bg-[var(--color-card)] border border-[var(--color-border)] shadow-sm"
           >
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-full bg-[#00a2ed] flex items-center justify-center text-white shrink-0">
                 <User className="w-5 h-5 fill-current" />
               </div>
-              <span className="font-normal text-base text-[#e4e4e7]">{player.name}</span>
+              <span className="font-normal text-base text-[var(--color-text)]">{player.name}</span>
             </div>
 
             <div className="flex items-center gap-1">
@@ -126,13 +126,13 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
       {/* Add Player Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="w-full max-w-xs bg-[#242429] rounded-xl p-5 border border-[#3e3e48] shadow-2xl space-y-4">
+          <div className="w-full max-w-xs bg-[var(--color-card)] rounded-xl p-5 border border-[var(--color-border)] shadow-2xl space-y-4 text-[var(--color-text)]">
             <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-white text-base">Add New Player</h2>
+              <h2 className="font-semibold text-base">Add New Player</h2>
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
-                className="p-1 rounded text-slate-400 hover:text-white"
+                className="p-1 rounded text-[var(--color-muted)] hover:text-[var(--color-text)]"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -145,13 +145,13 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
                 maxLength={25}
                 value={newPlayerName}
                 onChange={e => setNewPlayerName(e.target.value)}
-                className="w-full px-3 py-2 text-sm rounded bg-[#18181f] border border-[#3f3f4e] text-white focus:outline-none focus:border-[#00a2ed]"
+                className="w-full px-3 py-2 text-sm rounded bg-[var(--color-subtle)] border border-[var(--color-border)] text-[var(--color-text)] focus:outline-none focus:border-[#00a2ed]"
               />
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-3 py-1.5 text-xs rounded text-[#a1a1aa] hover:bg-white/5"
+                  className="px-3 py-1.5 text-xs rounded text-[var(--color-muted)] hover:bg-black/5 dark:hover:bg-white/5"
                 >
                   Cancel
                 </button>
@@ -170,13 +170,13 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
       {/* Edit Player Modal */}
       {editingPlayer && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="w-full max-w-xs bg-[#242429] rounded-xl p-5 border border-[#3e3e48] shadow-2xl space-y-4">
+          <div className="w-full max-w-xs bg-[var(--color-card)] rounded-xl p-5 border border-[var(--color-border)] shadow-2xl space-y-4 text-[var(--color-text)]">
             <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-white text-base">Edit Player Name</h2>
+              <h2 className="font-semibold text-base">Edit Player Name</h2>
               <button
                 type="button"
                 onClick={() => setEditingPlayer(null)}
-                className="p-1 rounded text-slate-400 hover:text-white"
+                className="p-1 rounded text-[var(--color-muted)] hover:text-[var(--color-text)]"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -188,13 +188,13 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
                 maxLength={25}
                 value={editName}
                 onChange={e => setEditName(e.target.value)}
-                className="w-full px-3 py-2 text-sm rounded bg-[#18181f] border border-[#3f3f4e] text-white focus:outline-none focus:border-[#00a2ed]"
+                className="w-full px-3 py-2 text-sm rounded bg-[var(--color-subtle)] border border-[var(--color-border)] text-[var(--color-text)] focus:outline-none focus:border-[#00a2ed]"
               />
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setEditingPlayer(null)}
-                  className="px-3 py-1.5 text-xs rounded text-[#a1a1aa] hover:bg-white/5"
+                  className="px-3 py-1.5 text-xs rounded text-[var(--color-muted)] hover:bg-black/5 dark:hover:bg-white/5"
                 >
                   Cancel
                 </button>

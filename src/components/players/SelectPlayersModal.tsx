@@ -59,7 +59,7 @@ export const SelectPlayersModal: React.FC<SelectPlayersModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-3 select-none">
-      <div className="w-full max-w-sm bg-[#222226] rounded-xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh] border border-[#383842]">
+      <div className="w-full max-w-sm bg-[var(--color-card)] rounded-xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh] border border-[var(--color-border)] text-[var(--color-text)] transition-colors duration-200">
         {/* Top App Bar matching Screenshot 4 */}
         <div className="px-4 py-3 bg-[#00a2ed] text-white shadow flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -82,7 +82,7 @@ export const SelectPlayersModal: React.FC<SelectPlayersModalProps> = ({
         </div>
 
         {/* Informational Subtext */}
-        <div className="px-4 py-2 bg-[#1a1a1f] border-b border-[#2d2d38] text-[11px] text-[#9ca3af]">
+        <div className="px-4 py-2 bg-[var(--color-subtle)] border-b border-[var(--color-border)] text-[11px] text-[var(--color-muted)]">
           Tap in seating order (Highest card to Least card). Last selected player deals Round 1.
         </div>
 
@@ -98,8 +98,8 @@ export const SelectPlayersModal: React.FC<SelectPlayersModalProps> = ({
                 onClick={() => togglePlayer(player.id)}
                 className={`flex items-center justify-between p-3 rounded-lg border transition cursor-pointer ${
                   isSelected
-                    ? 'bg-[#2b2b35] border-[#00a2ed]/60'
-                    : 'bg-[#2a2a2e] border-transparent hover:bg-[#323238]'
+                    ? 'bg-[#00a2ed]/10 border-[#00a2ed]'
+                    : 'bg-[var(--color-subtle)] border-[var(--color-border)] hover:opacity-90'
                 }`}
               >
                 <div className="flex items-center gap-3.5">
@@ -112,7 +112,7 @@ export const SelectPlayersModal: React.FC<SelectPlayersModalProps> = ({
                   >
                     <Check className="w-4 h-4 stroke-[3]" />
                   </div>
-                  <span className="font-medium text-sm text-[#f4f4f5]">{player.name}</span>
+                  <span className="font-medium text-sm text-[var(--color-text)]">{player.name}</span>
                 </div>
 
                 {isSelected && (
@@ -130,7 +130,7 @@ export const SelectPlayersModal: React.FC<SelectPlayersModalProps> = ({
 
         {/* Floating Add Player quick form or button */}
         {isAddOpen ? (
-          <form onSubmit={handleAddNewPlayer} className="p-3 bg-[#18181f] border-t border-[#33333f] flex gap-2">
+          <form onSubmit={handleAddNewPlayer} className="p-3 bg-[var(--color-card)] border-t border-[var(--color-border)] flex gap-2">
             <input
               type="text"
               autoFocus
@@ -138,7 +138,7 @@ export const SelectPlayersModal: React.FC<SelectPlayersModalProps> = ({
               maxLength={25}
               value={newPlayerName}
               onChange={e => setNewPlayerName(e.target.value)}
-              className="flex-1 px-3 py-1.5 text-xs rounded bg-[#24242b] border border-[#3f3f4e] text-white focus:outline-none focus:border-[#00a2ed]"
+              className="flex-1 px-3 py-1.5 text-xs rounded bg-[var(--color-subtle)] border border-[var(--color-border)] text-[var(--color-text)] focus:outline-none focus:border-[#00a2ed]"
             />
             <button
               type="submit"
@@ -149,13 +149,13 @@ export const SelectPlayersModal: React.FC<SelectPlayersModalProps> = ({
             <button
               type="button"
               onClick={() => setIsAddOpen(false)}
-              className="px-2 py-1.5 text-xs text-[#a1a1aa]"
+              className="px-2 py-1.5 text-xs text-[var(--color-muted)]"
             >
               Cancel
             </button>
           </form>
         ) : (
-          <div className="p-3 bg-[#18181f] border-t border-[#2e2e38] flex items-center justify-between">
+          <div className="p-3 bg-[var(--color-card)] border-t border-[var(--color-border)] flex items-center justify-between">
             <button
               type="button"
               onClick={() => setIsAddOpen(true)}

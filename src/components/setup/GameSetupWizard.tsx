@@ -98,7 +98,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
   };
 
   return (
-    <div className="min-h-screen bg-[#111113] text-[#f4f4f5] flex flex-col font-sans select-none pb-12">
+    <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] flex flex-col font-sans select-none pb-12 transition-colors duration-200">
       {/* Top App Bar matching Screenshot 3 */}
       <div className="px-4 py-3.5 bg-[#00a2ed] text-white shadow flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -115,22 +115,22 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
 
       <div className="max-w-md w-full mx-auto p-4 space-y-3.5">
         {/* Card 1: Game Name */}
-        <div className="p-4 rounded-xl bg-[#27272a] border border-[#3f3f46]/60 space-y-1">
-          <label className="block text-xs font-medium text-[#a1a1aa]">Game Name</label>
+        <div className="p-4 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)] space-y-1 shadow-sm">
+          <label className="block text-xs font-medium text-[var(--color-muted)]">Game Name</label>
           <input
             type="text"
             value={title}
             maxLength={50}
             onChange={e => setTitle(e.target.value)}
-            className="w-full text-sm font-semibold bg-transparent border-none text-white focus:outline-none placeholder-zinc-500"
+            className="w-full text-sm font-semibold bg-transparent border-none text-[var(--color-text)] focus:outline-none placeholder-zinc-500"
             placeholder="Auto generate"
           />
         </div>
 
         {/* Card 2: Game Scores */}
-        <div className="p-4 rounded-xl bg-[#27272a] border border-[#3f3f46]/60 space-y-3">
+        <div className="p-4 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)] space-y-3 shadow-sm">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-white">Game Scores</h2>
+            <h2 className="text-sm font-semibold text-[var(--color-text)]">Game Scores</h2>
             <div className="flex gap-1.5">
               {POOL_PRESETS.map(preset => (
                 <button
@@ -143,7 +143,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
                   className={`px-2 py-0.5 rounded text-[11px] font-medium transition ${
                     poolLimit === preset && !customPool
                       ? 'bg-[#00a2ed] text-white'
-                      : 'bg-[#1e1e24] text-[#a1a1aa] hover:bg-[#333]'
+                      : 'bg-[var(--color-subtle)] text-[var(--color-muted)] hover:bg-black/5 dark:hover:bg-white/5'
                   }`}
                 >
                   {preset}
@@ -154,47 +154,47 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
 
           {/* Oval Drop Inputs matching Screenshot 3 */}
           <div className="grid grid-cols-2 gap-3 pt-1">
-            <div className="relative border border-[#52525b] rounded-full px-4 py-1.5 bg-[#1f1f23]">
-              <span className="text-[10px] text-[#a1a1aa] block text-center">Game total score</span>
+            <div className="relative border border-[var(--color-border)] rounded-full px-4 py-1.5 bg-[var(--color-subtle)]">
+              <span className="text-[10px] text-[var(--color-muted)] block text-center">Game total score</span>
               <input
                 type="number"
                 value={customPool || poolLimit}
                 onChange={e => setCustomPool(e.target.value)}
-                className="w-full text-center text-sm font-mono font-medium text-white bg-transparent focus:outline-none"
+                className="w-full text-center text-sm font-mono font-medium text-[var(--color-text)] bg-transparent focus:outline-none"
               />
             </div>
-            <div className="relative border border-[#52525b] rounded-full px-4 py-1.5 bg-[#1f1f23]">
-              <span className="text-[10px] text-[#a1a1aa] block text-center">Open drop</span>
+            <div className="relative border border-[var(--color-border)] rounded-full px-4 py-1.5 bg-[var(--color-subtle)]">
+              <span className="text-[10px] text-[var(--color-muted)] block text-center">Open drop</span>
               <input
                 type="number"
                 value={openDrop}
                 onChange={e => setOpenDrop(Number(e.target.value))}
-                className="w-full text-center text-sm font-mono font-medium text-white bg-transparent focus:outline-none"
+                className="w-full text-center text-sm font-mono font-medium text-[var(--color-text)] bg-transparent focus:outline-none"
               />
             </div>
-            <div className="relative border border-[#52525b] rounded-full px-4 py-1.5 bg-[#1f1f23]">
-              <span className="text-[10px] text-[#a1a1aa] block text-center">Middle Drop</span>
+            <div className="relative border border-[var(--color-border)] rounded-full px-4 py-1.5 bg-[var(--color-subtle)]">
+              <span className="text-[10px] text-[var(--color-muted)] block text-center">Middle Drop</span>
               <input
                 type="number"
                 value={middleDrop}
                 onChange={e => setMiddleDrop(Number(e.target.value))}
-                className="w-full text-center text-sm font-mono font-medium text-white bg-transparent focus:outline-none"
+                className="w-full text-center text-sm font-mono font-medium text-[var(--color-text)] bg-transparent focus:outline-none"
               />
             </div>
-            <div className="relative border border-[#52525b] rounded-full px-4 py-1.5 bg-[#1f1f23]">
-              <span className="text-[10px] text-[#a1a1aa] block text-center">Full count</span>
+            <div className="relative border border-[var(--color-border)] rounded-full px-4 py-1.5 bg-[var(--color-subtle)]">
+              <span className="text-[10px] text-[var(--color-muted)] block text-center">Full count</span>
               <input
                 type="number"
                 value={fullCount}
                 onChange={e => setFullCount(Number(e.target.value))}
-                className="w-full text-center text-sm font-mono font-medium text-white bg-transparent focus:outline-none"
+                className="w-full text-center text-sm font-mono font-medium text-[var(--color-text)] bg-transparent focus:outline-none"
               />
             </div>
           </div>
 
           {/* Re-entry Checkbox */}
           <div className="pt-1">
-            <label className="flex items-center gap-2.5 text-xs text-[#d4d4d8] cursor-pointer">
+            <label className="flex items-center gap-2.5 text-xs text-[var(--color-text)] cursor-pointer">
               <input
                 type="checkbox"
                 checked={adjustReEntry}
@@ -207,11 +207,11 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
         </div>
 
         {/* Card 3: Select Players matching Screenshot 3 */}
-        <div className="p-4 rounded-xl bg-[#27272a] border border-[#3f3f46]/60 space-y-3">
+        <div className="p-4 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)] space-y-3 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-sm font-semibold text-white">Select Players</h2>
-              <p className="text-[11px] text-[#a1a1aa] mt-0.5">
+              <h2 className="text-sm font-semibold text-[var(--color-text)]">Select Players</h2>
+              <p className="text-[11px] text-[var(--color-muted)] mt-0.5">
                 Seating order is Highest (#1) to Least (Last).
               </p>
             </div>
@@ -236,14 +236,14 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
                   className={`flex items-center justify-between p-2.5 rounded-lg border transition ${
                     isLeast
                       ? 'bg-[#00a2ed]/10 border-[#00a2ed]/40'
-                      : 'bg-[#1e1e24] border-[#383842]'
+                      : 'bg-[var(--color-subtle)] border-[var(--color-border)]'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <span className="text-xs font-mono text-[#71717a] w-5">#{idx + 1}</span>
-                    <span className="font-medium text-xs text-white">{player.name}</span>
+                    <span className="text-xs font-mono text-[var(--color-muted)] w-5">#{idx + 1}</span>
+                    <span className="font-medium text-xs text-[var(--color-text)]">{player.name}</span>
                     {isHighest && (
-                      <span className="text-[10px] text-[#cbd5e1] bg-white/10 px-1.5 py-0.2 rounded">
+                      <span className="text-[10px] text-[var(--color-muted)] bg-black/5 dark:bg-white/10 px-1.5 py-0.2 rounded">
                         Highest Card
                       </span>
                     )}

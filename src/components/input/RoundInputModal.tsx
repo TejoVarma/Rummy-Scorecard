@@ -110,20 +110,20 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
             return (
               <div
                 key={playerId}
-                className="p-3 rounded-lg border border-[#33333d] bg-[#22222a] space-y-2"
+                className="p-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-subtle)] space-y-2"
               >
                 {/* Header row */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-semibold text-sm text-white flex items-center gap-1.5">
+                    <div className="font-semibold text-sm text-[var(--color-text)] flex items-center gap-1.5">
                       {player?.name}
                       {isDealer && (
-                        <span className="text-[10px] text-[#38bdf8] bg-[#0284c7]/20 px-1.5 py-0.2 rounded border border-[#0284c7]/30 flex items-center gap-0.5">
+                        <span className="text-[10px] text-[#00a2ed] bg-[#00a2ed]/20 px-1.5 py-0.2 rounded border border-[#00a2ed]/30 flex items-center gap-0.5">
                           <Crown className="w-2.5 h-2.5" /> Deal
                         </span>
                       )}
                     </div>
-                    <div className="text-xs text-[#9ca3af] font-mono">
+                    <div className="text-xs text-[var(--color-muted)] font-mono">
                       Score: {currentTotal}
                     </div>
                   </div>
@@ -140,7 +140,7 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
                       className={`w-20 px-2.5 py-1 text-center font-mono font-semibold text-xs rounded-full border focus:outline-none ${
                         currentInput.type === 'show'
                           ? 'bg-[#15803d] text-white border-[#22c55e]'
-                          : 'bg-[#18181f] text-white border-[#3f3f4e] focus:border-[#0284c7]'
+                          : 'bg-[var(--color-card)] text-[var(--color-text)] border-[var(--color-border)] focus:border-[#00a2ed]'
                       }`}
                     />
                   </div>

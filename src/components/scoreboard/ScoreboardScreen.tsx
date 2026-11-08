@@ -4,6 +4,8 @@ import { getEligibleForReEntryPlayers, analyzePlayerDrops } from '../../domain/e
 import { Confetti } from '../common/Confetti';
 import { Settings, Trophy, Share2, Trash2, ArrowLeft, UserPlus, Loader2 } from 'lucide-react';
 import { useBackButton, BACK_PRIORITY } from '../../hooks/useBackButton';
+import { Capacitor } from '@capacitor/core';
+import { Share } from '@capacitor/share';
 
 interface ScoreboardScreenProps {
   state: GameState;
@@ -90,10 +92,26 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
 
     const safeShareTitle = title.replace(/[\r\n]/g, ' ').trim();
     const poolInfo = entryAmount > 0 ? ` | Prize Pool: ₹${totalPoolAmount}` : '';
-    const summary = `🎴 *Rummy Scorecard: ${safeShareTitle}*\nPool: ${rules.poolLimit}${poolInfo} | Rounds: ${rounds.length}\n` +
-      seats.map(id => `${players[id]?.name}: ${latestScores[id] ?? 0} pts`).join('\n');
+    const summary = `🎴 *Rummy Scorecard: ${safeShareTitle}*\nPool: ${rules.poolLimit}${poolInfo} | Rounds: ${rounds.length}\n\n` +
+      seats.map(id => {
+        const score = latestScores[id] ?? 0;
+        const pName = players[id]?.name || 'Player';
+        const isOut = score >= rules.poolLimit;
+        return `${pName}: ${score} pts${isOut ? ' (Out)' : ''}`;
+      }).join('\n');
 
     try {
+      // 1. Native Android / iOS app sharing via Capacitor Share plugin
+      if (Capacitor.isNativePlatform()) {
+        await Share.share({
+          title: `${safeShareTitle} Scorecard`,
+          text: summary,
+          dialogTitle: 'Share Rummy Scorecard',
+        });
+        return;
+      }
+
+      // 2. Web browser: generate image screenshot and share/download
       const { toBlob } = await import('html-to-image');
       const rootStyles = getComputedStyle(document.documentElement);
       const bgColor = rootStyles.getPropertyValue('--color-bg').trim() || '#0f172a';
@@ -117,7 +135,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
           files: [file],
         });
       } else if (typeof navigator !== 'undefined' && navigator.share) {
-        // Fallback for Android WebView / mobile when file sharing is unavailable
+        // Fallback for mobile browsers when file sharing is unavailable
         await navigator.share({ title: `${safeShareTitle} Scorecard`, text: summary });
       } else {
         // Desktop browser download fallback
@@ -133,8 +151,18 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
     } catch (err: any) {
       if (err?.name !== 'AbortError') {
         // Fallback to text share
-        if (navigator.share) {
-          navigator.share({ title: `${safeShareTitle} Scorecard`, text: summary }).catch(() => {});
+        try {
+          if (Capacitor.isNativePlatform()) {
+            await Share.share({
+              title: `${safeShareTitle} Scorecard`,
+              text: summary,
+              dialogTitle: 'Share Rummy Scorecard',
+            });
+          } else if (typeof navigator !== 'undefined' && navigator.share) {
+            await navigator.share({ title: `${safeShareTitle} Scorecard`, text: summary });
+          }
+        } catch {
+          // Ignore canceled or unsupported share
         }
       }
     } finally {

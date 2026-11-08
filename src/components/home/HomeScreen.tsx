@@ -87,11 +87,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <button
             type="button"
             onClick={onContinueGame}
-            className={`aspect-square rounded-2xl flex items-center justify-center text-center p-4 shadow-sm transition cursor-pointer ${
-              hasActiveGame
-                ? 'bg-[#338996] hover:bg-[#2b7580] text-white active:scale-[0.98]'
-                : 'bg-[#338996]/50 text-white/60'
-            }`}
+            className="aspect-square rounded-2xl bg-[#338996] hover:bg-[#2b7580] text-white flex items-center justify-center text-center p-4 shadow-sm active:scale-[0.98] transition cursor-pointer"
           >
             <span className="font-normal text-xl tracking-tight leading-snug">
               Continue Game

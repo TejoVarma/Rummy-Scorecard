@@ -1,14 +1,15 @@
 import React, { useReducer, useEffect, useState } from 'react';
 import { gameReducer, INITIAL_STATE } from './state/gameReducer';
-import { loadActiveGame, saveActiveGame, clearActiveGame } from './storage/localStorageAdapter';
+import { loadActiveGame, saveActiveGame, clearActiveGame, deleteGameFromList } from './storage/localStorageAdapter';
 import { HomeScreen } from './components/home/HomeScreen';
+import { ContinueGameScreen } from './components/continue/ContinueGameScreen';
 import { PlayerListScreen } from './components/players/PlayerListScreen';
 import { GameSetupWizard } from './components/setup/GameSetupWizard';
 import { ScoreboardScreen } from './components/scoreboard/ScoreboardScreen';
 import { RoundInputModal } from './components/input/RoundInputModal';
 import { ReEntryModal } from './components/input/ReEntryModal';
 import { SettingsModal } from './components/settings/SettingsModal';
-import { PlayerId, ScoreInputType } from './domain/types';
+import { GameState, PlayerId, ScoreInputType } from './domain/types';
 
 export const App: React.FC = () => {
   const [state, dispatch] = useReducer(gameReducer, INITIAL_STATE, () => {
@@ -16,8 +17,8 @@ export const App: React.FC = () => {
     return saved && saved.status ? saved : INITIAL_STATE;
   });
 
-  // Always open on Home Dashboard by default!
-  const [currentScreen, setCurrentScreen] = useState<'home' | 'players' | 'new_game' | 'scoreboard'>('home');
+  // Always open on Home Dashboard by default
+  const [currentScreen, setCurrentScreen] = useState<'home' | 'continue_game' | 'players' | 'new_game' | 'scoreboard'>('home');
   const [isInputModalOpen, setIsInputModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [reEntryTargetPlayerId, setReEntryTargetPlayerId] = useState<PlayerId | null>(null);
@@ -31,6 +32,11 @@ export const App: React.FC = () => {
 
   const handleStartGame = (config: any) => {
     dispatch({ type: 'START_GAME', payload: config });
+    setCurrentScreen('scoreboard');
+  };
+
+  const handleResumeGame = (gameToResume: GameState) => {
+    dispatch({ type: 'LOAD_GAME', payload: gameToResume });
     setCurrentScreen('scoreboard');
   };
 
@@ -50,17 +56,12 @@ export const App: React.FC = () => {
   };
 
   const handleDeleteGame = () => {
+    if (state.gameId) {
+      deleteGameFromList(state.gameId);
+    }
     clearActiveGame();
     dispatch({ type: 'RESET_GAME' });
-    setCurrentScreen('home');
-  };
-
-  const handleContinueGame = () => {
-    if (state.status === 'playing' || state.status === 'completed') {
-      setCurrentScreen('scoreboard');
-    } else {
-      alert('No active game in progress. Tap "Start New Game" to start a match!');
-    }
+    setCurrentScreen('continue_game');
   };
 
   return (
@@ -70,9 +71,17 @@ export const App: React.FC = () => {
         <HomeScreen
           activeGame={state.status !== 'setup' ? state : null}
           onStartNewGame={() => setCurrentScreen('new_game')}
-          onContinueGame={handleContinueGame}
+          onContinueGame={() => setCurrentScreen('continue_game')}
           onOpenPlayerList={() => setCurrentScreen('players')}
           onOpenSettings={() => setIsSettingsOpen(true)}
+        />
+      )}
+
+      {currentScreen === 'continue_game' && (
+        <ContinueGameScreen
+          onBack={() => setCurrentScreen('home')}
+          onResumeGame={handleResumeGame}
+          onStartNewGame={() => setCurrentScreen('new_game')}
         />
       )}
 

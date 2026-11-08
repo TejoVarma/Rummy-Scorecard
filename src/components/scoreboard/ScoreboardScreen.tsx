@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { GameState, PlayerId } from '../../domain/types';
-import { getEligibleForReEntryPlayers } from '../../domain/elimination';
+import { getEligibleForReEntryPlayers, getDropStatus } from '../../domain/elimination';
 import { Confetti } from '../common/Confetti';
 import { toBlob } from 'html-to-image';
 import { Settings, Trophy, Crown, Share2, Trash2, ArrowLeft, UserPlus, Loader2 } from 'lucide-react';
@@ -267,8 +267,17 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                   const score = latestScores[playerId] ?? 0;
                   const isDealer = currentDealerId === playerId;
                   const isOut = score >= rules.poolLimit;
+                  const dropStatus = getDropStatus(score, rules.poolLimit, rules.openDrop);
                   const reEntryCount = player?.reEntryCount ?? 0;
                   const isReEntered = reEntryCount > 0;
+
+                  const nameColorClass = isOut
+                    ? 'text-rose-400 line-through'
+                    : dropStatus === 'compulsory'
+                    ? 'text-rose-500 font-extrabold'
+                    : dropStatus === 'one_drop'
+                    ? 'text-yellow-400 font-extrabold'
+                    : 'text-[var(--color-text)] font-bold';
 
                   return (
                     <th
@@ -283,14 +292,24 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                         <div className="flex items-center justify-center gap-0.5 max-w-full">
                           {isDealer && <Crown className="w-3 h-3 text-[var(--color-primary)] shrink-0" />}
                           <span
-                            className={`text-xs truncate block font-bold ${
-                              isOut ? 'text-rose-400 line-through' : 'text-[var(--color-text)]'
-                            }`}
+                            className={`text-xs truncate block ${nameColorClass}`}
                             title={isReEntered ? `${player?.name} (re-entry x${reEntryCount})` : player?.name}
                           >
                             {player?.name}
                           </span>
                         </div>
+
+                        {/* Drop Warning / Compulsory Pill */}
+                        {!isOut && dropStatus === 'compulsory' && (
+                          <span className="text-[9px] font-extrabold leading-tight tracking-wider text-rose-500 block uppercase mt-0.5">
+                            COMPULSORY
+                          </span>
+                        )}
+                        {!isOut && dropStatus === 'one_drop' && (
+                          <span className="text-[9px] font-extrabold leading-tight tracking-wider text-yellow-400 block uppercase mt-0.5">
+                            1 DROP
+                          </span>
+                        )}
 
                         {/* Explicit re-entry badge showing the exact count */}
                         {isReEntered && (
@@ -427,6 +446,15 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                   const score = latestScores[playerId] ?? 0;
                   const isDealer = currentDealerId === playerId;
                   const isOut = score >= rules.poolLimit;
+                  const dropStatus = getDropStatus(score, rules.poolLimit, rules.openDrop);
+
+                  const totalColorClass = isOut
+                    ? 'text-rose-500 line-through'
+                    : dropStatus === 'compulsory'
+                    ? 'text-rose-500'
+                    : dropStatus === 'one_drop'
+                    ? 'text-yellow-400'
+                    : 'text-[var(--color-primary)]';
 
                   return (
                     <td
@@ -439,13 +467,19 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                       <div className="text-[10px] uppercase font-sans font-bold text-[var(--color-muted)] tracking-wider">
                         TOTAL
                       </div>
-                      <div
-                        className={`text-base font-extrabold font-mono leading-tight mt-0.5 ${
-                          isOut ? 'text-rose-500 line-through' : 'text-[var(--color-primary)]'
-                        }`}
-                      >
+                      <div className={`text-base font-extrabold font-mono leading-tight mt-0.5 ${totalColorClass}`}>
                         {score}
                       </div>
+                      {!isOut && dropStatus === 'compulsory' && (
+                        <div className="text-[8px] font-extrabold uppercase text-rose-500 tracking-tight leading-none mt-0.5">
+                          COMPULSORY
+                        </div>
+                      )}
+                      {!isOut && dropStatus === 'one_drop' && (
+                        <div className="text-[8px] font-extrabold uppercase text-yellow-400 tracking-tight leading-none mt-0.5">
+                          1 DROP
+                        </div>
+                      )}
                     </td>
                   );
                 })}

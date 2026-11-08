@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { GameState, PlayerId, ScoreInputType } from '../../domain/types';
 import { validateRoundScores } from '../../domain/scoring';
+import { getDropStatus } from '../../domain/elimination';
 import { ArrowLeft, Crown } from 'lucide-react';
 import { useBackButton, BACK_PRIORITY } from '../../hooks/useBackButton';
 
@@ -158,6 +159,7 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
           const currentTotal = cumulativeScores[playerId] ?? 0;
           const currentInput = scores[playerId];
           const isDealer = playerId === currentDealerId;
+          const dropStatus = getDropStatus(currentTotal, rules.poolLimit, rules.openDrop);
 
           return (
             <div
@@ -167,11 +169,23 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
               {/* Header row: Name + Current Total on left, Outlined Capsule on right */}
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <div className="font-semibold text-base text-[var(--color-text)] flex items-center gap-1.5">
-                    {player?.name}
+                  <div className="font-semibold text-base flex items-center gap-1.5 flex-wrap">
+                    <span className={dropStatus === 'compulsory' ? 'text-rose-500 font-bold' : dropStatus === 'one_drop' ? 'text-yellow-400 font-bold' : 'text-[var(--color-text)]'}>
+                      {player?.name}
+                    </span>
                     {(player?.reEntryCount ?? 0) > 0 && (
                       <span className="text-[10px] text-[#ef4444] font-semibold">
                         (re entry)
+                      </span>
+                    )}
+                    {dropStatus === 'compulsory' && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded font-extrabold bg-rose-500/15 text-rose-400 border border-rose-500/30 uppercase tracking-tight">
+                        Compulsory
+                      </span>
+                    )}
+                    {dropStatus === 'one_drop' && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded font-bold bg-yellow-500/15 text-yellow-400 border border-yellow-500/30 uppercase tracking-tight">
+                        1 Drop
                       </span>
                     )}
                     {isDealer && (

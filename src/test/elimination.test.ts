@@ -5,6 +5,8 @@ import {
   isEligibleForReEntry,
   getActivePlayerIds,
   getEligibleForReEntryPlayers,
+  getDropStatus,
+  getRemainingDrops,
 } from '../domain/elimination';
 import { DEFAULT_RULES } from '../domain/scoring';
 import { RoundRecord } from '../domain/types';
@@ -131,6 +133,62 @@ describe('elimination domain tests', () => {
 
       const eligible = getEligibleForReEntryPlayers(rounds, seats, { ...DEFAULT_RULES, allowReEntry: false });
       expect(eligible).toEqual([]);
+    });
+  });
+
+  describe('getDropStatus and getRemainingDrops', () => {
+    // Standard 201 pool with open drop = 20
+    const pool201 = 201;
+    const drop20 = 20;
+
+    it('identifies safe players with 2 or more drops remaining', () => {
+      // Score 0: 10 drops remaining
+      expect(getDropStatus(0, pool201, drop20)).toBe('safe');
+      expect(getRemainingDrops(0, pool201, drop20)).toBe(10);
+
+      // Score 160: 2 drops remaining (160 + 20 = 180, 180 + 20 = 200 < 201)
+      expect(getDropStatus(160, pool201, drop20)).toBe('safe');
+      expect(getRemainingDrops(160, pool201, drop20)).toBe(2);
+    });
+
+    it('identifies one_drop players with exactly 1 drop remaining (yellow)', () => {
+      // Score 161: 1 drop remaining (161 + 20 = 181, 181 + 20 = 201 >= 201)
+      expect(getDropStatus(161, pool201, drop20)).toBe('one_drop');
+      expect(getRemainingDrops(161, pool201, drop20)).toBe(1);
+
+      // Score 180 (exact screenshot case): 1 drop remaining (180 + 20 = 200 < 201)
+      expect(getDropStatus(180, pool201, drop20)).toBe('one_drop');
+      expect(getRemainingDrops(180, pool201, drop20)).toBe(1);
+    });
+
+    it('identifies compulsory players with 0 drops remaining (red)', () => {
+      // Score 181: 0 drops remaining (181 + 20 = 201 >= 201)
+      expect(getDropStatus(181, pool201, drop20)).toBe('compulsory');
+      expect(getRemainingDrops(181, pool201, drop20)).toBe(0);
+
+      // Score 200: 0 drops remaining (200 + 20 = 220 >= 201)
+      expect(getDropStatus(200, pool201, drop20)).toBe('compulsory');
+      expect(getRemainingDrops(200, pool201, drop20)).toBe(0);
+    });
+
+    it('identifies eliminated players at or above pool limit', () => {
+      expect(getDropStatus(201, pool201, drop20)).toBe('out');
+      expect(getRemainingDrops(201, pool201, drop20)).toBe(-1);
+
+      expect(getDropStatus(240, pool201, drop20)).toBe('out');
+      expect(getRemainingDrops(240, pool201, drop20)).toBe(-1);
+    });
+
+    it('handles 101 pool with open drop = 20', () => {
+      const pool101 = 101;
+      // Score 60: safe (60 + 20 = 80, 80 + 20 = 100 < 101)
+      expect(getDropStatus(60, pool101, drop20)).toBe('safe');
+      // Score 80: one_drop (80 + 20 = 100 < 101)
+      expect(getDropStatus(80, pool101, drop20)).toBe('one_drop');
+      // Score 81: compulsory (81 + 20 = 101 >= 101)
+      expect(getDropStatus(81, pool101, drop20)).toBe('compulsory');
+      // Score 101: out
+      expect(getDropStatus(101, pool101, drop20)).toBe('out');
     });
   });
 });

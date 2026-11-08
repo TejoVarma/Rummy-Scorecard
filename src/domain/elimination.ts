@@ -1,5 +1,37 @@
 import { GameRules, PlayerId, RoundRecord } from './types';
 
+export type DropStatus = 'safe' | 'one_drop' | 'compulsory' | 'out';
+
+/**
+ * Calculates whether a player is safe, has 1 drop left, is compulsory (0 drops), or is eliminated.
+ * - 'out': score >= poolLimit
+ * - 'compulsory': score + openDrop >= poolLimit (0 open drops remaining, must play!)
+ * - 'one_drop': score + openDrop < poolLimit BUT score + 2 * openDrop >= poolLimit (exactly 1 open drop remaining)
+ * - 'safe': score + 2 * openDrop < poolLimit (2 or more drops remaining)
+ */
+export function getDropStatus(score: number, poolLimit: number, openDrop: number): DropStatus {
+  if (score >= poolLimit) {
+    return 'out';
+  }
+  if (score + openDrop >= poolLimit) {
+    return 'compulsory';
+  }
+  if (score + 2 * openDrop >= poolLimit) {
+    return 'one_drop';
+  }
+  return 'safe';
+}
+
+/**
+ * Returns the exact number of open drops remaining before elimination.
+ * Returns 0 if compulsory, or -1 if already eliminated.
+ */
+export function getRemainingDrops(score: number, poolLimit: number, openDrop: number): number {
+  if (score >= poolLimit) return -1;
+  const margin = poolLimit - 1 - score;
+  return Math.max(0, Math.floor(margin / openDrop));
+}
+
 /**
  * Checks whether a cumulative score has reached or crossed the pool limit.
  */

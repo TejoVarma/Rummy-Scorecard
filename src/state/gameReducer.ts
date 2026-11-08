@@ -217,8 +217,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         reEnteredInRound: [...lastRound.reEnteredInRound, playerId],
       };
 
+      // Recalculate active players to determine status and winner
+      const newActiveIds = getActivePlayerIds(updatedSeats, updatedCumulative, state.rules.poolLimit);
+      const isCompleted = newActiveIds.size <= 1;
+      const winnerId = isCompleted && newActiveIds.size === 1 ? Array.from(newActiveIds)[0] : undefined;
+
       return {
         ...state,
+        status: isCompleted ? 'completed' : 'playing',
+        winnerPlayerId: winnerId,
         players: {
           ...state.players,
           [playerId]: updatedPlayer,

@@ -226,4 +226,48 @@ describe('gameReducer integration tests', () => {
     expect(state.rounds[0].cumulativeScores['p2']).toBe(48);
     expect(state.rounds[0].scores['p2'].type).toBe('middle_drop');
   });
+
+  it('restores playing status and unsets winner when an eliminated player re-enters', () => {
+    const players = [
+      { id: 'p1', name: 'Tejo', avatarColor: '#3b82f6', reEntryCount: 0 },
+      { id: 'p2', name: 'Bava', avatarColor: '#10b981', reEntryCount: 0 },
+    ];
+
+    let state = gameReducer(INITIAL_STATE, {
+      type: 'START_GAME',
+      payload: {
+        title: 'Two player pool',
+        rules: { ...DEFAULT_RULES, poolLimit: 101 },
+        players,
+        initialSeats: ['p1', 'p2'],
+        initialDealerIndex: 0,
+      },
+    });
+
+    // p2 gets 105 points and is eliminated -> p1 is declared winner
+    state = gameReducer(state, {
+      type: 'SUBMIT_ROUND',
+      payload: {
+        roundScores: {
+          p1: { type: 'show', points: 0 },
+          p2: { type: 'custom', points: 105 },
+        },
+      },
+    });
+
+    expect(state.status).toBe('completed');
+    expect(state.winnerPlayerId).toBe('p1');
+
+    // p2 re-enters before the next round!
+    // Active player is p1 with score 0. Re-entry score = 0 + 1 = 1 (< 101).
+    state = gameReducer(state, {
+      type: 'RE_ENTER_PLAYER',
+      payload: { playerId: 'p2' },
+    });
+
+    // Game must resume playing, winner unset!
+    expect(state.status).toBe('playing');
+    expect(state.winnerPlayerId).toBeUndefined();
+    expect(state.rounds[0].cumulativeScores['p2']).toBe(1);
+  });
 });

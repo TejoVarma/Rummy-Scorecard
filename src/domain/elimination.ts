@@ -1,4 +1,4 @@
-import { GameRules, PlayerId } from './types';
+import { GameRules, PlayerId, RoundRecord } from './types';
 
 /**
  * Checks whether a cumulative score has reached or crossed the pool limit.
@@ -52,4 +52,51 @@ export function getActivePlayerIds(
     }
   }
   return active;
+}
+
+/**
+ * Determines which players are currently eligible for re-entry.
+ * In Indian Pool Rummy:
+ * 1. Re-entry must be allowed by rules.
+ * 2. Only players who got eliminated in the MOST RECENT round have the chance to re-enter for the very next round.
+ *    If a subsequent round has already been played without them re-entering, their window has closed.
+ * 3. The player must still be eliminated (has not already re-entered).
+ * 4. Re-entry score (highest active score + 1) must be strictly less than the pool limit.
+ */
+export function getEligibleForReEntryPlayers(
+  rounds: RoundRecord[],
+  seats: PlayerId[],
+  rules: GameRules
+): PlayerId[] {
+  if (!rules.allowReEntry || rounds.length === 0) {
+    return [];
+  }
+
+  const lastRound = rounds[rounds.length - 1];
+  const latestScores = lastRound.cumulativeScores;
+
+  // Players who crossed the pool limit in the most recent round
+  const candidates = (lastRound.eliminatedInRound ?? []).filter(
+    id => (latestScores[id] ?? 0) >= rules.poolLimit
+  );
+
+  if (candidates.length === 0) {
+    return [];
+  }
+
+  // Active player scores (players still under pool limit)
+  const activeScores = seats
+    .filter(id => (latestScores[id] ?? 0) < rules.poolLimit)
+    .map(id => latestScores[id] ?? 0);
+
+  if (activeScores.length === 0) {
+    return [];
+  }
+
+  const potentialReEntryScore = calculateReEntryScore(activeScores, rules);
+  if (!isEligibleForReEntry(potentialReEntryScore, rules.poolLimit)) {
+    return [];
+  }
+
+  return candidates;
 }

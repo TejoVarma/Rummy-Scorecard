@@ -8,6 +8,7 @@ interface RoundInputModalProps {
   isOpen: boolean;
   onClose: () => void;
   state: GameState;
+  isEditingLastRound?: boolean;
   onSubmitRound: (roundScores: Record<PlayerId, { type: ScoreInputType; points: number }>) => void;
 }
 
@@ -15,22 +16,32 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
   isOpen,
   onClose,
   state,
+  isEditingLastRound = false,
   onSubmitRound,
 }) => {
   const { seats, players, rules, rounds, currentDealerIndex } = state;
   const currentDealerId = seats[currentDealerIndex];
-
-  // Get cumulative scores
-  const cumulativeScores: Record<PlayerId, number> =
-    rounds.length > 0
-      ? rounds[rounds.length - 1].cumulativeScores
-      : Object.fromEntries(seats.map(id => [id, 0]));
+  const lastRound = rounds.length > 0 ? rounds[rounds.length - 1] : null;
 
   // Active players for this round
-  const activeSeats = seats.filter(id => (cumulativeScores[id] ?? 0) < rules.poolLimit);
+  // If editing, use the players that participated in the last round
+  const activeSeats = isEditingLastRound && lastRound
+    ? Object.keys(lastRound.scores)
+    : seats.filter(id => {
+        const cumulativeScores = rounds.length > 0 ? rounds[rounds.length - 1].cumulativeScores : {};
+        return (cumulativeScores[id] ?? 0) < rules.poolLimit;
+      });
 
-  // Round input state
+  // Cumulative scores up to the round being entered/edited
+  const cumulativeScores: Record<PlayerId, number> = isEditingLastRound
+    ? (rounds.length > 1 ? rounds[rounds.length - 2].cumulativeScores : Object.fromEntries(seats.map(id => [id, 0])))
+    : (rounds.length > 0 ? rounds[rounds.length - 1].cumulativeScores : Object.fromEntries(seats.map(id => [id, 0])));
+
+  // Round input state pre-populated if editing last round
   const [scores, setScores] = useState<Record<PlayerId, { type: ScoreInputType; points: number }>>(() => {
+    if (isEditingLastRound && lastRound) {
+      return { ...lastRound.scores };
+    }
     return Object.fromEntries(
       activeSeats.map(id => [id, { type: 'open_drop' as ScoreInputType, points: rules.openDrop }])
     );
@@ -92,7 +103,11 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`Add Round Scores`}>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={isEditingLastRound ? `Edit Round ${rounds.length} Scores` : 'Add Round Scores'}
+    >
       <div className="space-y-3">
         {errorMessage && (
           <div className="p-2.5 rounded bg-rose-950/40 border border-rose-800 text-rose-200 text-xs font-medium">
@@ -222,9 +237,9 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
         <button
           type="button"
           onClick={handleSubmit}
-          className="w-full py-3 rounded-lg font-bold text-sm bg-[#0284c7] hover:bg-[#0369a1] text-white shadow transition active:scale-[0.99]"
+          className="w-full py-3 rounded-full font-bold text-sm bg-[#00a2ed] hover:bg-[#008fcf] text-white shadow transition active:scale-[0.99] tracking-wider"
         >
-          SUBMIT
+          {isEditingLastRound ? 'UPDATE SCORE' : 'SUBMIT'}
         </button>
       </div>
     </Modal>

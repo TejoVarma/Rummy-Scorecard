@@ -105,6 +105,72 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
     }
 
+    case 'EDIT_LAST_ROUND': {
+      if (state.rounds.length === 0) return state;
+      const { roundScores } = action.payload;
+      const lastRoundIndex = state.rounds.length - 1;
+      const lastRound = state.rounds[lastRoundIndex];
+
+      // Calculate previous cumulative scores prior to the last round
+      const prevCumulative: Record<PlayerId, number> =
+        lastRoundIndex > 0
+          ? state.rounds[lastRoundIndex - 1].cumulativeScores
+          : Object.fromEntries(state.seats.map(id => [id, 0]));
+
+      // Calculate new cumulative scores for the edited round
+      const newCumulative: Record<PlayerId, number> = {};
+      const eliminatedInRound: PlayerId[] = [];
+
+      for (const id of state.seats) {
+        const prev = prevCumulative[id] ?? 0;
+        const roundPts = roundScores[id]?.points ?? 0;
+        const total = prev + roundPts;
+        newCumulative[id] = total;
+
+        if (isEliminated(total, state.rules.poolLimit) && !isEliminated(prev, state.rules.poolLimit)) {
+          eliminatedInRound.push(id);
+        }
+      }
+
+      // Check active players
+      const activeIds = getActivePlayerIds(state.seats, newCumulative, state.rules.poolLimit);
+
+      // Check winner condition
+      let winnerId: PlayerId | undefined = undefined;
+      let newStatus: 'playing' | 'completed' = 'playing';
+      if (activeIds.size === 1) {
+        winnerId = Array.from(activeIds)[0];
+        newStatus = 'completed';
+      }
+
+      // Re-evaluate dealer index based on last round's dealer
+      const roundDealerIndex = state.seats.indexOf(lastRound.dealerPlayerId);
+      const nextDealerIdx = getNextDealerIndex(
+        state.seats,
+        roundDealerIndex >= 0 ? roundDealerIndex : 0,
+        activeIds
+      );
+
+      const updatedRound: RoundRecord = {
+        ...lastRound,
+        scores: roundScores,
+        cumulativeScores: newCumulative,
+        eliminatedInRound,
+        timestamp: Date.now(),
+      };
+
+      const newRounds = [...state.rounds];
+      newRounds[lastRoundIndex] = updatedRound;
+
+      return {
+        ...state,
+        status: newStatus,
+        winnerPlayerId: winnerId,
+        currentDealerIndex: nextDealerIdx,
+        rounds: newRounds,
+      };
+    }
+
     case 'RE_ENTER_PLAYER': {
       const { playerId, customReEntryScore } = action.payload;
       const lastRound = state.rounds[state.rounds.length - 1];

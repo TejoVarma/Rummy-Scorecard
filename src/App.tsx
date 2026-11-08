@@ -20,6 +20,7 @@ export const App: React.FC = () => {
   // Always open on Home Dashboard by default
   const [currentScreen, setCurrentScreen] = useState<'home' | 'continue_game' | 'players' | 'new_game' | 'scoreboard'>('home');
   const [isInputModalOpen, setIsInputModalOpen] = useState(false);
+  const [isEditingLastRound, setIsEditingLastRound] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [reEntryTargetPlayerId, setReEntryTargetPlayerId] = useState<PlayerId | null>(null);
 
@@ -41,11 +42,11 @@ export const App: React.FC = () => {
   };
 
   const handleSubmitRound = (roundScores: Record<PlayerId, { type: ScoreInputType; points: number }>) => {
-    dispatch({ type: 'SUBMIT_ROUND', payload: { roundScores } });
-  };
-
-  const handleUndoRound = () => {
-    dispatch({ type: 'UNDO_ROUND' });
+    if (isEditingLastRound) {
+      dispatch({ type: 'EDIT_LAST_ROUND', payload: { roundScores } });
+    } else {
+      dispatch({ type: 'SUBMIT_ROUND', payload: { roundScores } });
+    }
   };
 
   const handleConfirmReEntry = (playerId: PlayerId, customScore?: number) => {
@@ -100,8 +101,14 @@ export const App: React.FC = () => {
         <ScoreboardScreen
           state={state}
           onBack={() => setCurrentScreen('home')}
-          onOpenScoreInput={() => setIsInputModalOpen(true)}
-          onUndoRound={handleUndoRound}
+          onOpenScoreInput={() => {
+            setIsEditingLastRound(false);
+            setIsInputModalOpen(true);
+          }}
+          onOpenEditScore={() => {
+            setIsEditingLastRound(true);
+            setIsInputModalOpen(true);
+          }}
           onOpenSettings={() => setIsSettingsOpen(true)}
           onPromptReEntry={id => setReEntryTargetPlayerId(id)}
           onDeleteGame={handleDeleteGame}
@@ -114,6 +121,7 @@ export const App: React.FC = () => {
           isOpen={isInputModalOpen}
           onClose={() => setIsInputModalOpen(false)}
           state={state}
+          isEditingLastRound={isEditingLastRound}
           onSubmitRound={handleSubmitRound}
         />
       )}

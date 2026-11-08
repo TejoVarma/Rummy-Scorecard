@@ -166,4 +166,50 @@ describe('gameReducer integration tests', () => {
     expect(state.currentDealerIndex).toBe(2);
     expect(state.seats[state.currentDealerIndex]).toBe('p3');
   });
+
+  it('edits last round scores correctly and recalculates cumulative totals', () => {
+    const players = [
+      { id: 'p1', name: 'Tejo', avatarColor: '#3b82f6', reEntryCount: 0 },
+      { id: 'p2', name: 'Bava', avatarColor: '#10b981', reEntryCount: 0 },
+    ];
+
+    let state = gameReducer(INITIAL_STATE, {
+      type: 'START_GAME',
+      payload: {
+        title: 'Edit round test',
+        rules: DEFAULT_RULES,
+        players,
+        initialSeats: ['p1', 'p2'],
+        initialDealerIndex: 0,
+      },
+    });
+
+    // Submit Round 1 with initial scores: p1 = 0, p2 = 24 (Open drop)
+    state = gameReducer(state, {
+      type: 'SUBMIT_ROUND',
+      payload: {
+        roundScores: {
+          p1: { type: 'show', points: 0 },
+          p2: { type: 'open_drop', points: 24 },
+        },
+      },
+    });
+
+    expect(state.rounds[0].cumulativeScores).toEqual({ p1: 0, p2: 24 });
+
+    // Now edit Round 1: change p2's score to middle drop (48)
+    state = gameReducer(state, {
+      type: 'EDIT_LAST_ROUND',
+      payload: {
+        roundScores: {
+          p1: { type: 'show', points: 0 },
+          p2: { type: 'middle_drop', points: 48 },
+        },
+      },
+    });
+
+    expect(state.rounds.length).toBe(1);
+    expect(state.rounds[0].cumulativeScores).toEqual({ p1: 0, p2: 48 });
+    expect(state.rounds[0].scores['p2'].type).toBe('middle_drop');
+  });
 });

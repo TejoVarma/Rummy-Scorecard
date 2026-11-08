@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { GameState, PlayerId } from '../../domain/types';
 import { Confetti } from '../common/Confetti';
-import { RotateCcw, Settings, Trophy, Crown, Share2, Trash2, ArrowLeft, UserPlus } from 'lucide-react';
+import { Settings, Trophy, Crown, Share2, Trash2, ArrowLeft, UserPlus } from 'lucide-react';
 
 interface ScoreboardScreenProps {
   state: GameState;
   onBack: () => void;
   onOpenScoreInput: () => void;
-  onUndoRound: () => void;
+  onOpenEditScore: () => void;
   onOpenSettings: () => void;
   onPromptReEntry: (playerId: PlayerId) => void;
   onDeleteGame: () => void;
@@ -17,7 +17,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
   state,
   onBack,
   onOpenScoreInput,
-  onUndoRound,
+  onOpenEditScore,
   onOpenSettings,
   onPromptReEntry,
   onDeleteGame,
@@ -77,15 +77,6 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
             className="p-1.5 rounded hover:bg-black/10 transition"
           >
             <Share2 className="w-4 h-4 text-white" />
-          </button>
-          <button
-            type="button"
-            onClick={onUndoRound}
-            disabled={rounds.length === 0}
-            title="Undo Last Round"
-            className="p-1.5 rounded hover:bg-black/10 disabled:opacity-30 transition"
-          >
-            <RotateCcw className="w-4 h-4 text-white" />
           </button>
           <button
             type="button"
@@ -347,11 +338,11 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
 
         <button
           type="button"
-          onClick={onUndoRound}
+          onClick={onOpenEditScore}
           disabled={rounds.length === 0}
           className="w-full py-2.5 rounded-full font-semibold text-xs border border-[#00a2ed] text-[#00a2ed] hover:bg-[#00a2ed]/10 disabled:opacity-40 transition active:scale-[0.99] tracking-wider"
         >
-          UNDO LAST ROUND
+          EDIT SCORE
         </button>
       </div>
     </div>

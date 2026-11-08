@@ -154,6 +154,25 @@ describe('elimination domain tests', () => {
       const eligible = getEligibleForReEntryPlayers(rounds, seats, DEFAULT_RULES);
       expect(eligible).toEqual([]);
     });
+
+    it('returns empty when deal is settled (isDealSettled = true)', () => {
+      const rounds: RoundRecord[] = [
+        {
+          roundNumber: 1,
+          dealerPlayerId: 'p1',
+          scores: {} as any,
+          cumulativeScores: { p1: 40, p2: 50, p3: 205 },
+          seatsSnapshot: seats,
+          playersSnapshot: {} as any,
+          eliminatedInRound: ['p3'],
+          reEnteredInRound: [],
+          timestamp: 1000,
+        },
+      ];
+
+      const eligible = getEligibleForReEntryPlayers(rounds, seats, DEFAULT_RULES, true);
+      expect(eligible).toEqual([]);
+    });
   });
 
   describe('getDropStatus and getRemainingDrops', () => {

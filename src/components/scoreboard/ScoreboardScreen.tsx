@@ -17,7 +17,6 @@ interface ScoreboardScreenProps {
   onPromptReEntry: (playerId: PlayerId) => void;
   onDeleteGame: () => void;
   onAcceptDeal: (dealSplit: DealSplit) => void;
-  onCancelDeal: () => void;
 }
 
 export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
@@ -29,7 +28,6 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
   onPromptReEntry,
   onDeleteGame,
   onAcceptDeal,
-  onCancelDeal,
 }) => {
   const { title, rules, seats, players, rounds, currentDealerIndex, winnerPlayerId, dealSplit } = state;
   const currentDealerId = seats[currentDealerIndex];
@@ -68,8 +66,11 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
     );
   }, [seats, latestScores, rules]);
 
-  // Eligible for re-entry: only players who got eliminated in the most recent round
-  const eligibleReEntryPlayers = getEligibleForReEntryPlayers(rounds, seats, rules);
+  // Identify if match has been settled by pool deal
+  const isDealSettled = Boolean(dealSplit);
+
+  // Eligible for re-entry: only players who got eliminated in the most recent round if deal is not settled
+  const eligibleReEntryPlayers = getEligibleForReEntryPlayers(rounds, seats, rules, isDealSettled);
 
   // Pool Stake & Total Amount calculation
   const entryAmount = rules.entryAmount ?? 0;
@@ -275,8 +276,8 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
         </div>
       </div>
 
-      {/* Re-Entry Action Banner - only for players eliminated in the most recent round */}
-      {eligibleReEntryPlayers.length > 0 && rules.allowReEntry && (
+      {/* Re-Entry Action Banner - only for players eliminated in the most recent round if no deal settled the match */}
+      {eligibleReEntryPlayers.length > 0 && rules.allowReEntry && !isDealSettled && (
         <div className="px-3 py-2 bg-[var(--color-card)] border-b border-[var(--color-border)] flex items-center justify-between gap-2 shrink-0">
           <span className="text-xs text-[var(--color-text)] truncate">
             {eligibleReEntryPlayers.map(id => players[id]?.name).join(', ')} eliminated!
@@ -698,7 +699,6 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
           onClose={() => setIsPoolShareOpen(false)}
           state={state}
           onAcceptDeal={onAcceptDeal}
-          onCancelDeal={onCancelDeal}
         />
       )}
     </div>

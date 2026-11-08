@@ -97,10 +97,6 @@ export function App() {
     dispatch({ type: 'ACCEPT_DEAL', payload: { dealSplit } });
   }, []);
 
-  const handleCancelDeal = useCallback(() => {
-    dispatch({ type: 'CANCEL_DEAL' });
-  }, []);
-
   return (
     <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] transition-colors duration-200">
       {/* Screen Router */}
@@ -150,7 +146,6 @@ export function App() {
           onPromptReEntry={id => setReEntryTargetPlayerId(id)}
           onDeleteGame={handleDeleteGame}
           onAcceptDeal={handleAcceptDeal}
-          onCancelDeal={handleCancelDeal}
         />
       )}
 

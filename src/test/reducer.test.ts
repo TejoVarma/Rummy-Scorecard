@@ -394,7 +394,7 @@ describe('gameReducer integration tests', () => {
     expect(state.rounds[0].reEnteredInRound).toEqual([]);
   });
 
-  it('completes game on ACCEPT_DEAL and reopens on CANCEL_DEAL', () => {
+  it('completes game on ACCEPT_DEAL and permanently settles match without cancellation', () => {
     const players = [
       { id: 'p1', name: 'Akka', avatarColor: '#10b981', reEntryCount: 0 },
       { id: 'p2', name: 'Pavan', avatarColor: '#3b82f6', reEntryCount: 0 },
@@ -431,10 +431,13 @@ describe('gameReducer integration tests', () => {
     expect(state.dealSplit).toBeDefined();
     expect(state.dealSplit?.payouts).toEqual({ p1: 140, p2: 60 });
 
-    // Cancel / Reopen deal
-    state = gameReducer(state, { type: 'CANCEL_DEAL' });
-    expect(state.status).toBe('playing');
-    expect(state.dealSplit).toBeUndefined();
+    // While deal is accepted, re-entry is completely blocked
+    const stateWhileDealSettled = state;
+    const reEntryAttemptState = gameReducer(state, {
+      type: 'RE_ENTER_PLAYER',
+      payload: { playerId: 'p2' },
+    });
+    expect(reEntryAttemptState).toBe(stateWhileDealSettled);
   });
 
   it('safely handles RE_ENTER_PLAYER when lastRound.reEnteredInRound is undefined', () => {

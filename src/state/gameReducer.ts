@@ -208,6 +208,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const lastRound = state.rounds[state.rounds.length - 1];
       if (!lastRound) return state;
 
+      // Guard: Cannot re-enter if match was settled by pool deal
+      if (state.dealSplit) return state;
+
+      // Guard: Cannot re-enter if re-entry is disabled by rules
+      if (!state.rules.allowReEntry) return state;
+
       const player = state.players[playerId];
       if (!player) return state;
 
@@ -322,14 +328,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         status: 'completed',
         dealSplit: action.payload.dealSplit,
-      };
-    }
-
-    case 'CANCEL_DEAL': {
-      const { dealSplit: _removed, ...rest } = state;
-      return {
-        ...rest,
-        status: 'playing',
       };
     }
 

@@ -159,9 +159,10 @@ export function getActivePlayerIds(
 export function getEligibleForReEntryPlayers(
   rounds: RoundRecord[],
   seats: PlayerId[],
-  rules: GameRules
+  rules: GameRules,
+  isDealSettled: boolean = false
 ): PlayerId[] {
-  if (!rules.allowReEntry || rounds.length === 0) {
+  if (!rules.allowReEntry || rounds.length === 0 || isDealSettled) {
     return [];
   }
 

@@ -7,7 +7,7 @@ import {
   validateCustomDeal,
   formatDealSummary,
 } from '../../domain/dealSplit';
-import { Handshake, Share2, AlertCircle, RotateCcw, Check, Scale, Equal, Edit3 } from 'lucide-react';
+import { Handshake, Share2, AlertCircle, Check, Scale, Equal, Edit3 } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import { Share } from '@capacitor/share';
 import { useBackButton, BACK_PRIORITY } from '../../hooks/useBackButton';
@@ -17,7 +17,6 @@ interface PoolShareModalProps {
   onClose: () => void;
   state: GameState;
   onAcceptDeal: (dealSplit: DealSplit) => void;
-  onCancelDeal: () => void;
 }
 
 export const PoolShareModal: React.FC<PoolShareModalProps> = ({
@@ -25,7 +24,6 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
   onClose,
   state,
   onAcceptDeal,
-  onCancelDeal,
 }) => {
   const { rules, seats, players, rounds, dealSplit, status } = state;
 
@@ -223,7 +221,7 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
             <div className="space-y-1">
               <span className="font-bold text-amber-300 block">Match Settled by Deal</span>
               <p className="opacity-90 leading-relaxed">
-                This match was finalized via a negotiated prize pool split. You can review the payouts below or cancel the deal to resume playing.
+                This match was finalized via an agreed prize pool deal. Payouts are final and irrevocable.
               </p>
             </div>
           </div>
@@ -416,22 +414,6 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
               className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-extrabold shadow-md active:scale-[0.99] transition flex items-center justify-center gap-2"
             >
               <Handshake className="w-4 h-4" /> ACCEPT DEAL & FINISH MATCH
-            </button>
-          )}
-
-          {/* Cancel Deal Button (when settled) */}
-          {isAlreadySettled && (
-            <button
-              type="button"
-              onClick={() => {
-                if (window.confirm('Are you sure you want to cancel the deal and resume playing this match?')) {
-                  onCancelDeal();
-                  onClose();
-                }
-              }}
-              className="w-full py-2.5 rounded-xl border border-rose-500/30 text-rose-400 hover:bg-rose-500/10 text-xs font-bold transition flex items-center justify-center gap-2"
-            >
-              <RotateCcw className="w-4 h-4" /> Cancel Deal & Reopen Match
             </button>
           )}
         </div>

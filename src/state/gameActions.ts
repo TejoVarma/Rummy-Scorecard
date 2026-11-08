@@ -47,9 +47,6 @@ export type GameAction =
       };
     }
   | {
-      type: 'CANCEL_DEAL';
-    }
-  | {
       type: 'RESET_GAME';
     }
   | {

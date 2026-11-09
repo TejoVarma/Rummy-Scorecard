@@ -58,7 +58,7 @@ Exit: tested on a real phone. The image arrives in WhatsApp. The voice speaks af
 | ✅ 4.4 | `validateRoundScores` uses `rules.fullCount` | R#11 |
 | ✅ 4.5 | Storage: restore from Preferences at startup, report failed saves, keep corrupt data instead of overwriting it, run saves one at a time, and warn before the 30-game cap evicts a game | R#6, R#13-15 |
 | ✅ 4.6 | Backup: strict validation, confirm before import, merge by gameId, version check, size cap, export as a file | R#12, R#17 |
-| 4.7 | Fix the wizard title month and input handling | R#16, R#25 |
+| ✅ 4.7 | Fix the wizard title month and input handling | R#16, R#25 |
 
 ## Phase 5: quality and accessibility (P2)
 

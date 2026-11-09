@@ -17,13 +17,18 @@ interface GameSetupWizardProps {
   }) => void;
 }
 
+/** "03 Dec 2026 - 21:05" */
+export function defaultGameTitle(now: Date): string {
+  const date = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  const time = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+  return `${date} - ${time}`;
+}
+
+const digitsOnly = (value: string) => value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+
 export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStartGame }) => {
-  const [title, setTitle] = useState(
-    'Nov ' + new Date().getDate().toString().padStart(2, '0') + ', ' + new Date().getFullYear() + ' - ' +
-    new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
-  );
-  const [poolLimit, setPoolLimit] = useState<number>(201);
-  const [customPool, setCustomPool] = useState<string>('');
+  const [title, setTitle] = useState(() => defaultGameTitle(new Date()));
+  const [pool, setPool] = useState<string>(String(DEFAULT_RULES.poolLimit));
   const [openDrop, setOpenDrop] = useState<string>(String(DEFAULT_RULES.openDrop));
   const [middleDrop, setMiddleDrop] = useState<string>(String(DEFAULT_RULES.middleDrop));
   const [fullCount, setFullCount] = useState<string>(String(DEFAULT_RULES.fullCount));
@@ -35,7 +40,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
 
   const [isSelectModalOpen, setIsSelectModalOpen] = useState(false);
 
-  const roster = loadPlayerRoster();
+  const [roster, setRoster] = useState(loadPlayerRoster);
   const selectedPlayers = selectedIds.map(id => {
     const found = roster.find(r => r.id === id);
     return found || { id, name: 'Player' };
@@ -63,12 +68,23 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
       return;
     }
 
-    const finalPool = customPool ? parseInt(customPool, 10) || poolLimit : poolLimit;
-    const finalOpenDrop = parseInt(openDrop, 10) || DEFAULT_RULES.openDrop;
-    const finalMiddleDrop = parseInt(middleDrop, 10) || DEFAULT_RULES.middleDrop;
-    const finalFullCount = parseInt(fullCount, 10) || DEFAULT_RULES.fullCount;
-    const parsedAmount = parseInt(entryAmount, 10);
-    const finalEntryAmount = isNaN(parsedAmount) || parsedAmount < 0 ? 0 : parsedAmount;
+    // Boxes hold exactly what was typed; an empty required box is pointed out, not replaced.
+    const required: Array<[string, string]> = [
+      ['Game total score', pool],
+      ['Open drop', openDrop],
+      ['Middle Drop', middleDrop],
+      ['Full count', fullCount],
+    ];
+    const missing = required.find(([, value]) => value === '');
+    if (missing) {
+      alert(`Please fill in ${missing[0]}.`);
+      return;
+    }
+    const finalPool = Number(pool);
+    const finalOpenDrop = Number(openDrop);
+    const finalMiddleDrop = Number(middleDrop);
+    const finalFullCount = Number(fullCount);
+    const finalEntryAmount = entryAmount === '' ? 0 : Number(entryAmount);
 
     const rules: GameRules = {
       poolLimit: finalPool,
@@ -144,12 +160,9 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
                 <button
                   key={preset}
                   type="button"
-                  onClick={() => {
-                    setPoolLimit(preset);
-                    setCustomPool('');
-                  }}
+                  onClick={() => setPool(String(preset))}
                   className={`px-2 py-0.5 rounded text-[11px] font-medium transition ${
-                    poolLimit === preset && !customPool
+                    pool === String(preset)
                       ? 'bg-[var(--color-primary)] text-white'
                       : 'bg-[var(--color-subtle)] text-[var(--color-muted)] hover:bg-black/5 dark:hover:bg-white/5'
                   }`}
@@ -168,14 +181,8 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
                 type="text"
                 inputMode="numeric"
                 pattern="[0-9]*"
-                value={customPool !== '' ? customPool : String(poolLimit)}
-                onChange={e => {
-                  const clean = e.target.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
-                  setCustomPool(clean);
-                  if (clean) {
-                    setPoolLimit(parseInt(clean, 10));
-                  }
-                }}
+                value={pool}
+                onChange={e => setPool(digitsOnly(e.target.value))}
                 className="w-full text-center text-sm font-mono font-medium text-[var(--color-text)] bg-transparent focus:outline-none"
               />
             </div>
@@ -186,10 +193,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
                 inputMode="numeric"
                 pattern="[0-9]*"
                 value={openDrop}
-                onChange={e => {
-                  const clean = e.target.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
-                  setOpenDrop(clean);
-                }}
+                onChange={e => setOpenDrop(digitsOnly(e.target.value))}
                 className="w-full text-center text-sm font-mono font-medium text-[var(--color-text)] bg-transparent focus:outline-none"
               />
             </div>
@@ -200,10 +204,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
                 inputMode="numeric"
                 pattern="[0-9]*"
                 value={middleDrop}
-                onChange={e => {
-                  const clean = e.target.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
-                  setMiddleDrop(clean);
-                }}
+                onChange={e => setMiddleDrop(digitsOnly(e.target.value))}
                 className="w-full text-center text-sm font-mono font-medium text-[var(--color-text)] bg-transparent focus:outline-none"
               />
             </div>
@@ -214,10 +215,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
                 inputMode="numeric"
                 pattern="[0-9]*"
                 value={fullCount}
-                onChange={e => {
-                  const clean = e.target.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
-                  setFullCount(clean);
-                }}
+                onChange={e => setFullCount(digitsOnly(e.target.value))}
                 className="w-full text-center text-sm font-mono font-medium text-[var(--color-text)] bg-transparent focus:outline-none"
               />
             </div>
@@ -256,10 +254,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
                   pattern="[0-9]*"
                   value={entryAmount}
                   placeholder="0"
-                  onChange={e => {
-                    const clean = e.target.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
-                    setEntryAmount(clean);
-                  }}
+                  onChange={e => setEntryAmount(digitsOnly(e.target.value))}
                   className="w-full text-sm font-mono font-bold text-[var(--color-text)] bg-transparent focus:outline-none"
                 />
               </div>
@@ -399,7 +394,10 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
           isOpen={isSelectModalOpen}
           onClose={() => setIsSelectModalOpen(false)}
           selectedPlayerIds={selectedIds}
-          onConfirmSelection={newSelection => setSelectedIds(newSelection)}
+          onConfirmSelection={newSelection => {
+            setRoster(loadPlayerRoster());
+            setSelectedIds(newSelection);
+          }}
         />
       )}
     </div>

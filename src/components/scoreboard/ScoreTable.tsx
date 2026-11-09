@@ -164,6 +164,13 @@ export const ScoreTable = forwardRef<HTMLDivElement, ScoreTableProps>(function S
                   <tr
                     key={round.roundNumber}
                     onClick={() => onSelectRound(isSelected ? null : rIdx)}
+                    tabIndex={0}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onSelectRound(isSelected ? null : rIdx);
+                      }
+                    }}
                     className={`transition-colors cursor-pointer ${isEdited ? 'bg-amber-500/15' : ''} ${
                       isSelected ? 'bg-black/5 dark:bg-white/[0.06]' : 'hover:bg-black/[0.02] dark:hover:bg-white/[0.02]'
                     }`}

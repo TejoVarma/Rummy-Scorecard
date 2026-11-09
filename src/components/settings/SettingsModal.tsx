@@ -90,11 +90,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       <div className="space-y-4">
         {/* Color Mode (Dark / Light) */}
         <div className="space-y-1.5">
-          <label className="block text-xs font-semibold text-[var(--color-muted)]">Mode</label>
+          <span className="block text-xs font-semibold text-[var(--color-muted)]">Mode</span>
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => setColorMode('dark')}
+                aria-pressed={colorMode === 'dark'}
               className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded text-xs font-medium border transition ${
                 colorMode === 'dark'
                   ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]'
@@ -106,6 +107,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <button
               type="button"
               onClick={() => setColorMode('light')}
+                aria-pressed={colorMode === 'light'}
               className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded text-xs font-medium border transition ${
                 colorMode === 'light'
                   ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]'
@@ -136,9 +138,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
         {/* Theme Palette */}
         <div className="space-y-1.5">
-          <label className="flex items-center gap-1 text-xs font-semibold text-[var(--color-muted)]">
+          <span className="flex items-center gap-1 text-xs font-semibold text-[var(--color-muted)]">
             <Palette className="w-3.5 h-3.5" /> Palette
-          </label>
+          </span>
           <div className="grid grid-cols-2 gap-2">
             {(Object.keys(THEMES) as ThemeId[]).map(id => {
               const theme = THEMES[id];
@@ -149,6 +151,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   key={id}
                   type="button"
                   onClick={() => setThemeId(id)}
+                aria-pressed={themeId === id}
                   className={`flex items-center gap-2 p-2.5 rounded border text-left transition ${
                     isSelected
                       ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10 font-semibold'
@@ -169,9 +172,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         {/* Data Backup & Restore */}
         <div className="pt-3 border-t border-[var(--color-border)] space-y-2">
           <div className="flex items-center justify-between">
-            <label className="flex items-center gap-1.5 text-xs font-semibold text-[var(--color-muted)]">
+            <span className="flex items-center gap-1.5 text-xs font-semibold text-[var(--color-muted)]">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Data Safety & Backup
-            </label>
+            </span>
             <span className="text-[10px] text-[var(--color-muted)]">JSON format</span>
           </div>
 

@@ -62,7 +62,10 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
   const [showScoreOptions, setShowScoreOptions] = useState<boolean>(true);
   const dialogRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (isOpen) dialogRef.current?.focus();
+    if (!isOpen) return;
+    const opener = document.activeElement as HTMLElement | null;
+    dialogRef.current?.focus();
+    return () => opener?.focus?.();
   }, [isOpen]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -184,7 +187,7 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
         )}
 
         {errorMessage && (
-          <div className="p-3 rounded-lg bg-rose-950/60 border border-rose-800 text-rose-200 text-xs font-medium">
+          <div role="alert" className="p-3 rounded-lg bg-rose-950/60 border border-rose-800 text-rose-200 text-xs font-medium">
             {errorMessage}
           </div>
         )}

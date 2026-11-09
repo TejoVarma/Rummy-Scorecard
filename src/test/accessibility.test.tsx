@@ -197,5 +197,32 @@ describe('screen readers and touch', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Close' }));
     expect(document.activeElement).toBe(settings);
   });
+
+  it('the player picker is a dialog of checkboxes that work from a keyboard', () => {
+    renderApp();
+    fireEvent.click(screen.getByRole('button', { name: /start new game/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'SELECT PLAYERS' }));
+    const dialog = screen.getByRole('dialog', { name: 'Select Players' });
+    const ravi = within(dialog).getByRole('checkbox', { name: 'Ravi' });
+    expect(ravi.getAttribute('aria-checked')).toBe('false');
+    fireEvent.keyDown(ravi, { key: ' ' });
+    expect(ravi.getAttribute('aria-checked')).toBe('true');
+  });
+
+  it('a round row opens its details from a keyboard', () => {
+    renderApp();
+    fireEvent.click(screen.getByRole('button', { name: /ongoing game/i }));
+    const row = document.querySelector('tbody tr') as HTMLElement;
+    expect(row.tabIndex).toBe(0);
+    fireEvent.keyDown(row, { key: 'Enter' });
+    expect(screen.getByText(/Showing Round 1/)).toBeTruthy();
+  });
+
+  it('choice buttons say which one is selected', () => {
+    renderApp();
+    fireEvent.click(screen.getByRole('button', { name: /start new game/i }));
+    expect(screen.getByRole('button', { name: '201' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: '101' }).getAttribute('aria-pressed')).toBe('false');
+  });
 });
 

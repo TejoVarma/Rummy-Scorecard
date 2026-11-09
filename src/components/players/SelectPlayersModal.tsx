@@ -68,7 +68,7 @@ export const SelectPlayersModal: React.FC<SelectPlayersModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-3 select-none">
-      <div className="w-full max-w-sm bg-[var(--color-card)] rounded-xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh] border border-[var(--color-border)] text-[var(--color-text)] transition-colors duration-200">
+      <div role="dialog" aria-modal="true" aria-labelledby="select-players-title" className="w-full max-w-sm bg-[var(--color-card)] rounded-xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh] border border-[var(--color-border)] text-[var(--color-text)] transition-colors duration-200">
         {/* Top App Bar matching Screenshot 4 */}
         <div className="px-4 py-3 bg-[var(--color-primary)] text-white shadow flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -80,7 +80,7 @@ export const SelectPlayersModal: React.FC<SelectPlayersModalProps> = ({
             >
               <X className="w-5 h-5 text-white" />
             </button>
-            <h2 className="font-semibold text-base tracking-normal">Select Players</h2>
+            <h2 id="select-players-title" className="font-semibold text-base tracking-normal">Select Players</h2>
           </div>
           <button
             type="button"
@@ -106,7 +106,17 @@ export const SelectPlayersModal: React.FC<SelectPlayersModalProps> = ({
             return (
               <div
                 key={player.id}
+                role="checkbox"
+                aria-checked={isSelected}
+                aria-label={player.name}
+                tabIndex={0}
                 onClick={() => togglePlayer(player.id)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    togglePlayer(player.id);
+                  }
+                }}
                 className={`flex items-center justify-between p-3 rounded-lg border transition cursor-pointer ${
                   isSelected
                     ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)]'

@@ -253,11 +253,12 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
         {/* Mode Selector Tabs (only when not yet settled) */}
         {!isAlreadySettled && (
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-[var(--color-muted)]">Split Calculation Mode</label>
+            <span className="text-xs font-semibold text-[var(--color-muted)]">Split Calculation Mode</span>
             <div className="grid grid-cols-2 gap-1.5 p-1 rounded-lg bg-[var(--color-subtle)] border border-[var(--color-border)]">
               <button
                 type="button"
                 onClick={() => setMode('proportional')}
+                aria-pressed={mode === 'proportional'}
                 className={`py-1.5 px-2 rounded text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
                   mode === 'proportional'
                     ? 'bg-[var(--color-primary)] text-white shadow-sm'
@@ -270,6 +271,7 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
               <button
                 type="button"
                 onClick={() => setMode('equal')}
+                aria-pressed={mode === 'equal'}
                 className={`py-1.5 px-2 rounded text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
                   mode === 'equal'
                     ? 'bg-[var(--color-primary)] text-white shadow-sm'
@@ -282,6 +284,7 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
               <button
                 type="button"
                 onClick={() => setMode('drops')}
+                aria-pressed={mode === 'drops'}
                 className={`py-1.5 px-2 rounded text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
                   mode === 'drops'
                     ? 'bg-[var(--color-primary)] text-white shadow-sm'
@@ -294,6 +297,7 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
               <button
                 type="button"
                 onClick={() => setMode('custom')}
+                aria-pressed={mode === 'custom'}
                 className={`py-1.5 px-2 rounded text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
                   mode === 'custom'
                     ? 'bg-[var(--color-primary)] text-white shadow-sm'

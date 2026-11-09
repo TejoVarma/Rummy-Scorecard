@@ -327,13 +327,15 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                     (+{totalReEntries * entryAmount})
                   </span>
                 )}
-                <button
-                  type="button"
-                  onClick={() => setIsPoolShareOpen(true)}
-                  className="ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-amber-950 hover:bg-amber-300 transition shadow-xs flex items-center gap-1 active:scale-95"
-                >
-                  <Handshake className="w-3 h-3" /> Deal
-                </button>
+                {rounds.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setIsPoolShareOpen(true)}
+                    className="ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-amber-950 hover:bg-amber-300 transition shadow-xs flex items-center gap-1 active:scale-95"
+                  >
+                    <Handshake className="w-3 h-3" /> Deal
+                  </button>
+                )}
               </span>
             </div>
           )}

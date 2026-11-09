@@ -19,6 +19,9 @@ interface PoolShareModalProps {
   onAcceptDeal: (dealSplit: DealSplit) => void;
 }
 
+// Shared so the memo below sees the same object every render before round 1.
+const NO_SCORES: Record<PlayerId, number> = {};
+
 export const PoolShareModal: React.FC<PoolShareModalProps> = ({
   isOpen,
   onClose,
@@ -29,7 +32,7 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
 
   // Active players
   const lastRound = rounds.length > 0 ? rounds[rounds.length - 1] : null;
-  const latestScores = lastRound?.cumulativeScores ?? {};
+  const latestScores = lastRound?.cumulativeScores ?? NO_SCORES;
 
   const activePlayers = useMemo(() => {
     if (dealSplit) {

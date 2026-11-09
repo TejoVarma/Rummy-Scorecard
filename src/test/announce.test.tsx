@@ -58,6 +58,21 @@ describe('buildAnnouncement', () => {
     expect(buildAnnouncement(state)).toBe('Round 3. Ravi 0. Amit 72. Kiran out.');
   });
 
+  it('leaves out a player who was already out and has not re-entered', () => {
+    const state = game([ROUND, ROUND, ROUND, { p1: { type: 'show', points: 0 }, p2: { type: 'custom', points: 10 } }]);
+    expect(buildAnnouncement(state)).toBe('Round 4. Ravi 0. Amit 82.');
+  });
+
+  it('reads a re-entered player again, with their new total', () => {
+    let state = game([ROUND, ROUND, ROUND]);
+    state = gameReducer(state, { type: 'RE_ENTER_PLAYER', payload: { playerId: 'p3' } });
+    state = gameReducer(state, {
+      type: 'SUBMIT_ROUND',
+      payload: { roundScores: { p1: { type: 'show', points: 0 }, p2: { type: 'custom', points: 10 }, p3: { type: 'custom', points: 5 } } },
+    });
+    expect(buildAnnouncement(state)).toBe('Round 4. Kiran 78. Ravi 0. Amit 82.');
+  });
+
   it('has nothing to say before the first round', () => {
     expect(buildAnnouncement(game([]))).toBeNull();
   });

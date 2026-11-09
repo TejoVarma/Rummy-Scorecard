@@ -9,6 +9,7 @@
 
 | Date | Decision |
 |---|---|
+| 2026-11-09 | Drop-based pool split **revived and built** (Tejo's rule, any number of players): stakes back → each drop worth one stake (pro rata if short) → rest equal; nearest ₹1, odd rupee to most drops; one stake back even after re-entry. Superseded the earlier "dropped" entry below. |
 | 2026-11-09 | Drop-based pool split (3+ players): **dropped**. Too many table-specific rules (rounding, who covers the shortfall, ties). The existing Custom split covers it. |
 | 2026-11-09 | Share: one Share button that asks **Image or Text**; the user picks. |
 | 2026-11-09 | "Minimum = stake" option for Proportional split: **not wanted**. |
@@ -46,6 +47,7 @@ Exit: the app builds and runs on a phone at the new SDK, and CI is green with li
 |---|---|---|
 | ✅ 3.1 | **Share Image + Share Text on the phone** (v1.4; also fixed the share sheet reopening after a cancel). Render the scorecard to a PNG (`html-to-image`, already installed), write it to the cache folder (`@capacitor/filesystem`), and open the share sheet with the file (`@capacitor/share` `files`). The Share button asks "Image or Text". | Turning DOM into an image, Base64 and blobs, how Android shares files (FileProvider), and native vs web code paths |
 | ✅ 3.2 | **Announce totals** (v1.5). A text-to-speech plugin (the version is chosen in the research step to match the Capacitor version), with a browser `speechSynthesis` fallback. Text: "Round 6. Ravi 45. Amit 120. Kiran out." A Settings switch "Announce after each round" (saved). A 🔊 replay button on the scoreboard. Announcements also run after an edit. | Capacitor plugins, text-to-speech, and a pure "message builder" function with unit tests |
+| ✅ 3.3 | **Deal by drops** (v1.7): new "By Drops" option in the Deal screen, `calculateDropDeal` in `domain/dealSplit.ts`. |
 
 Exit: tested on a real phone. The image arrives in WhatsApp. The voice speaks after submit and on replay, and is silent when switched off.
 

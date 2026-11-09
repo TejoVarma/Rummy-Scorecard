@@ -21,22 +21,26 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
   onSubmitRound,
 }) => {
   useBackButton(onClose, isOpen, BACK_PRIORITY.GLOBAL_MODAL);
-  const { seats, players, rules, rounds, currentDealerIndex } = state;
-  const currentDealerId = seats[currentDealerIndex];
+  const { rules, rounds } = state;
   const lastRound = rounds.length > 0 ? rounds[rounds.length - 1] : null;
+  const editedRound = isEditingLastRound ? lastRound : null;
 
-  // Active players for this round
-  const activeSeats = isEditingLastRound && lastRound
-    ? Object.keys(lastRound.scores)
-    : seats.filter(id => {
-        const cumulativeScores = rounds.length > 0 ? rounds[rounds.length - 1].cumulativeScores : {};
-        return (cumulativeScores[id] ?? 0) < rules.poolLimit;
-      });
+  // When editing, show the table exactly as it was when that round was played.
+  const roundSeats = editedRound?.seatsSnapshot ?? state.seats;
+  const players = editedRound?.playersSnapshot ?? state.players;
+  const currentDealerId = editedRound ? editedRound.dealerPlayerId : state.seats[state.currentDealerIndex];
 
-  // Cumulative scores up to the round being entered/edited
-  const cumulativeScores: Record<PlayerId, number> = isEditingLastRound
-    ? (rounds.length > 1 ? rounds[rounds.length - 2].cumulativeScores : Object.fromEntries(seats.map(id => [id, 0])))
-    : (rounds.length > 0 ? rounds[rounds.length - 1].cumulativeScores : Object.fromEntries(seats.map(id => [id, 0])));
+  // Totals going into the round being entered or edited
+  const roundsBefore = editedRound ? rounds.slice(0, -1) : rounds;
+  const cumulativeScores: Record<PlayerId, number> =
+    roundsBefore.length > 0 ? roundsBefore[roundsBefore.length - 1].cumulativeScores : {};
+
+  const activeSeats = roundSeats.filter(id => (cumulativeScores[id] ?? 0) < rules.poolLimit);
+
+  // Editing a round cancels any re-entry made after it, so say who would be affected.
+  const undoneReEntries = (editedRound?.reEnteredInRound ?? []).map(id => state.players[id]?.name || 'a player');
+  const reEntryWarning =
+    undoneReEntries.length > 0 ? `Saving this edit will undo ${undoneReEntries.join(' and ')}'s re-entry.` : null;
 
   // NO default drop score when opening! Start completely empty unless editing
   const [scores, setScores] = useState<Record<PlayerId, { type: ScoreInputType; points: number } | undefined>>(() => {
@@ -115,8 +119,10 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
       return;
     }
 
+    if (reEntryWarning && !window.confirm(`${reEntryWarning} Continue?`)) return;
+
     const finalScores: Record<PlayerId, { type: ScoreInputType; points: number }> = {};
-    for (const id of seats) {
+    for (const id of roundSeats) {
       if (activeSeats.includes(id)) {
         finalScores[id] = completeScores[id];
       } else {
@@ -147,6 +153,12 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3.5 max-w-md w-full mx-auto">
+        {reEntryWarning && (
+          <div role="alert" className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/40 text-amber-700 dark:text-amber-300 text-xs font-medium">
+            {reEntryWarning}
+          </div>
+        )}
+
         {errorMessage && (
           <div className="p-3 rounded-lg bg-rose-950/60 border border-rose-800 text-rose-200 text-xs font-medium">
             {errorMessage}

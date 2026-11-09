@@ -91,8 +91,10 @@ export async function restoreBackup(
   const known = new Set(roster.map(p => p.id));
   const newPlayers = backup.players.filter(p => !known.has(p.id));
 
-  await writeList(list);
-  if (newPlayers.length > 0) savePlayerRoster([...roster, ...newPlayers]);
+  if (!(await writeList(list))) throw new Error('Could not store the restored matches');
+  if (newPlayers.length > 0 && !savePlayerRoster([...roster, ...newPlayers])) {
+    throw new Error('Could not store the restored players');
+  }
   await mirrorQueue;
 
   return { added, updated, playersAdded: newPlayers.length };
@@ -102,6 +104,7 @@ export async function restoreBackup(
 - Matches are matched by `gameId`. A match **in both** keeps the copy with **more rounds**, since the further-played copy is the one you want. An unreadable local entry (`-1`) loses to any valid incoming copy.
 - New players are added. **Existing names are kept** (you may have renamed someone since).
 - **The match currently open isn't touched.** Restoring shouldn't swap the game in front of you.
+- If the phone can't store the result, it **throws**, and Settings shows *"Couldn't restore the backup"* instead of a false success (added after the Phase 4 review, lesson 16).
 - `await mirrorQueue` waits until the Android copy has every write (the ordered queue from lesson 13) **before** the app reloads.
 
 ## Step 3: Settings asks, explains and reports

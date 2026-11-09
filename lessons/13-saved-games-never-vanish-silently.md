@@ -14,7 +14,7 @@ The reviewers found five ways data could still be lost **without the user knowin
 | b | Failed saves were only `console.error`'d, which is invisible on a phone | Storage full → an hour of scores not saved, no warning |
 | c | Unreadable games were **filtered out, then the filtered list was written back** | One bad entry silently deleted for good |
 | d | Saves and deletes were **fire-and-forget and could overlap** | A deleted game reappears. Deleting the open match from Continue Game left it on screen, so the next change saved it again |
-| e | The **30-game cap dropped the oldest game**, even one still being played | An unfinished match quietly disappears |
+| e | The **30-game cap dropped the oldest game**, even one still being played | An unfinished match quietly disappears (fixed by removing the cap) |
 
 ## Everyday analogy: a shop ledger with a carbon copy
 
@@ -22,7 +22,7 @@ The reviewers found five ways data could still be lost **without the user knowin
 - If the pen runs dry, the clerk **says so** instead of pretending to write (b).
 - A smudged page is **kept**, not torn out (c).
 - Entries go into the carbon book **one at a time, in order**, so a later "cancel" can't be overwritten by an earlier "sale" (d).
-- When the drawer is full, archive **closed** accounts, never open ones (e).
+- Don't throw old pages away just because the book is thick. Only stop when it's truly full, and **say so** (e).
 
 ## The design
 
@@ -142,22 +142,9 @@ function readRawList(): unknown[] | null {
 - **Writes work on the raw list**, so entries the app can't read stay in place untouched. **Reads** (`loadAllSavedGames`) still filter to valid games for display.
 - A list that isn't JSON at all is copied **once** to `rummy_saved_games_list_v1_unreadable`. The old code made a new timestamped key **on every load**, which slowly filled up storage.
 
-### Make room only from finished games (e)
+### No limit on saved matches (e)
 
-```ts
-export const MAX_SAVED_GAMES = 50;
-
-// Over the limit, drop the oldest finished matches; a match still in progress is never dropped.
-function trimToLimit(list: unknown[]): unknown[] {
-  const trimmed = [...list];
-  for (let i = trimmed.length - 1; i >= 0 && trimmed.length > MAX_SAVED_GAMES; i--) {
-    if (isFinished(trimmed[i])) trimmed.splice(i, 1);
-  }
-  return trimmed;
-}
-```
-
-The newest is first, so walking from the end visits the oldest first. If every game is still in progress the list may go over 50, and that's the right trade.
+The old code kept only the newest 30 matches and silently dropped the rest, even unfinished ones. We first raised it to 50 and evicted only finished matches. Then Tejo asked the right question: *why limit it at all, when it's only local storage?* There's no server cost. The real limit is the phone's WebView storage, about 5–10 MB, which is several hundred matches. If it ever fills, the **"Couldn't save" banner** says so, and old matches can be deleted or exported. So the limit was **removed**. Nothing is evicted automatically any more, which also removed a bug the reviewers found (a restore pushing the list over the limit, then the next save quietly deleting the restored games).
 
 ### Deleting the open match from Continue Game (d)
 
@@ -187,7 +174,7 @@ Everything else that touched `Preferences` directly (roster, announce setting, c
 | Save → `true`. Both stores fail → `false`. Only Android works → still `true` | b |
 | A list with an unreadable entry keeps it after another save | c |
 | A corrupt list is backed up once under one key | c |
-| A full list drops the oldest **finished** match, keeps the unfinished one | e |
+| 300 saved matches plus a new one keeps all 301 (no limit) | e |
 | Save then delete at the same moment: the delete wins, in both stores | d |
 | In the App: storage full shows the "Couldn't save" alert | b |
 | In the App: deleting the open match in Continue Game removes "Ongoing Game" from Home | d |
@@ -209,7 +196,7 @@ Totals: **136/136** unit tests, **13/13** browser tests, and `npm run build` ✅
 ## From zero, by hand
 
 1. Write `src/test/storageSafety.test.tsx` as in this repo (with the `vi.mock('@capacitor/preferences')` fake). Run it. Expected: `11 failed`.
-2. In `localStorageAdapter.ts`, add `MAX_SAVED_GAMES`, `UNREADABLE_LIST_KEY`, `mirror`, `writeLocal`, `hydrateFromPreferences`, `readRawList`, `entryId`, `isFinished`, `trimToLimit` and `writeList`. Rewrite `saveActiveGame`, `loadAllSavedGames`, `saveGameToList`, `deleteGameFromList` and `clearActiveGame` as above. Route the roster, announce, quarantine and import writes through `mirror`. Delete `loadActiveGameAsync`.
+2. In `localStorageAdapter.ts`, add `UNREADABLE_LIST_KEY`, `mirror`, `writeLocal`, `hydrateFromPreferences`, `readRawList`, `entryId` and `writeList` (no limit on the list). Rewrite `saveActiveGame`, `loadAllSavedGames`, `saveGameToList`, `deleteGameFromList` and `clearActiveGame` as above. Route the roster, announce, quarantine and import writes through `mirror`. Delete `loadActiveGameAsync`.
 3. In `ContinueGameScreen.tsx`, add the `onGameDeleted` prop (called after a delete) and the Back `title`/`aria-label`.
 4. In `App.tsx`, add `saveFailed` state, the save effect, `handleGameDeletedFromList`, the `onGameDeleted` prop and the alert banner.
 5. In `main.tsx`, wrap the render in `hydrateFromPreferences().finally(...)`.

@@ -17,3 +17,4 @@
 | 13 | [Saved games must never vanish silently](13-saved-games-never-vanish-silently.md) | 4.5 |
 | 14 | [Backup and restore you can trust](14-backup-and-restore-you-can-trust.md) | 4.6 |
 | 15 | [Forms keep exactly what you typed (the New Game screen)](15-forms-keep-what-you-typed.md) | 4.7 |
+| 16 | [Closing the last silent failures (the Phase 4 review)](16-closing-the-last-silent-failures.md) | Phase 4 review |

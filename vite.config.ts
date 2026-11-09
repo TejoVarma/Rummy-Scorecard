@@ -9,6 +9,7 @@ export default defineConfig({
     port: 5173
   },
   test: {
+    include: ['src/**/*.test.{ts,tsx}'],
     coverage: {
       include: ['src/**/*.{ts,tsx}'],
       exclude: ['src/test/**', 'src/main.tsx', 'src/**/*.d.ts'],

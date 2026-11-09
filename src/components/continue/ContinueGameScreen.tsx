@@ -7,12 +7,14 @@ interface ContinueGameScreenProps {
   onBack: () => void;
   onResumeGame: (game: GameState) => void;
   onStartNewGame: () => void;
+  onGameDeleted: (gameId: string) => void;
 }
 
 export const ContinueGameScreen: React.FC<ContinueGameScreenProps> = ({
   onBack,
   onResumeGame,
   onStartNewGame,
+  onGameDeleted,
 }) => {
   const [games, setGames] = useState<GameState[]>(() => loadAllSavedGames());
 
@@ -21,6 +23,7 @@ export const ContinueGameScreen: React.FC<ContinueGameScreenProps> = ({
     if (window.confirm(`Are you sure you want to delete "${title}" permanently?`)) {
       deleteGameFromList(gameId);
       setGames(prev => prev.filter(g => g.gameId !== gameId));
+      onGameDeleted(gameId);
     }
   };
 
@@ -32,6 +35,8 @@ export const ContinueGameScreen: React.FC<ContinueGameScreenProps> = ({
           <button
             type="button"
             onClick={onBack}
+            title="Back"
+            aria-label="Back"
             className="p-1 rounded hover:bg-black/10 transition"
           >
             <ArrowLeft className="w-5 h-5 text-white" />

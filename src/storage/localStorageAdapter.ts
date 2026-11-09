@@ -6,89 +6,124 @@ const SAVED_GAMES_LIST_KEY = 'rummy_saved_games_list_v1';
 const SAVED_PLAYERS_KEY = 'rummy_saved_players_v1';
 const ANNOUNCE_KEY = 'rummy_announce_after_round_v1';
 
-export async function saveActiveGame(state: GameState): Promise<void> {
+export const MAX_SAVED_GAMES = 50;
+const UNREADABLE_LIST_KEY = `${SAVED_GAMES_LIST_KEY}_unreadable`;
+
+// localStorage is the working copy the app reads synchronously. Every write is also
+// mirrored to Capacitor Preferences (Android's own storage), which survives the WebView's
+// data being cleared. Mirror writes run one at a time, in order, so a later delete can
+// never be overtaken by an earlier save.
+let mirrorQueue: Promise<unknown> = Promise.resolve();
+
+function mirror(key: string, value: string | null): Promise<boolean> {
+  const write = async () => {
+    try {
+      if (value === null) await Preferences.remove({ key });
+      else await Preferences.set({ key, value });
+      return true;
+    } catch (e) {
+      console.error(`Failed to mirror ${key} to Preferences`, e);
+      return false;
+    }
+  };
+  const result = mirrorQueue.then(write, write);
+  mirrorQueue = result;
+  return result;
+}
+
+function writeLocal(key: string, value: string | null): boolean {
   try {
-    const serialized = JSON.stringify(state);
-    localStorage.setItem(ACTIVE_GAME_KEY, serialized);
-    await Preferences.set({ key: ACTIVE_GAME_KEY, value: serialized });
-    await saveGameToList(state);
+    if (value === null) localStorage.removeItem(key);
+    else localStorage.setItem(key, value);
+    return true;
   } catch (e) {
-    console.error('Failed to save active game', e);
+    console.error(`Failed to write ${key} to localStorage`, e);
+    return false;
   }
+}
+
+const MIRRORED_KEYS = [ACTIVE_GAME_KEY, SAVED_GAMES_LIST_KEY, SAVED_PLAYERS_KEY, ANNOUNCE_KEY];
+
+/** Before the first render: refill anything missing from localStorage using the Android copy. */
+export async function hydrateFromPreferences(): Promise<void> {
+  for (const key of MIRRORED_KEYS) {
+    try {
+      if (localStorage.getItem(key) !== null) continue;
+      const { value } = await Preferences.get({ key });
+      if (value !== null) localStorage.setItem(key, value);
+    } catch (e) {
+      console.error(`Failed to restore ${key} from Preferences`, e);
+    }
+  }
+}
+
+/** The raw saved list, unreadable entries included, or null if the list itself is corrupt. */
+function readRawList(): unknown[] | null {
+  const raw = localStorage.getItem(SAVED_GAMES_LIST_KEY);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    if (localStorage.getItem(UNREADABLE_LIST_KEY) !== raw) writeLocal(UNREADABLE_LIST_KEY, raw);
+    return null;
+  }
+}
+
+const entryId = (entry: unknown) =>
+  typeof entry === 'object' && entry !== null && 'gameId' in entry ? entry.gameId : undefined;
+
+const isFinished = (entry: unknown) =>
+  typeof entry === 'object' && entry !== null && 'status' in entry && entry.status === 'completed';
+
+// Over the limit, drop the oldest finished matches; a match still in progress is never dropped.
+function trimToLimit(list: unknown[]): unknown[] {
+  const trimmed = [...list];
+  for (let i = trimmed.length - 1; i >= 0 && trimmed.length > MAX_SAVED_GAMES; i--) {
+    if (isFinished(trimmed[i])) trimmed.splice(i, 1);
+  }
+  return trimmed;
+}
+
+async function writeList(list: unknown[]): Promise<boolean> {
+  const serialized = JSON.stringify(list);
+  const local = writeLocal(SAVED_GAMES_LIST_KEY, serialized);
+  const native = await mirror(SAVED_GAMES_LIST_KEY, serialized);
+  return local || native;
+}
+
+/** Saves the match on screen and its entry in the saved list. Resolves false if neither store took it. */
+export async function saveActiveGame(state: GameState): Promise<boolean> {
+  const serialized = JSON.stringify(state);
+  const local = writeLocal(ACTIVE_GAME_KEY, serialized);
+  const native = mirror(ACTIVE_GAME_KEY, serialized);
+  const listed = saveGameToList(state);
+  const [nativeOk, listOk] = await Promise.all([native, listed]);
+  return (local || nativeOk) && listOk;
 }
 
 export function loadAllSavedGames(): GameState[] {
   try {
-    const raw = localStorage.getItem(SAVED_GAMES_LIST_KEY);
-    if (!raw) {
-      const active = loadActiveGame();
-      return active ? [active] : [];
-    }
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed.filter(isValidGameState) : [];
+    return (readRawList() ?? []).filter(isValidGameState);
   } catch (e) {
-    console.error('Failed to parse saved games list from storage:', e);
-    const raw = localStorage.getItem(SAVED_GAMES_LIST_KEY);
-    if (raw) {
-      try {
-        localStorage.setItem(`${SAVED_GAMES_LIST_KEY}_corrupted_${Date.now()}`, raw);
-      } catch {
-        // Ignore backup failure
-      }
-    }
+    console.error('Failed to read the saved games list', e);
     return [];
   }
 }
 
-export async function saveGameToList(state: GameState): Promise<void> {
-  try {
-    const all = loadAllSavedGames();
-    const existingIndex = all.findIndex(g => g.gameId === state.gameId);
-    let updated: GameState[];
-    if (existingIndex >= 0) {
-      updated = [...all];
-      updated[existingIndex] = state;
-    } else {
-      updated = [state, ...all];
-    }
-    // Cap to the most recent 30 games to prevent storage quota exhaustion
-    updated = updated.slice(0, 30);
-    const serialized = JSON.stringify(updated);
-    localStorage.setItem(SAVED_GAMES_LIST_KEY, serialized);
-    await Preferences.set({ key: SAVED_GAMES_LIST_KEY, value: serialized });
-  } catch (e) {
-    console.error('Failed to save game to list', e);
-  }
+export async function saveGameToList(state: GameState): Promise<boolean> {
+  const list = readRawList() ?? [];
+  const index = list.findIndex(entry => entryId(entry) === state.gameId);
+  const updated = index >= 0 ? list.map((entry, i) => (i === index ? state : entry)) : [state, ...list];
+  return writeList(trimToLimit(updated));
 }
 
-export async function deleteGameFromList(gameId: string): Promise<void> {
-  try {
-    const all = loadAllSavedGames();
-    const updated = all.filter(g => g.gameId !== gameId);
-    const serialized = JSON.stringify(updated);
-    localStorage.setItem(SAVED_GAMES_LIST_KEY, serialized);
-    await Preferences.set({ key: SAVED_GAMES_LIST_KEY, value: serialized });
-
-    const active = loadActiveGame();
-    if (active && active.gameId === gameId) {
-      await clearActiveGame();
-    }
-  } catch (e) {
-    console.error('Failed to delete game from list', e);
-  }
-}
-
-export async function loadActiveGameAsync(): Promise<GameState | null> {
-  try {
-    const { value } = await Preferences.get({ key: ACTIVE_GAME_KEY });
-    if (value) {
-      const parsed = JSON.parse(value);
-      if (isValidGameState(parsed)) return parsed;
-    }
-    return loadActiveGame();
-  } catch {
-    return loadActiveGame();
-  }
+export async function deleteGameFromList(gameId: string): Promise<boolean> {
+  const list = readRawList() ?? [];
+  const ok = await writeList(list.filter(entry => entryId(entry) !== gameId));
+  const active = loadActiveGame();
+  if (active && active.gameId === gameId) await clearActiveGame();
+  return ok;
 }
 
 export function isValidGameState(obj: unknown): obj is GameState {
@@ -171,11 +206,7 @@ export async function quarantineActiveGame(): Promise<void> {
     removeFromSavedList(raw);
   }
   localStorage.removeItem(ACTIVE_GAME_KEY);
-  try {
-    await Preferences.remove({ key: ACTIVE_GAME_KEY });
-  } catch (e) {
-    console.error('Failed to clear active game from Preferences', e);
-  }
+  await mirror(ACTIVE_GAME_KEY, null);
 }
 
 function removeFromSavedList(rawActiveGame: string): void {
@@ -186,9 +217,7 @@ function removeFromSavedList(rawActiveGame: string): void {
     const remaining = list.filter((g: { gameId?: unknown }) => g?.gameId !== gameId);
     const serialized = JSON.stringify(remaining);
     localStorage.setItem(SAVED_GAMES_LIST_KEY, serialized);
-    Preferences.set({ key: SAVED_GAMES_LIST_KEY, value: serialized }).catch(e =>
-      console.error('Failed to sync saved games list to Preferences', e)
-    );
+    void mirror(SAVED_GAMES_LIST_KEY, serialized);
   } catch {
     // The active game or list is unreadable; the raw copy is already backed up.
   }
@@ -207,12 +236,8 @@ export function loadActiveGame(): GameState | null {
 }
 
 export async function clearActiveGame(): Promise<void> {
-  try {
-    localStorage.removeItem(ACTIVE_GAME_KEY);
-    await Preferences.remove({ key: ACTIVE_GAME_KEY });
-  } catch (e) {
-    console.error('Failed to clear active game', e);
-  }
+  writeLocal(ACTIVE_GAME_KEY, null);
+  await mirror(ACTIVE_GAME_KEY, null);
 }
 
 export interface SavedRosterPlayer {
@@ -237,9 +262,7 @@ export function savePlayerRoster(players: SavedRosterPlayer[]): void {
   try {
     const serialized = JSON.stringify(players);
     localStorage.setItem(SAVED_PLAYERS_KEY, serialized);
-    Preferences.set({ key: SAVED_PLAYERS_KEY, value: serialized }).catch(err => {
-      console.warn('Failed to sync player roster to native Preferences:', err);
-    });
+    void mirror(SAVED_PLAYERS_KEY, serialized);
   } catch (e) {
     console.error('Failed to save players', e);
   }
@@ -305,7 +328,7 @@ export function importAllData(jsonStr: string): { success: boolean; message: str
       const validGames = parsed.savedGames.filter(isValidGameState);
       const serialized = JSON.stringify(validGames);
       localStorage.setItem(SAVED_GAMES_LIST_KEY, serialized);
-      Preferences.set({ key: SAVED_GAMES_LIST_KEY, value: serialized }).catch(() => {});
+      void mirror(SAVED_GAMES_LIST_KEY, serialized);
       restoredGames = validGames.length;
     }
 
@@ -333,6 +356,7 @@ export function loadAnnounceAfterRound(): boolean {
 export function saveAnnounceAfterRound(on: boolean): void {
   try {
     localStorage.setItem(ANNOUNCE_KEY, String(on));
+    void mirror(ANNOUNCE_KEY, String(on));
   } catch (e) {
     console.error('Failed to save the announce setting', e);
   }

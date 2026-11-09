@@ -44,6 +44,7 @@ export function App() {
   const [reEntryTargetPlayerId, setReEntryTargetPlayerId] = useState<PlayerId | null>(null);
   const [showExitToast, setShowExitToast] = useState(false);
   const [announceAfterRound, setAnnounceAfterRound] = useState(loadAnnounceAfterRound);
+  const [saveFailed, setSaveFailed] = useState(false);
   const lastSeenRound = useRef<{ gameId: string; round: string } | null>(null);
 
   const handleToggleAnnounce = useCallback((on: boolean) => {
@@ -94,12 +95,24 @@ export function App() {
     'screen_navigation'
   );
 
-  // Auto-persist active state to local storage and Preferences
+  // Save every change; if the phone couldn't store it, say so instead of losing it quietly.
   useEffect(() => {
-    if (state.status === 'playing' || state.status === 'completed') {
-      saveActiveGame(state);
-    }
+    if (state.status !== 'playing' && state.status !== 'completed') return;
+    let current = true;
+    saveActiveGame(state).then(ok => {
+      if (current) setSaveFailed(!ok);
+    });
+    return () => {
+      current = false;
+    };
   }, [state]);
+
+  const handleGameDeletedFromList = useCallback(
+    (gameId: string) => {
+      if (gameId === state.gameId) dispatch({ type: 'RESET_GAME' });
+    },
+    [state.gameId]
+  );
 
   const handleStartGame = useCallback((config: StartGameConfig) => {
     dispatch({ type: 'START_GAME', payload: config });
@@ -158,6 +171,7 @@ export function App() {
           onBack={() => setCurrentScreen('home')}
           onResumeGame={handleResumeGame}
           onStartNewGame={() => setCurrentScreen('new_game')}
+          onGameDeleted={handleGameDeletedFromList}
         />
       )}
 
@@ -224,6 +238,15 @@ export function App() {
           onToggleAnnounce={handleToggleAnnounce}
           onStartNewMatch={state.status !== 'setup' ? () => setCurrentScreen('new_game') : undefined}
         />
+      )}
+
+      {saveFailed && (
+        <div
+          role="alert"
+          className="fixed top-2 inset-x-2 z-[70] mx-auto max-w-md px-4 py-3 rounded-xl bg-rose-900 text-rose-50 text-xs font-medium shadow-2xl border border-rose-500/40"
+        >
+          Couldn't save this match. Your phone may be out of space. Free some up, or export a backup from Settings.
+        </div>
       )}
 
       {/* Android-style Exit Toast Notification */}

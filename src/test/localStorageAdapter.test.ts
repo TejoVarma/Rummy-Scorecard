@@ -91,11 +91,8 @@ describe('localStorageAdapter Schema Validation', () => {
     const result = loadAllSavedGames();
     expect(result).toEqual([]);
 
-    // Check that a corrupted backup key was preserved
-    const keys = Object.keys(memoryStore);
-    const backupKey = keys.find(k => k.startsWith('rummy_saved_games_list_v1_corrupted_'));
-    expect(backupKey).toBeDefined();
-    expect(mockLocalStorage.getItem(backupKey!)).toBe('{ invalid json garbage');
+    // The unreadable list is kept under one backup key, not a new key per load
+    expect(mockLocalStorage.getItem('rummy_saved_games_list_v1_unreadable')).toBe('{ invalid json garbage');
   });
 
   it('exports and imports complete application backup JSON cleanly', () => {

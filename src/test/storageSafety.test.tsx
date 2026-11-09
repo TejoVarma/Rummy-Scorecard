@@ -8,7 +8,6 @@ import {
   saveGameToList,
   deleteGameFromList,
   loadAllSavedGames,
-  MAX_SAVED_GAMES,
 } from '../storage/localStorageAdapter';
 import { App } from '../App';
 import { ThemeProvider } from '../themes/ThemeContext';
@@ -132,18 +131,12 @@ describe('the saved-games list', () => {
     expect(localStorage.getItem(`${LIST}_unreadable`)).toBe('{not json');
   });
 
-  it('makes room by dropping the oldest finished match, never one still in progress', async () => {
-    const full = Array.from({ length: MAX_SAVED_GAMES }, (_, i) => game(`old${i}`, 'completed'));
-    full[full.length - 1] = game('unfinished', 'playing');
-    localStorage.setItem(LIST, JSON.stringify(full));
-
+  it('keeps every match: there is no limit on how many are saved', async () => {
+    const many = Array.from({ length: 300 }, (_, i) => game(`old${i}`, 'completed'));
+    localStorage.setItem(LIST, JSON.stringify(many));
     await saveGameToList(game('new'));
-
-    const ids = listIds();
-    expect(ids).toHaveLength(MAX_SAVED_GAMES);
-    expect(ids[0]).toBe('new');
-    expect(ids).toContain('unfinished');
-    expect(ids).not.toContain(`old${MAX_SAVED_GAMES - 2}`);
+    expect(listIds()).toHaveLength(301);
+    expect(listIds()[0]).toBe('new');
   });
 
   it('a delete is not undone by a save that started earlier', async () => {
@@ -186,10 +179,9 @@ describe('in the app', () => {
     expect(screen.getByText('Ongoing Game')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: /continue game/i }));
     fireEvent.click(screen.getByTitle(/delete/i));
+    await waitFor(() => expect(listIds()).toEqual([]));
     fireEvent.click(screen.getByTitle(/back/i));
 
     expect(screen.queryByText('Ongoing Game')).toBeNull();
-    await new Promise(r => setTimeout(r, 20));
-    expect(listIds()).toEqual([]);
   });
 });

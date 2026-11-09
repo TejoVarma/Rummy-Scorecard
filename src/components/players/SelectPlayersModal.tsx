@@ -47,8 +47,11 @@ export const SelectPlayersModal: React.FC<SelectPlayersModalProps> = ({
       name: trimmed,
     };
     const updated = [...roster, newPlayer];
+    if (!savePlayerRoster(updated)) {
+      alert(`Couldn't save ${trimmed}. Your phone may be out of space.`);
+      return;
+    }
     setRoster(updated);
-    savePlayerRoster(updated);
     setSelectedIds(prev => [...prev, newPlayer.id]);
     setNewPlayerName('');
     setIsAddOpen(false);

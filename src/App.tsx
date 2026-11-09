@@ -7,7 +7,9 @@ import {
   deleteGameFromList,
   loadAnnounceAfterRound,
   saveAnnounceAfterRound,
+  isBackupCopyUnavailable,
 } from './storage/localStorageAdapter';
+import { validateStartGame } from './domain/rules';
 import { buildAnnouncement } from './domain/announce';
 import { speak } from './services/speech';
 import { HomeScreen } from './components/home/HomeScreen';
@@ -46,6 +48,8 @@ export function App() {
   const [announceAfterRound, setAnnounceAfterRound] = useState(loadAnnounceAfterRound);
   const [saveFailed, setSaveFailed] = useState(false);
   const lastSeenRound = useRef<{ gameId: string; round: string } | null>(null);
+  const speechFailureShown = useRef(false);
+  const [backupUnavailable] = useState(isBackupCopyUnavailable);
 
   const handleToggleAnnounce = useCallback((on: boolean) => {
     setAnnounceAfterRound(on);
@@ -74,7 +78,15 @@ export function App() {
     if (!previous || previous.gameId !== seen.gameId || previous.round === seen.round) return;
     if (announceAfterRound && last) {
       const text = buildAnnouncement(state);
-      if (text) speak(text).catch(e => console.error('Text-to-speech failed', e));
+      if (text) {
+        speak(text).catch(e => {
+          console.error('Text-to-speech failed', e);
+          if (!speechFailureShown.current) {
+            speechFailureShown.current = true;
+            alert("Couldn't read the scores aloud. Check that a text-to-speech voice is installed on this phone.");
+          }
+        });
+      }
     }
   }, [state, announceAfterRound]);
 
@@ -97,11 +109,19 @@ export function App() {
 
   // Save every change; if the phone couldn't store it, say so instead of losing it quietly.
   useEffect(() => {
-    if (state.status !== 'playing' && state.status !== 'completed') return;
+    if (state.status !== 'playing' && state.status !== 'completed') {
+      setSaveFailed(false);
+      return;
+    }
     let current = true;
-    saveActiveGame(state).then(ok => {
-      if (current) setSaveFailed(!ok);
-    });
+    saveActiveGame(state)
+      .then(ok => {
+        if (current) setSaveFailed(!ok);
+      })
+      .catch(e => {
+        console.error('Saving the match failed', e);
+        if (current) setSaveFailed(true);
+      });
     return () => {
       current = false;
     };
@@ -115,6 +135,12 @@ export function App() {
   );
 
   const handleStartGame = useCallback((config: StartGameConfig) => {
+    // Check first: if the reducer refused, we'd otherwise land on the previous match.
+    const problem = validateStartGame(config);
+    if (problem) {
+      alert(problem);
+      return;
+    }
     dispatch({ type: 'START_GAME', payload: config });
     setCurrentScreen('scoreboard');
   }, []);
@@ -139,11 +165,12 @@ export function App() {
     });
   }, []);
 
-  const handleDeleteGame = useCallback(() => {
-    if (state.gameId) {
-      deleteGameFromList(state.gameId);
+  const handleDeleteGame = useCallback(async () => {
+    if (state.gameId && !(await deleteGameFromList(state.gameId))) {
+      alert("Couldn't delete this match. Your phone may be out of space; please try again.");
+      return;
     }
-    clearActiveGame();
+    await clearActiveGame();
     dispatch({ type: 'RESET_GAME' });
     setCurrentScreen('continue_game');
   }, [state.gameId]);
@@ -238,6 +265,15 @@ export function App() {
           onToggleAnnounce={handleToggleAnnounce}
           onStartNewMatch={state.status !== 'setup' ? () => setCurrentScreen('new_game') : undefined}
         />
+      )}
+
+      {backupUnavailable && !saveFailed && (
+        <div
+          role="alert"
+          className="fixed top-2 inset-x-2 z-[70] mx-auto max-w-md px-4 py-3 rounded-xl bg-amber-900 text-amber-50 text-xs font-medium shadow-2xl border border-amber-500/40"
+        >
+          Couldn't open the phone's backup copy of your matches, so it won't be changed this time. Restart the app to try again.
+        </div>
       )}
 
       {saveFailed && (

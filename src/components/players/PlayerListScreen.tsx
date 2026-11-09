@@ -19,8 +19,11 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
   useBackButton(() => setIsAddModalOpen(false), isAddModalOpen, BACK_PRIORITY.NESTED_MODAL, 'player_list_add_modal');
 
   const handleSaveRoster = (updated: SavedRosterPlayer[]) => {
+    if (!savePlayerRoster(updated)) {
+      alert("Couldn't save the player list. Your phone may be out of space.");
+      return;
+    }
     setRoster(updated);
-    savePlayerRoster(updated);
   };
 
   const handleAddPlayer = (e: React.FormEvent) => {

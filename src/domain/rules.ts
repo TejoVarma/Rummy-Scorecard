@@ -29,7 +29,7 @@ export function validateStartGame({ rules, players, initialSeats, initialDealerI
   if (players.length < 2) return 'Please select at least 2 players.';
   const ids = new Set(players.map(p => p.id));
   if (ids.size !== players.length) return 'Each player can only be selected once.';
-  if (players.some(p => !p.name.trim())) return 'Every player needs a name.';
+  if (players.some(p => typeof p.name !== 'string' || !p.name.trim())) return 'Every player needs a name.';
   const seatsMatch = initialSeats.length === ids.size && new Set(initialSeats).size === ids.size && initialSeats.every(id => ids.has(id));
   if (!seatsMatch) return 'The seating must include every player exactly once.';
   if (!isWholeNumber(initialDealerIndex) || initialDealerIndex < 0 || initialDealerIndex >= initialSeats.length) {

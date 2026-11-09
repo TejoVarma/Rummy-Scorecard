@@ -36,15 +36,15 @@ export const ReEntryModal: React.FC<ReEntryModalProps> = ({
   const calculatedScore = calculateReEntryScore(activeScores, rules);
 
   const [scoreInput, setScoreInput] = useState<string>(String(calculatedScore));
+  const [scoreError, setScoreError] = useState<string | null>(null);
 
   const handleConfirm = () => {
-    const parsed = parseInt(scoreInput, 10);
-    // Boundary check: cannot be non-positive, cannot reach or exceed pool limit
-    const safeScore = (isNaN(parsed) || parsed <= 0 || parsed >= rules.poolLimit)
-      ? calculatedScore
-      : parsed;
-
-    onConfirmReEntry(reEnteringPlayerId, safeScore);
+    const score = Number(scoreInput);
+    if (scoreInput === '' || !Number.isInteger(score) || score < 1 || score >= rules.poolLimit) {
+      setScoreError(`Enter a re-entry score between 1 and ${rules.poolLimit - 1}.`);
+      return;
+    }
+    onConfirmReEntry(reEnteringPlayerId, score);
     onClose();
   };
 
@@ -85,10 +85,18 @@ export const ReEntryModal: React.FC<ReEntryModalProps> = ({
               onChange={e => {
                 const clean = e.target.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
                 setScoreInput(clean);
+                setScoreError(null);
               }}
+              aria-label="Re-entry score"
+              aria-invalid={scoreError !== null}
               className="w-full px-3 py-2 font-mono font-bold text-base rounded-lg bg-[var(--color-card)] border border-[var(--color-border)] text-[var(--color-text)] focus:outline-none focus:border-[var(--color-primary)]"
             />
           </div>
+          {scoreError && (
+            <p role="alert" className="text-xs font-medium text-rose-500">
+              {scoreError}
+            </p>
+          )}
         </div>
 
         {/* Seating Relocation Notice (The User's Key Feature) */}

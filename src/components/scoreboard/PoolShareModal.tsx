@@ -149,6 +149,8 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
         await navigator.clipboard.writeText(text);
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2000);
+      } else {
+        alert("Sharing isn't available here. Take a screenshot of the deal instead.");
       }
     } catch (err) {
       if (!isShareCancelled(err)) {
@@ -158,9 +160,12 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
             await navigator.clipboard.writeText(text);
             setIsCopied(true);
             setTimeout(() => setIsCopied(false), 2000);
+          } else {
+            alert("Couldn't share the deal. Take a screenshot of it instead.");
           }
         } catch (clipErr) {
           console.warn('Clipboard write failed:', clipErr);
+          alert("Couldn't share or copy the deal. Take a screenshot of it instead.");
         }
       }
     }

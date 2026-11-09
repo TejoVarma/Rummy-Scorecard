@@ -18,13 +18,15 @@ export const ContinueGameScreen: React.FC<ContinueGameScreenProps> = ({
 }) => {
   const [games, setGames] = useState<GameState[]>(() => loadAllSavedGames());
 
-  const handleDelete = (e: React.MouseEvent, gameId: string, title: string) => {
+  const handleDelete = async (e: React.MouseEvent, gameId: string, title: string) => {
     e.stopPropagation(); // Don't trigger resume
-    if (window.confirm(`Are you sure you want to delete "${title}" permanently?`)) {
-      deleteGameFromList(gameId);
-      setGames(prev => prev.filter(g => g.gameId !== gameId));
-      onGameDeleted(gameId);
+    if (!window.confirm(`Are you sure you want to delete "${title}" permanently?`)) return;
+    if (!(await deleteGameFromList(gameId))) {
+      alert(`Couldn't delete "${title}". Your phone may be out of space; please try again.`);
+      return;
     }
+    setGames(prev => prev.filter(g => g.gameId !== gameId));
+    onGameDeleted(gameId);
   };
 
   return (

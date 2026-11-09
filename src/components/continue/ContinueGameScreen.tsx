@@ -136,15 +136,24 @@ export const ContinueGameScreen: React.FC<ContinueGameScreenProps> = ({
 
                 {/* Action Footer */}
                 <div className="flex items-center justify-between pt-2 border-t border-[var(--color-border)]">
-                  <span className="text-[11px] font-semibold text-[var(--color-primary)] flex items-center gap-1 group-hover:underline">
+                  <button
+                    type="button"
+                    onClick={e => {
+                      e.stopPropagation();
+                      onResumeGame(game);
+                    }}
+                    aria-label={`Resume ${game.title}`}
+                    className="min-h-[44px] -ml-1 px-1 text-xs font-semibold text-[var(--color-primary)] flex items-center gap-1 group-hover:underline"
+                  >
                     <Play className="w-3 h-3 fill-current" /> Resume Game
-                  </span>
+                  </button>
 
                   <button
                     type="button"
                     onClick={e => handleDelete(e, game.gameId, game.title)}
                     title="Delete Match"
-                    className="p-1.5 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-950/30 transition"
+                    aria-label={`Delete ${game.title}`}
+                    className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-950/30 transition"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

@@ -75,7 +75,8 @@ export const SelectPlayersModal: React.FC<SelectPlayersModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-1 rounded hover:bg-black/10 transition"
+              aria-label="Close"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded hover:bg-black/10 transition"
             >
               <X className="w-5 h-5 text-white" />
             </button>
@@ -84,7 +85,8 @@ export const SelectPlayersModal: React.FC<SelectPlayersModalProps> = ({
           <button
             type="button"
             title="Options"
-            className="p-1 rounded hover:bg-black/10 transition"
+            aria-label="Options"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded hover:bg-black/10 transition"
           >
             <MoreVertical className="w-5 h-5 text-white" />
           </button>

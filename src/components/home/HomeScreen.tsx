@@ -44,7 +44,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             type="button"
             onClick={onOpenSettings}
             title="Settings"
-            className="p-1 rounded hover:bg-black/10 active:bg-black/20 transition"
+            aria-label="Settings"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded hover:bg-black/10 active:bg-black/20 transition"
           >
             <Settings className="w-5 h-5 text-white" />
           </button>
@@ -126,7 +127,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 if (onResumeGame) onResumeGame();
                 else onContinueGame();
               }}
-              className="px-3 py-1.5 rounded-lg bg-[var(--color-primary)] text-white text-xs font-semibold shadow-sm hover:opacity-90 active:scale-95 transition"
+              aria-label={`Resume ongoing game: ${activeGame.title}`}
+              className="min-h-[44px] px-4 rounded-lg bg-[var(--color-primary)] text-white text-xs font-semibold shadow-sm hover:opacity-90 active:scale-95 transition"
             >
               Resume →
             </button>

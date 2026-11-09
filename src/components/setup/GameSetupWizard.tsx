@@ -128,7 +128,8 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
           <button
             type="button"
             onClick={onBack}
-            className="p-1 rounded hover:bg-black/10 transition"
+            aria-label="Back"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded hover:bg-black/10 transition"
           >
             <ArrowLeft className="w-5 h-5 text-white" />
           </button>
@@ -139,8 +140,9 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
       <div className="max-w-md w-full mx-auto p-4 space-y-3.5">
         {/* Card 1: Game Name */}
         <div className="p-4 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)] space-y-1 shadow-sm">
-          <label className="block text-xs font-medium text-[var(--color-muted)]">Game Name</label>
+          <label htmlFor="setup-title" className="block text-xs font-medium text-[var(--color-muted)]">Game Name</label>
           <input
+            id="setup-title"
             type="text"
             value={title}
             maxLength={50}
@@ -175,8 +177,9 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
           {/* Oval Drop Inputs matching Screenshot 3 */}
           <div className="grid grid-cols-2 gap-3 pt-1">
             <div className="relative border border-[var(--color-border)] rounded-full px-4 py-1.5 bg-[var(--color-subtle)]">
-              <span className="text-[10px] text-[var(--color-muted)] block text-center">Game total score</span>
+              <label htmlFor="setup-pool" className="text-[11px] text-[var(--color-muted)] block text-center">Game total score</label>
               <input
+                id="setup-pool"
                 type="text"
                 inputMode="numeric"
                 pattern="[0-9]*"
@@ -186,8 +189,9 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
               />
             </div>
             <div className="relative border border-[var(--color-border)] rounded-full px-4 py-1.5 bg-[var(--color-subtle)]">
-              <span className="text-[10px] text-[var(--color-muted)] block text-center">Open drop</span>
+              <label htmlFor="setup-open-drop" className="text-[11px] text-[var(--color-muted)] block text-center">Open drop</label>
               <input
+                id="setup-open-drop"
                 type="text"
                 inputMode="numeric"
                 pattern="[0-9]*"
@@ -197,8 +201,9 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
               />
             </div>
             <div className="relative border border-[var(--color-border)] rounded-full px-4 py-1.5 bg-[var(--color-subtle)]">
-              <span className="text-[10px] text-[var(--color-muted)] block text-center">Middle Drop</span>
+              <label htmlFor="setup-middle-drop" className="text-[11px] text-[var(--color-muted)] block text-center">Middle Drop</label>
               <input
+                id="setup-middle-drop"
                 type="text"
                 inputMode="numeric"
                 pattern="[0-9]*"
@@ -208,8 +213,9 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
               />
             </div>
             <div className="relative border border-[var(--color-border)] rounded-full px-4 py-1.5 bg-[var(--color-subtle)]">
-              <span className="text-[10px] text-[var(--color-muted)] block text-center">Full count</span>
+              <label htmlFor="setup-full-count" className="text-[11px] text-[var(--color-muted)] block text-center">Full count</label>
               <input
+                id="setup-full-count"
                 type="text"
                 inputMode="numeric"
                 pattern="[0-9]*"
@@ -248,6 +254,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
               <div className="relative flex-1 border border-[var(--color-border)] rounded-lg px-3 py-1.5 bg-[var(--color-subtle)] flex items-center gap-2">
                 <span className="font-bold text-sm text-[var(--color-primary)] font-mono">₹</span>
                 <input
+                  aria-label="Stake per player (₹)"
                   type="text"
                   inputMode="numeric"
                   pattern="[0-9]*"
@@ -347,7 +354,8 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
                       onClick={() => movePlayer(idx, 'up')}
                       disabled={idx === 0}
                       title="Move up"
-                      className="p-1 rounded text-slate-400 hover:text-white disabled:opacity-20"
+                      aria-label="Move up"
+                      className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded text-slate-400 hover:text-white disabled:opacity-20"
                     >
                       <ArrowUp className="w-3.5 h-3.5" />
                     </button>
@@ -356,7 +364,8 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
                       onClick={() => movePlayer(idx, 'down')}
                       disabled={idx === selectedPlayers.length - 1}
                       title="Move down"
-                      className="p-1 rounded text-slate-400 hover:text-white disabled:opacity-20"
+                      aria-label="Move down"
+                      className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded text-slate-400 hover:text-white disabled:opacity-20"
                     >
                       <ArrowDown className="w-3.5 h-3.5" />
                     </button>
@@ -365,7 +374,8 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
                       onClick={() => removePlayer(player.id)}
                       disabled={selectedPlayers.length <= 2}
                       title="Remove"
-                      className="p-1 rounded text-rose-400 hover:text-rose-300 disabled:opacity-20"
+                      aria-label="Remove"
+                      className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded text-rose-400 hover:text-rose-300 disabled:opacity-20"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>

@@ -51,8 +51,9 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
   };
 
   const handleDeletePlayer = (id: string) => {
-    const updated = roster.filter(p => p.id !== id);
-    handleSaveRoster(updated);
+    const player = roster.find(p => p.id === id);
+    if (!window.confirm(`Remove ${player?.name ?? 'this player'} from your saved players? Past matches keep their names.`)) return;
+    handleSaveRoster(roster.filter(p => p.id !== id));
   };
 
   return (
@@ -63,7 +64,8 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
           <button
             type="button"
             onClick={onBack}
-            className="p-1 rounded hover:bg-black/10 active:bg-black/20 transition"
+            aria-label="Back"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded hover:bg-black/10 active:bg-black/20 transition"
           >
             <ArrowLeft className="w-5 h-5 text-white" />
           </button>
@@ -72,7 +74,8 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
         <button
           type="button"
           title="More options"
-          className="p-1 rounded hover:bg-black/10 active:bg-black/20 transition"
+          aria-label="More options"
+          className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded hover:bg-black/10 active:bg-black/20 transition"
         >
           <MoreVertical className="w-5 h-5 text-white" />
         </button>
@@ -99,14 +102,16 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
                   setEditingPlayer(player);
                   setEditName(player.name);
                 }}
-                className="p-2 rounded text-slate-400 hover:text-white transition"
+                aria-label={`Edit ${player.name}`}
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded text-slate-400 hover:text-white transition"
               >
                 <Edit2 className="w-4 h-4" />
               </button>
               <button
                 type="button"
                 onClick={() => handleDeletePlayer(player.id)}
-                className="p-2 rounded text-rose-400 hover:text-rose-300 transition"
+                aria-label={`Delete ${player.name}`}
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded text-rose-400 hover:text-rose-300 transition"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -125,6 +130,7 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
       <button
         type="button"
         onClick={() => setIsAddModalOpen(true)}
+        aria-label="Add Player"
         className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-[var(--color-primary)] hover:opacity-90 active:scale-95 text-white flex items-center justify-center shadow-lg transition z-20"
         title="Add Player"
       >
@@ -140,7 +146,8 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
-                className="p-1 rounded text-[var(--color-muted)] hover:text-[var(--color-text)]"
+                aria-label="Close"
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded text-[var(--color-muted)] hover:text-[var(--color-text)]"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -184,7 +191,8 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
               <button
                 type="button"
                 onClick={() => setEditingPlayer(null)}
-                className="p-1 rounded text-[var(--color-muted)] hover:text-[var(--color-text)]"
+                aria-label="Close"
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded text-[var(--color-muted)] hover:text-[var(--color-text)]"
               >
                 <X className="w-4 h-4" />
               </button>

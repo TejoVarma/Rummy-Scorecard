@@ -22,3 +22,4 @@
 | 18 | [Removing dead code safely](18-removing-dead-code.md) | 5.1 |
 | 19 | [A colour legend and readable labels](19-a-legend-and-readable-labels.md) | 5.2 |
 | 20 | [One list instead of ten copies (the score entry screen)](20-one-list-instead-of-ten-copies.md) | 5.3 |
+| 21 | [An accessibility sweep, checked by axe](21-accessibility-sweep-with-axe.md) | 5.4 |

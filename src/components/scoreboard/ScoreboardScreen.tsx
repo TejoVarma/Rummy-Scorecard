@@ -139,7 +139,8 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
             type="button"
             onClick={onBack}
             title="Back to Home"
-            className="p-1 rounded hover:bg-black/10 transition"
+            aria-label="Back to Home"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded hover:bg-black/10 transition"
           >
             <ArrowLeft className="w-5 h-5 text-white" />
           </button>
@@ -173,7 +174,8 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
             type="button"
             onClick={onOpenSettings}
             title="Settings"
-            className="p-1.5 rounded hover:bg-black/10 transition"
+            aria-label="Settings"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded hover:bg-black/10 transition"
           >
             <Settings className="w-4 h-4 text-white" />
           </button>
@@ -185,7 +187,8 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
               }
             }}
             title="Delete Game"
-            className="p-1.5 rounded hover:bg-rose-600/30 text-rose-200 transition"
+            aria-label="Delete Game"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded hover:bg-rose-600/30 text-rose-200 transition"
           >
             <Trash2 className="w-4 h-4" />
           </button>

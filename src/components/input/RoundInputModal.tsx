@@ -153,7 +153,8 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
         <button
           type="button"
           onClick={onClose}
-          className="p-1 rounded hover:bg-black/10 active:bg-black/20 transition"
+          aria-label="Back"
+          className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded hover:bg-black/10 active:bg-black/20 transition"
           title="Back"
         >
           <ArrowLeft className="w-5 h-5 text-white" />

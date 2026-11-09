@@ -4,10 +4,12 @@ import { GameState, DealMode, DealSplit, PlayerId } from '../../domain/types';
 import {
   calculateProportionalDeal,
   calculateEqualDeal,
+  calculateDropDeal,
   validateCustomDeal,
   formatDealSummary,
 } from '../../domain/dealSplit';
-import { Handshake, Share2, AlertCircle, Check, Scale, Equal, Edit3 } from 'lucide-react';
+import { Handshake, Share2, AlertCircle, Check, Scale, Equal, Edit3, Layers } from 'lucide-react';
+import { analyzePlayerDrops } from '../../domain/elimination';
 import { Capacitor } from '@capacitor/core';
 import { Share } from '@capacitor/share';
 import { useBackButton, BACK_PRIORITY } from '../../hooks/useBackButton';
@@ -36,23 +38,25 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
   const latestScores = lastRound?.cumulativeScores ?? NO_SCORES;
 
   const activePlayers = useMemo(() => {
+    const describe = (id: PlayerId, score: number) => ({
+      playerId: id,
+      name: players[id]?.name || 'Player',
+      score,
+      margin: Math.max(1, rules.poolLimit - score),
+      drops: Math.max(
+        0,
+        analyzePlayerDrops(score, rules.poolLimit, rules.openDrop, rules.middleDrop, rules.fullCount).openDropsRemaining
+      ),
+    });
     if (dealSplit) {
-      return Object.keys(dealSplit.payouts).map(id => ({
-        playerId: id,
-        name: players[id]?.name || 'Player',
-        score: dealSplit.scoresSnapshot[id] ?? latestScores[id] ?? 0,
-        margin: Math.max(1, rules.poolLimit - (dealSplit.scoresSnapshot[id] ?? latestScores[id] ?? 0)),
-      }));
+      return Object.keys(dealSplit.payouts).map(id =>
+        describe(id, dealSplit.scoresSnapshot[id] ?? latestScores[id] ?? 0)
+      );
     }
     return seats
       .filter(id => (latestScores[id] ?? 0) < rules.poolLimit)
-      .map(id => ({
-        playerId: id,
-        name: players[id]?.name || 'Player',
-        score: latestScores[id] ?? 0,
-        margin: Math.max(1, rules.poolLimit - (latestScores[id] ?? 0)),
-      }));
-  }, [seats, latestScores, rules.poolLimit, players, dealSplit]);
+      .map(id => describe(id, latestScores[id] ?? 0));
+  }, [seats, latestScores, rules, players, dealSplit]);
 
   // Pool calculation
   const entryAmount = rules.entryAmount ?? 0;
@@ -104,13 +108,16 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
     if (mode === 'equal') {
       return calculateEqualDeal(totalPoolAmount, activePlayers.map(p => p.playerId));
     }
+    if (mode === 'drops') {
+      return calculateDropDeal(totalPoolAmount, entryAmount, activePlayers);
+    }
     // Custom mode
     const numPayouts: Record<PlayerId, number> = {};
     activePlayers.forEach(p => {
       numPayouts[p.playerId] = parseInt(customPayouts[p.playerId], 10) || 0;
     });
     return numPayouts;
-  }, [mode, rules.poolLimit, totalPoolAmount, activePlayers, customPayouts, dealSplit]);
+  }, [mode, rules.poolLimit, totalPoolAmount, entryAmount, activePlayers, customPayouts, dealSplit]);
 
   const customValidation = useMemo(() => {
     if (mode !== 'custom') return { isValid: true, difference: 0, allocatedTotal: totalPoolAmount };
@@ -240,7 +247,7 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
         {!isAlreadySettled && (
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-[var(--color-muted)]">Split Calculation Mode</label>
-            <div className="grid grid-cols-3 gap-1.5 p-1 rounded-lg bg-[var(--color-subtle)] border border-[var(--color-border)]">
+            <div className="grid grid-cols-2 gap-1.5 p-1 rounded-lg bg-[var(--color-subtle)] border border-[var(--color-border)]">
               <button
                 type="button"
                 onClick={() => setMode('proportional')}
@@ -267,6 +274,18 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
 
               <button
                 type="button"
+                onClick={() => setMode('drops')}
+                className={`py-1.5 px-2 rounded text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
+                  mode === 'drops'
+                    ? 'bg-[var(--color-primary)] text-white shadow-sm'
+                    : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5" /> By Drops
+              </button>
+
+              <button
+                type="button"
                 onClick={() => setMode('custom')}
                 className={`py-1.5 px-2 rounded text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
                   mode === 'custom'
@@ -281,6 +300,8 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
               {mode === 'proportional' &&
                 `Fair points split: players with lower scores have higher drops/points margin to ${rules.poolLimit} and receive a larger share.`}
               {mode === 'equal' && 'Evenly splits the total pool among all remaining active players.'}
+              {mode === 'drops' &&
+                `Everyone gets their ₹${entryAmount} stake back, each drop left is worth ₹${entryAmount}, and anything left over is shared equally.`}
               {mode === 'custom' && 'Negotiate and enter custom amounts agreed by the players.'}
             </p>
           </div>
@@ -314,7 +335,9 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
                       {player.name}
                     </span>
                     <span className="text-[10px] text-[var(--color-muted)] block font-mono">
-                      {scoreSnapshot} pts ({rules.poolLimit - scoreSnapshot} margin)
+                      {mode === 'drops'
+                        ? `${scoreSnapshot} pts · ${player.drops} drop${player.drops === 1 ? '' : 's'}`
+                        : `${scoreSnapshot} pts (${rules.poolLimit - scoreSnapshot} margin)`}
                     </span>
                   </div>
                 </div>

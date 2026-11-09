@@ -47,7 +47,7 @@ export interface RoundRecord {
   isEdited?: boolean;
 }
 
-export type DealMode = 'proportional' | 'equal' | 'custom';
+export type DealMode = 'proportional' | 'equal' | 'drops' | 'custom';
 
 export interface DealSplit {
   mode: DealMode;

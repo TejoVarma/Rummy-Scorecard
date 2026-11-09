@@ -93,6 +93,69 @@ export function calculateEqualDeal(
   return payouts;
 }
 
+export interface DropShareInput {
+  playerId: PlayerId;
+  drops: number;
+}
+
+/**
+ * Splits the pool by drops, in three steps (a "waterfall"):
+ *   1. everyone gets one stake back, re-entries included;
+ *   2. each open drop a player still has is worth one stake, paid from what's left; if
+ *      there isn't enough to pay every drop, what's left is shared in proportion to drops;
+ *   3. anything still left is shared equally.
+ * Amounts are whole rupees that add up to the pool; odd rupees go to whoever has more drops.
+ */
+export function calculateDropDeal(
+  totalPool: number,
+  stake: number,
+  players: DropShareInput[]
+): Record<PlayerId, number> {
+  const count = players.length;
+  if (count === 0) return {};
+
+  // A pool too small to return every stake can only be shared equally.
+  const stakeBack = totalPool >= stake * count ? stake : 0;
+  let remaining = totalPool - stakeBack * count;
+
+  const totalDrops = players.reduce((sum, p) => sum + p.drops, 0);
+  const dropValue = totalDrops * stake;
+  const dropShare = (p: DropShareInput) => {
+    if (totalDrops === 0 || stake === 0) return 0;
+    return dropValue <= remaining ? p.drops * stake : (remaining * p.drops) / totalDrops;
+  };
+  const dropPaid = players.map(dropShare);
+  remaining -= dropPaid.reduce((a, b) => a + b, 0);
+
+  const exact = players.map((p, i) => ({
+    player: p,
+    order: i,
+    amount: stakeBack + dropPaid[i] + remaining / count,
+  }));
+  return roundToRupees(exact, totalPool);
+}
+
+// Largest-remainder rounding: round everyone down, then hand the missing rupees to the
+// biggest fractions, breaking ties in favour of more drops.
+function roundToRupees(
+  shares: { player: DropShareInput; order: number; amount: number }[],
+  totalPool: number
+): Record<PlayerId, number> {
+  const payouts: Record<PlayerId, number> = {};
+  const floored = shares.map(s => ({ ...s, floor: Math.floor(s.amount + 1e-9), fraction: 0 }));
+  floored.forEach(s => (s.fraction = s.amount - s.floor));
+  let missing = Math.round(totalPool - floored.reduce((sum, s) => sum + s.floor, 0));
+
+  const byClaim = [...floored].sort(
+    (a, b) => b.fraction - a.fraction || b.player.drops - a.player.drops || a.order - b.order
+  );
+  for (const s of floored) payouts[s.player.playerId] = s.floor;
+  for (let i = 0; missing > 0 && byClaim.length > 0; i++, missing--) {
+    payouts[byClaim[i % byClaim.length].player.playerId] += 1;
+  }
+  return payouts;
+}
+
 /**
  * Validates a custom deal split.
  * Returns isValid = true if sum of payouts equals totalPool.
@@ -126,6 +189,8 @@ export function formatDealSummary(
       ? 'Points Proportional'
       : dealSplit.mode === 'equal'
       ? 'Equal Split'
+      : dealSplit.mode === 'drops'
+      ? 'Drop Split (stakes back, then drops)'
       : 'Negotiated Deal';
   lines.push(`Mode: ${modeLabel}`);
   lines.push('');

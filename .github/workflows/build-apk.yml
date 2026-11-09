@@ -7,8 +7,9 @@ on:
 
 jobs:
   build:
-    name: Build Release & Debug APK
+    name: Build signed release APK
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout code
@@ -44,16 +45,28 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
-      - name: Build Debug APK
+      - name: Restore signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.RUMMY_KEYSTORE_BASE64 }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/rummy-release.jks"
+          test -s "$RUNNER_TEMP/rummy-release.jks" || { echo "RUMMY_KEYSTORE_BASE64 secret is missing or empty"; exit 1; }
+
+      - name: Build signed release APK
         run: |
           cd android
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew assembleRelease --stacktrace
         env:
           CI: true
+          RUMMY_KEYSTORE_FILE: ${{ runner.temp }}/rummy-release.jks
+          RUMMY_KEYSTORE_PASSWORD: ${{ secrets.RUMMY_KEYSTORE_PASSWORD }}
+          RUMMY_KEY_ALIAS: ${{ secrets.RUMMY_KEY_ALIAS }}
+          RUMMY_KEY_PASSWORD: ${{ secrets.RUMMY_KEY_PASSWORD }}
 
-      - name: Upload Debug APK
+      - name: Upload release APK
         uses: actions/upload-artifact@v4
         with:
-          name: RummyScoreboard-Debug-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: RummyScoreboard-APK
+          path: android/app/build/outputs/apk/release/RummyScoreboard.apk
+          if-no-files-found: error
           retention-days: 14

@@ -7,8 +7,8 @@ android {
         applicationId "com.rummyscoreboard.pro"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 2
-        versionName "1.1"
+        versionCode 3
+        versionName "1.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,29 +16,36 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // Locally these come from ~/.gradle/gradle.properties, in CI from env vars.
+    // Without them the release APK is built unsigned instead of failing.
+    def signingValue = { String name -> System.getenv(name) ?: project.findProperty(name) }
+    def releaseStoreFile = signingValue('RUMMY_KEYSTORE_FILE')
+
     signingConfigs {
-        debug {
-            storeFile file('rummy-release.keystore')
-            storePassword 'rummyscoreboard'
-            keyAlias 'rummykey'
-            keyPassword 'rummyscoreboard'
-        }
         release {
-            storeFile file('rummy-release.keystore')
-            storePassword 'rummyscoreboard'
-            keyAlias 'rummykey'
-            keyPassword 'rummyscoreboard'
+            if (releaseStoreFile) {
+                storeFile file(releaseStoreFile)
+                storePassword signingValue('RUMMY_KEYSTORE_PASSWORD')
+                keyAlias signingValue('RUMMY_KEY_ALIAS')
+                keyPassword signingValue('RUMMY_KEY_PASSWORD')
+            }
         }
     }
     buildTypes {
-        debug {
-            signingConfig signingConfigs.debug
-        }
         release {
-            signingConfig signingConfigs.release
+            if (releaseStoreFile) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+}
+
+android.applicationVariants.all { variant ->
+    variant.outputs.all {
+        def suffix = variant.buildType.name == 'release' ? '' : "-${variant.buildType.name}"
+        outputFileName = "RummyScoreboard${suffix}.apk"
     }
 }
 

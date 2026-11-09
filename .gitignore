@@ -14,3 +14,7 @@ android/captures/
 android/.idea/
 android/*.iml
 android/local.properties
+
+# Signing keys never go in the repo
+*.keystore
+*.jks

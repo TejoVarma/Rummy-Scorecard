@@ -10,7 +10,7 @@ import {
 } from '../domain/elimination';
 import { DEFAULT_RULES, validateRoundScores } from '../domain/scoring';
 import { validateDeal, validateStartGame } from '../domain/rules';
-import { isValidGameState } from '../storage/localStorageAdapter';
+import { isValidGameState } from '../domain/validation';
 
 export const INITIAL_STATE: GameState = {
   gameId: '',

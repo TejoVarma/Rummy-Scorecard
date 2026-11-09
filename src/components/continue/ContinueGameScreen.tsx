@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { GameState } from '../../domain/types';
 import { ArrowLeft, Play, Trash2, Trophy, Clock, Users, Plus } from 'lucide-react';
-import { loadAllSavedGames, deleteGameFromList } from '../../storage/localStorageAdapter';
+import { loadAllSavedGames, deleteGameFromList, countUnreadableSavedGames } from '../../storage/localStorageAdapter';
 
 interface ContinueGameScreenProps {
   onBack: () => void;
@@ -17,6 +17,7 @@ export const ContinueGameScreen: React.FC<ContinueGameScreenProps> = ({
   onGameDeleted,
 }) => {
   const [games, setGames] = useState<GameState[]>(() => loadAllSavedGames());
+  const [unreadable] = useState(countUnreadableSavedGames);
 
   const handleDelete = async (e: React.MouseEvent, gameId: string, title: string) => {
     e.stopPropagation(); // Don't trigger resume
@@ -58,6 +59,11 @@ export const ContinueGameScreen: React.FC<ContinueGameScreenProps> = ({
 
       {/* Games List Container */}
       <div className="flex-1 max-w-md w-full mx-auto p-4 space-y-3 pb-12 overflow-y-auto">
+        {unreadable > 0 && (
+          <p role="status" className="text-xs text-amber-600 dark:text-amber-400">
+            {unreadable === 1 ? '1 saved match' : `${unreadable} saved matches`} couldn't be read and {unreadable === 1 ? "isn't" : "aren't"} listed. A copy is kept on the phone.
+          </p>
+        )}
         {games.length === 0 ? (
           <div className="text-center py-20 space-y-4">
             <div className="w-16 h-16 rounded-full bg-[var(--color-subtle)] flex items-center justify-center mx-auto text-[var(--color-muted)]">

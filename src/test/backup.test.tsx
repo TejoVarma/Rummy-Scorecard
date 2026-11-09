@@ -115,7 +115,7 @@ describe('restoreBackup merges instead of replacing', () => {
     if (!result.ok) throw new Error(result.message);
     const summary = await restoreBackup(result.backup);
 
-    expect(summary).toEqual({ added: 1, updated: 0, playersAdded: 1 });
+    expect(summary).toEqual({ added: 1, updated: 0, playersAdded: 1, playersSaved: true });
     expect(loadAllSavedGames().map(g => g.gameId).sort()).toEqual(['g1', 'g2']);
     expect(loadPlayerRoster().map(p => p.name).sort()).toEqual(['Kiran', 'Ravi']);
   });

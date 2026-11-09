@@ -31,7 +31,9 @@ export class ErrorBoundary extends Component<Props, State> {
 
   private handleReset = async () => {
     try {
-      await quarantineActiveGame();
+      if (!(await quarantineActiveGame())) {
+        alert('The match was cleared so the app can open, but the phone was too full to keep a copy of it.');
+      }
     } catch (e) {
       console.error('Failed to clear the crashed match', e);
     }

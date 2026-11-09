@@ -1,5 +1,8 @@
 import { Preferences } from '@capacitor/preferences';
 import { GameState } from '../domain/types';
+import { isPlainObject, isValidGameState } from '../domain/validation';
+
+export { isValidGameState };
 
 const ACTIVE_GAME_KEY = 'rummy_active_game_v1';
 const SAVED_GAMES_LIST_KEY = 'rummy_saved_games_list_v1';
@@ -20,13 +23,22 @@ const unrestoredKeys = new Set<string>();
 
 const PREFERENCES_TIMEOUT_MS = 4000;
 
+// A call that times out may still finish later and land after newer writes; that's rare
+// enough to accept, and the timeout keeps one stuck call from freezing everything behind it.
 function withTimeout<T>(work: Promise<T>): Promise<T> {
-  return Promise.race([
-    work,
-    new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error('Phone storage did not respond')), PREFERENCES_TIMEOUT_MS)
-    ),
-  ]);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<T>((_, reject) => {
+    timer = setTimeout(() => reject(new Error('Phone storage did not respond')), PREFERENCES_TIMEOUT_MS);
+  });
+  return Promise.race([work, timeout]).finally(() => clearTimeout(timer));
+}
+
+// Keys whose latest change didn't reach the Android copy, so that copy is out of date.
+const behindKeys = new Set<string>();
+
+/** True when recent changes are only in the WebView, not yet in Android's own storage. */
+export function isBackupCopyBehind(): boolean {
+  return behindKeys.size > 0;
 }
 
 /** True when part of the Android copy couldn't be read at startup. */
@@ -36,6 +48,7 @@ export function isBackupCopyUnavailable(): boolean {
 
 export function resetStorageStateForTests(): void {
   unrestoredKeys.clear();
+  behindKeys.clear();
   mirrorQueue = Promise.resolve();
 }
 
@@ -45,9 +58,11 @@ function mirror(key: string, value: string | null): Promise<boolean> {
     try {
       if (value === null) await withTimeout(Preferences.remove({ key }));
       else await withTimeout(Preferences.set({ key, value }));
+      behindKeys.delete(key);
       return true;
     } catch (e) {
       console.error(`Failed to mirror ${key} to Preferences`, e);
+      behindKeys.add(key);
       return false;
     }
   };
@@ -71,16 +86,18 @@ const MIRRORED_KEYS = [ACTIVE_GAME_KEY, SAVED_GAMES_LIST_KEY, SAVED_PLAYERS_KEY,
 
 /** Before the first render: refill anything missing from localStorage using the Android copy. */
 export async function hydrateFromPreferences(): Promise<void> {
-  for (const key of MIRRORED_KEYS) {
-    try {
-      if (localStorage.getItem(key) !== null) continue;
-      const { value } = await withTimeout(Preferences.get({ key }));
-      if (value !== null) localStorage.setItem(key, value);
-    } catch (e) {
-      unrestoredKeys.add(key);
-      console.error(`Failed to restore ${key} from Preferences`, e);
-    }
-  }
+  await Promise.all(
+    MIRRORED_KEYS.map(async key => {
+      try {
+        if (localStorage.getItem(key) !== null) return;
+        const { value } = await withTimeout(Preferences.get({ key }));
+        if (value !== null) localStorage.setItem(key, value);
+      } catch (e) {
+        unrestoredKeys.add(key);
+        console.error(`Failed to restore ${key} from Preferences`, e);
+      }
+    })
+  );
 }
 
 /** The raw saved list, unreadable entries included, or null if the list itself is corrupt. */
@@ -100,21 +117,21 @@ function readRawList(): unknown[] | null {
 const entryId = (entry: unknown) =>
   typeof entry === 'object' && entry !== null && 'gameId' in entry ? entry.gameId : undefined;
 
+// The app reads localStorage, so a write only counts as saved when localStorage took it.
+// The Android copy is a backup; when it falls behind, isBackupCopyBehind() says so.
 async function writeList(list: unknown[]): Promise<boolean> {
   const serialized = JSON.stringify(list);
   const local = writeLocal(SAVED_GAMES_LIST_KEY, serialized);
-  const native = await mirror(SAVED_GAMES_LIST_KEY, serialized);
-  return local || native;
+  await mirror(SAVED_GAMES_LIST_KEY, serialized);
+  return local;
 }
 
-/** Saves the match on screen and its entry in the saved list. Resolves false if neither store took it. */
+/** Saves the match on screen and its entry in the saved list. Resolves false if the phone couldn't store it. */
 export async function saveActiveGame(state: GameState): Promise<boolean> {
   const serialized = JSON.stringify(state);
   const local = writeLocal(ACTIVE_GAME_KEY, serialized);
-  const native = mirror(ACTIVE_GAME_KEY, serialized);
-  const listed = saveGameToList(state);
-  const [nativeOk, listOk] = await Promise.all([native, listed]);
-  return (local || nativeOk) && listOk;
+  const [, listOk] = await Promise.all([mirror(ACTIVE_GAME_KEY, serialized), saveGameToList(state)]);
+  return local && listOk;
 }
 
 export function loadAllSavedGames(): GameState[] {
@@ -141,91 +158,24 @@ export async function deleteGameFromList(gameId: string): Promise<boolean> {
   return ok;
 }
 
-export function isValidGameState(obj: unknown): obj is GameState {
-  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return false;
-  const candidate = obj as Record<string, unknown>;
-
-  if (typeof candidate.gameId !== 'string' || !candidate.gameId) return false;
-  if (typeof candidate.title !== 'string') return false;
-  if (typeof candidate.createdAt !== 'number') return false;
-  if (!['setup', 'playing', 'completed'].includes(candidate.status as string)) return false;
-  if (typeof candidate.currentDealerIndex !== 'number' || candidate.currentDealerIndex < 0) return false;
-
-  // Validate rules
-  if (!isPlainObject(candidate.rules)) return false;
-  const { poolLimit, openDrop, middleDrop, fullCount } = candidate.rules;
-  if (
-    typeof poolLimit !== 'number' ||
-    typeof openDrop !== 'number' ||
-    typeof middleDrop !== 'number' ||
-    typeof fullCount !== 'number'
-  ) {
-    return false;
-  }
-
-  // Validate players dictionary
-  const players = candidate.players;
-  if (!isPlainObject(players)) return false;
-  for (const [id, player] of Object.entries(players)) {
-    if (!isPlainObject(player) || player.id !== id || typeof player.name !== 'string') {
-      return false;
-    }
-  }
-
-  // Validate seats
-  if (!Array.isArray(candidate.seats) || candidate.seats.length === 0) return false;
-  for (const seatId of candidate.seats) {
-    if (typeof seatId !== 'string' || !players[seatId]) return false;
-  }
-
-  if (candidate.currentDealerIndex >= candidate.seats.length) return false;
-
-  // Validate rounds
-  if (!Array.isArray(candidate.rounds)) return false;
-  for (const round of candidate.rounds) {
-    if (!isValidRound(round)) return false;
-  }
-
-  return true;
-}
-
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
-// The scoreboard reads every round's cumulative scores while drawing, so a
-// malformed round must be rejected here rather than crash the screen.
-function isValidRound(round: unknown): boolean {
-  if (!isPlainObject(round)) return false;
-  if (!isPlainObject(round.scores) || !isPlainObject(round.cumulativeScores)) return false;
-  if (!Object.values(round.cumulativeScores).every(Number.isFinite)) return false;
-  if (!Array.isArray(round.seatsSnapshot)) return false;
-  return true;
-}
-
 const CRASHED_GAME_BACKUP_KEY = 'rummy_crashed_game_backup';
 
 /**
- * Takes the active match out of play after it crashed the app: keeps a raw copy
- * under a backup key, removes it from the saved list and clears it everywhere.
+ * Takes the active match out of play after it crashed the app. Keeps a raw copy under a
+ * backup key and, only once that copy is safe, removes it from the saved list. The match
+ * is always cleared from the active slot so the app can open. Resolves whether a copy was kept.
  */
-export async function quarantineActiveGame(): Promise<void> {
+export async function quarantineActiveGame(): Promise<boolean> {
   const raw = localStorage.getItem(ACTIVE_GAME_KEY);
-  if (raw) {
-    try {
-      localStorage.setItem(CRASHED_GAME_BACKUP_KEY, raw);
-    } catch (e) {
-      // Storage may be full; clearing the match still matters more than the copy.
-      console.error('Could not back up the crashed match', e);
-    }
-    removeFromSavedList(raw);
-  }
-  localStorage.removeItem(ACTIVE_GAME_KEY);
+  const keptCopy = raw ? writeLocal(CRASHED_GAME_BACKUP_KEY, raw) : true;
+  if (raw && keptCopy) removeFromSavedList(raw);
+  writeLocal(ACTIVE_GAME_KEY, null);
   if (!(await mirror(ACTIVE_GAME_KEY, null))) {
     // Android still holds the crashed match. An empty value here stops the startup
     // restore from bringing it back (it only fills keys that are missing).
     writeLocal(ACTIVE_GAME_KEY, '');
   }
+  return keptCopy;
 }
 
 function removeFromSavedList(rawActiveGame: string): void {
@@ -237,8 +187,9 @@ function removeFromSavedList(rawActiveGame: string): void {
     const serialized = JSON.stringify(remaining);
     localStorage.setItem(SAVED_GAMES_LIST_KEY, serialized);
     void mirror(SAVED_GAMES_LIST_KEY, serialized);
-  } catch {
-    // The active game or list is unreadable; the raw copy is already backed up.
+  } catch (e) {
+    // The active game or list is unreadable, or storage is full; the raw copy is already kept.
+    console.error('Could not remove the crashed match from the saved list', e);
   }
 }
 
@@ -296,12 +247,11 @@ export function loadPlayerRoster(): SavedRosterPlayer[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    // Purge test/sample data if present
-    const cleaned = parsed.filter(p => isRosterPlayer(p) && !LEGACY_SAMPLE_IDS.has(p.id));
-    if (cleaned.length !== parsed.length) {
-      savePlayerRoster(cleaned);
+    const withoutSamples = parsed.filter(p => !(isPlainObject(p) && LEGACY_SAMPLE_IDS.has(p.id as string)));
+    if (withoutSamples.length !== parsed.length) {
+      writeLocal(SAVED_PLAYERS_KEY, JSON.stringify(withoutSamples));
     }
-    return cleaned;
+    return withoutSamples.filter(isRosterPlayer);
   } catch (e) {
     console.error('Failed to read or parse player roster from storage:', e);
     return [];
@@ -316,12 +266,21 @@ export interface BackupDataPayload {
   savedPlayers: SavedRosterPlayer[];
 }
 
-export function exportAllData(): string {
+/**
+ * The backup file's contents. Pass the match on screen so the backup includes rounds
+ * that couldn't be saved (for example when the phone is full).
+ */
+export function exportAllData(onScreen?: GameState | null): string {
+  const current = onScreen && isValidGameState(onScreen) ? onScreen : loadActiveGame();
+  const saved = loadAllSavedGames();
+  const savedGames = current
+    ? [current, ...saved.filter(g => g.gameId !== current.gameId)]
+    : saved;
   const payload: BackupDataPayload = {
     version: 1,
     exportedAt: Date.now(),
-    activeGame: loadActiveGame(),
-    savedGames: loadAllSavedGames(),
+    activeGame: current,
+    savedGames,
     savedPlayers: loadPlayerRoster(),
   };
   return JSON.stringify(payload, null, 2);
@@ -369,6 +328,16 @@ export function readBackup(json: string): { ok: true; backup: RestorableBackup }
   };
 }
 
+const lastChange = (g: GameState) => (g.rounds.length ? g.rounds[g.rounds.length - 1].timestamp : g.createdAt);
+
+/** Whether the incoming copy of a match is further along than the one already on the phone. */
+function isFurtherAlong(incoming: GameState, existing: unknown): boolean {
+  if (!isValidGameState(existing)) return true;
+  if (incoming.rounds.length !== existing.rounds.length) return incoming.rounds.length > existing.rounds.length;
+  if (Boolean(incoming.dealSplit) !== Boolean(existing.dealSplit)) return Boolean(incoming.dealSplit);
+  return lastChange(incoming) > lastChange(existing);
+}
+
 function mergeBackup(backup: RestorableBackup) {
   const list = readRawList() ?? [];
   let added = 0;
@@ -381,9 +350,7 @@ function mergeBackup(backup: RestorableBackup) {
       added++;
       continue;
     }
-    const existing = list[index];
-    const existingRounds = isValidGameState(existing) ? existing.rounds.length : -1;
-    if (incoming.rounds.length > existingRounds) {
+    if (isFurtherAlong(incoming, list[index])) {
       list[index] = incoming;
       updated++;
     }
@@ -393,26 +360,45 @@ function mergeBackup(backup: RestorableBackup) {
 }
 
 /**
- * Adds a checked backup to what's already on the phone: a match in both keeps whichever
- * copy has more rounds, existing player names are kept and the open match is left alone.
- * Throws if the phone couldn't store it.
+ * Adds a checked backup to what's already on the phone. Nothing is deleted: a match in
+ * both keeps the copy that's further along, and existing player names are kept. If the
+ * backup is further along on the match that's open, the open match is updated too, so the
+ * next save can't undo the restore. Throws if the matches couldn't be stored.
  */
 export async function restoreBackup(
   backup: RestorableBackup
-): Promise<{ added: number; updated: number; playersAdded: number }> {
+): Promise<{ added: number; updated: number; playersAdded: number; playersSaved: boolean }> {
   const { list, added, updated } = mergeBackup(backup);
 
   const roster = loadPlayerRoster();
   const known = new Set(roster.map(p => p.id));
-  const newPlayers = backup.players.filter(p => !known.has(p.id));
+  const newPlayers: SavedRosterPlayer[] = [];
+  for (const p of backup.players) {
+    if (known.has(p.id)) continue;
+    known.add(p.id);
+    newPlayers.push(p);
+  }
+  const playersSaved = newPlayers.length === 0 || savePlayerRoster([...roster, ...newPlayers]);
 
   if (!(await writeList(list))) throw new Error('Could not store the restored matches');
-  if (newPlayers.length > 0 && !savePlayerRoster([...roster, ...newPlayers])) {
-    throw new Error('Could not store the restored players');
+
+  const open = loadActiveGame();
+  const restoredOpen = open && backup.games.find(g => g.gameId === open.gameId);
+  if (open && restoredOpen && isFurtherAlong(restoredOpen, open)) {
+    const serialized = JSON.stringify(restoredOpen);
+    if (!writeLocal(ACTIVE_GAME_KEY, serialized)) throw new Error('Could not update the open match');
+    void mirror(ACTIVE_GAME_KEY, serialized);
   }
   await mirrorQueue;
 
-  return { added, updated, playersAdded: newPlayers.length };
+  return { added, updated, playersAdded: playersSaved ? newPlayers.length : 0, playersSaved };
+}
+
+/** How many saved matches exist but can't be read (shown so nothing disappears silently). */
+export function countUnreadableSavedGames(): number {
+  const list = readRawList();
+  if (list === null) return localStorage.getItem(UNREADABLE_LIST_KEY) ? 1 : 0;
+  return list.filter(entry => !isValidGameState(entry)).length;
 }
 
 export function loadAnnounceAfterRound(): boolean {
@@ -423,11 +409,9 @@ export function loadAnnounceAfterRound(): boolean {
   }
 }
 
-export function saveAnnounceAfterRound(on: boolean): void {
-  try {
-    localStorage.setItem(ANNOUNCE_KEY, String(on));
-    void mirror(ANNOUNCE_KEY, String(on));
-  } catch (e) {
-    console.error('Failed to save the announce setting', e);
-  }
+/** Remembers the announce setting; false when the phone couldn't store it. */
+export function saveAnnounceAfterRound(on: boolean): boolean {
+  if (!writeLocal(ANNOUNCE_KEY, String(on))) return false;
+  void mirror(ANNOUNCE_KEY, String(on));
+  return true;
 }

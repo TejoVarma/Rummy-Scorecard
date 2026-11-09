@@ -105,12 +105,12 @@ describe('saving reports what happened', () => {
     expect(await saveActiveGame(game('g1'))).toBe(false);
   });
 
-  it('still counts as saved when only the Android copy worked', async () => {
+  it('does not count as saved when only the Android copy worked (the app reads the WebView copy)', async () => {
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
       throw new DOMException('full', 'QuotaExceededError');
     });
     prefs.failWrites = false;
-    expect(await saveActiveGame(game('g1'))).toBe(true);
+    expect(await saveActiveGame(game('g1'))).toBe(false);
   });
 });
 

@@ -8,6 +8,7 @@ import {
   loadAnnounceAfterRound,
   saveAnnounceAfterRound,
   isBackupCopyUnavailable,
+  isBackupCopyBehind,
 } from './storage/localStorageAdapter';
 import { validateStartGame } from './domain/rules';
 import { buildAnnouncement } from './domain/announce';
@@ -47,13 +48,16 @@ export function App() {
   const [showExitToast, setShowExitToast] = useState(false);
   const [announceAfterRound, setAnnounceAfterRound] = useState(loadAnnounceAfterRound);
   const [saveFailed, setSaveFailed] = useState(false);
+  const [backupBehind, setBackupBehind] = useState(false);
   const lastSeenRound = useRef<{ gameId: string; round: string } | null>(null);
   const speechFailureShown = useRef(false);
   const [backupUnavailable] = useState(isBackupCopyUnavailable);
 
   const handleToggleAnnounce = useCallback((on: boolean) => {
     setAnnounceAfterRound(on);
-    saveAnnounceAfterRound(on);
+    if (!saveAnnounceAfterRound(on)) {
+      alert("Couldn't remember this setting. Your phone may be out of space, so it will reset when the app restarts.");
+    }
   }, []);
 
   const announceScores = useCallback(async () => {
@@ -116,7 +120,9 @@ export function App() {
     let current = true;
     saveActiveGame(state)
       .then(ok => {
-        if (current) setSaveFailed(!ok);
+        if (!current) return;
+        setSaveFailed(!ok);
+        setBackupBehind(isBackupCopyBehind());
       })
       .catch(e => {
         console.error('Saving the match failed', e);
@@ -261,10 +267,20 @@ export function App() {
         <SettingsModal
           isOpen={isSettingsOpen}
           onClose={() => setIsSettingsOpen(false)}
+          currentGame={state.status !== 'setup' ? state : null}
           announceAfterRound={announceAfterRound}
           onToggleAnnounce={handleToggleAnnounce}
           onStartNewMatch={state.status !== 'setup' ? () => setCurrentScreen('new_game') : undefined}
         />
+      )}
+
+      {backupBehind && !backupUnavailable && !saveFailed && (
+        <div
+          role="status"
+          className="fixed top-2 inset-x-2 z-[70] mx-auto max-w-md px-4 py-3 rounded-xl bg-amber-900 text-amber-50 text-xs font-medium shadow-2xl border border-amber-500/40"
+        >
+          Your match is saved, but the phone's backup copy isn't up to date. Export a backup from Settings to be safe.
+        </div>
       )}
 
       {backupUnavailable && !saveFailed && (

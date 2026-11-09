@@ -5,10 +5,13 @@ import { THEMES, ThemeId } from '../../themes/themeConfig';
 import { Sun, Moon, RefreshCw, Palette, Download, Upload, ShieldCheck, Volume2 } from 'lucide-react';
 import { exportAllData, readBackup, restoreBackup, MAX_BACKUP_BYTES } from '../../storage/localStorageAdapter';
 import { isShareCancelled, shareTextFile } from '../../services/share';
+import { GameState } from '../../domain/types';
 
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /** The match on screen, so a backup includes rounds the phone couldn't save. */
+  currentGame?: GameState | null;
   announceAfterRound: boolean;
   onToggleAnnounce: (on: boolean) => void;
   // Left undefined when there's no match in progress, which hides the button.
@@ -18,6 +21,7 @@ interface SettingsModalProps {
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
   onClose,
+  currentGame,
   announceAfterRound,
   onToggleAnnounce,
   onStartNewMatch,
@@ -28,7 +32,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const handleExportData = async () => {
     const fileName = `rummy_scorecard_backup_${new Date().toISOString().slice(0, 10)}.json`;
     try {
-      await shareTextFile(exportAllData(), fileName, 'Save Rummy Backup');
+      await shareTextFile(exportAllData(currentGame), fileName, 'Save Rummy Backup');
     } catch (err) {
       if (isShareCancelled(err)) return;
       console.error('Export failed:', err);
@@ -67,8 +71,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       if (!ok) return;
 
       try {
-        const { added, updated, playersAdded } = await restoreBackup(result.backup);
-        alert(`Restored ${added} new and ${updated} updated matches, and ${playersAdded} new players.`);
+        const { added, updated, playersAdded, playersSaved } = await restoreBackup(result.backup);
+        alert(
+          `Restored ${added} new and ${updated} updated matches, and ${playersAdded} new players.` +
+            (playersSaved ? '' : " The players couldn't be saved; your phone may be out of space.")
+        );
         window.location.reload();
       } catch (err) {
         console.error('Restore failed:', err);

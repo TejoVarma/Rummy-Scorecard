@@ -11,14 +11,15 @@
     "test:watch": "vitest",
     "cap:sync": "npx cap sync android",
     "build:apk": "npm run build && npx cap sync android && cd android && ./gradlew assembleDebug",
-    "build:release": "npm run build && npx cap sync android && cd android && ./gradlew assembleRelease"
+    "build:release": "npm run build && npx cap sync android && cd android && ./gradlew assembleRelease",
+    "lint": "eslint ."
   },
   "dependencies": {
-    "@capacitor/android": "^6.2.0",
-    "@capacitor/app": "^6.0.3",
-    "@capacitor/core": "^6.2.0",
-    "@capacitor/preferences": "^6.0.4",
-    "@capacitor/share": "^6.0.4",
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/app": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/preferences": "^8.0.0",
+    "@capacitor/share": "^8.0.0",
     "clsx": "^2.1.1",
     "html-to-image": "^1.11.13",
     "lucide-react": "^0.468.0",
@@ -27,19 +28,24 @@
     "tailwind-merge": "^2.5.5"
   },
   "devDependencies": {
-    "@capacitor/cli": "^6.2.0",
+    "@capacitor/cli": "^8.0.0",
+    "@eslint/js": "^10.0.1",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/react": "^16.3.3",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
-    "@vitest/coverage-v8": "^2.1.9",
+    "@vitest/coverage-v8": "^5.1.0",
     "autoprefixer": "^10.4.20",
+    "eslint": "^10.14.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.14.0",
     "jsdom": "^25.0.1",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.16",
     "typescript": "~5.6.2",
+    "typescript-eslint": "^8.72.1",
     "vite": "^6.0.1",
-    "vitest": "^2.1.8"
+    "vitest": "^5.1.0"
   }
 }

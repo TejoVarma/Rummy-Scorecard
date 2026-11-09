@@ -1,6 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { Share } from '@capacitor/share';
-import { Directory, Filesystem } from '@capacitor/filesystem';
+import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { GameState } from '../domain/types';
 
 // Closing the share sheet is not an error: browsers reject with an AbortError,
@@ -130,4 +130,27 @@ export async function shareImage(blob: Blob, fileName: string, title: string): P
 export function scorecardFileName(state: GameState): string {
   const safeTitle = state.title.trim().replace(/[^a-zA-Z0-9_-]+/g, '_').replace(/^_+|_+$/g, '') || 'scorecard';
   return `${safeTitle}-round-${state.rounds.length}.png`;
+}
+
+/** Hands a text file (such as a backup) to the share sheet on the phone, or downloads it in a browser. */
+export async function shareTextFile(text: string, fileName: string, title: string): Promise<void> {
+  if (Capacitor.isNativePlatform()) {
+    const { uri } = await Filesystem.writeFile({
+      path: fileName,
+      data: text,
+      directory: Directory.Cache,
+      encoding: Encoding.UTF8,
+    });
+    await Share.share({ title, files: [uri], dialogTitle: title });
+    return;
+  }
+
+  const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }

@@ -3,7 +3,8 @@ import {
   isValidGameState,
   loadAllSavedGames,
   exportAllData,
-  importAllData,
+  readBackup,
+  restoreBackup,
   loadPlayerRoster,
 } from '../storage/localStorageAdapter';
 import { GameState } from '../domain/types';
@@ -95,7 +96,7 @@ describe('localStorageAdapter Schema Validation', () => {
     expect(mockLocalStorage.getItem('rummy_saved_games_list_v1_unreadable')).toBe('{ invalid json garbage');
   });
 
-  it('exports and imports complete application backup JSON cleanly', () => {
+  it('exports and imports complete application backup JSON cleanly', async () => {
     const backupJson = exportAllData();
     expect(backupJson).toContain('"version": 1');
 
@@ -110,8 +111,9 @@ describe('localStorageAdapter Schema Validation', () => {
       savedGames: [validGameState],
     });
 
-    const importResult = importAllData(testBackup);
-    expect(importResult.success).toBe(true);
+    const read = readBackup(testBackup);
+    expect(read.ok).toBe(true);
+    if (read.ok) await restoreBackup(read.backup);
 
     const loadedRoster = loadPlayerRoster();
     expect(loadedRoster.some(p => p.name === 'Ravi')).toBe(true);

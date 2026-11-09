@@ -15,3 +15,4 @@
 | 11 | [Edit a round as it was played](11-edit-the-round-as-it-was-played.md) | 4.2 |
 | 12 | [The reducer enforces the rules, not just the buttons](12-the-reducer-enforces-the-rules.md) | 4.3 + 4.4 |
 | 13 | [Saved games must never vanish silently](13-saved-games-never-vanish-silently.md) | 4.5 |
+| 14 | [Backup and restore you can trust](14-backup-and-restore-you-can-trust.md) | 4.6 |

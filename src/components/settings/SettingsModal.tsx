@@ -3,9 +3,8 @@ import { Modal } from '../common/Modal';
 import { useTheme } from '../../themes/ThemeContext';
 import { THEMES, ThemeId } from '../../themes/themeConfig';
 import { Sun, Moon, RefreshCw, Palette, Download, Upload, ShieldCheck, Volume2 } from 'lucide-react';
-import { exportAllData, importAllData } from '../../storage/localStorageAdapter';
-import { Share } from '@capacitor/share';
-import { Capacitor } from '@capacitor/core';
+import { exportAllData, readBackup, restoreBackup, MAX_BACKUP_BYTES } from '../../storage/localStorageAdapter';
+import { isShareCancelled, shareTextFile } from '../../services/share';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -27,55 +26,56 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleExportData = async () => {
+    const fileName = `rummy_scorecard_backup_${new Date().toISOString().slice(0, 10)}.json`;
     try {
-      const dataStr = exportAllData();
-      const fileName = `rummy_scorecard_backup_${new Date().toISOString().slice(0, 10)}.json`;
-
-      if (Capacitor.isNativePlatform()) {
-        await Share.share({
-          title: 'Rummy Scorecard Backup',
-          text: dataStr,
-          dialogTitle: 'Save Rummy Backup',
-        });
-        return;
-      }
-
-      // Web download
-      const blob = new Blob([dataStr], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      await shareTextFile(exportAllData(), fileName, 'Save Rummy Backup');
     } catch (err) {
+      if (isShareCancelled(err)) return;
       console.error('Export failed:', err);
-      alert('Failed to export data backup.');
+      alert("Couldn't create the backup file. Please try again.");
     }
   };
 
   const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
+    if (file.size > MAX_BACKUP_BYTES) {
+      alert('That file is too big to be a Rummy Scorecard backup.');
+      return;
+    }
 
     const reader = new FileReader();
-    reader.onload = event => {
-      const content = event.target?.result as string;
-      if (!content) return;
-
-      const result = importAllData(content);
-      if (result.success) {
+    reader.onerror = () => alert("Couldn't read that file. Please pick the backup again.");
+    reader.onload = async () => {
+      const result = readBackup(String(reader.result ?? ''));
+      if (!result.ok) {
         alert(result.message);
+        return;
+      }
+      const { games, players, skippedGames } = result.backup;
+      if (games.length === 0 && players.length === 0) {
+        alert('This backup has no matches or players to restore.');
+        return;
+      }
+
+      const skippedNote = skippedGames > 0 ? `\n\n${skippedGames} damaged match(es) in the file will be skipped.` : '';
+      const ok = window.confirm(
+        `Restore ${games.length} match${games.length === 1 ? '' : 'es'} and ${players.length} player${players.length === 1 ? '' : 's'} from this backup?\n\n` +
+          `Nothing you already have will be deleted. If a match is in both, the copy with more rounds is kept.${skippedNote}`
+      );
+      if (!ok) return;
+
+      try {
+        const { added, updated, playersAdded } = await restoreBackup(result.backup);
+        alert(`Restored ${added} new and ${updated} updated matches, and ${playersAdded} new players.`);
         window.location.reload();
-      } else {
-        alert(`Restore failed: ${result.message}`);
+      } catch (err) {
+        console.error('Restore failed:', err);
+        alert("Couldn't restore the backup. Nothing was changed on screen; please try again.");
       }
     };
     reader.readAsText(file);
-    // Reset input
-    e.target.value = '';
   };
 
   return (

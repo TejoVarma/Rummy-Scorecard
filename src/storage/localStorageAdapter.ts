@@ -305,44 +305,84 @@ export function exportAllData(): string {
   return JSON.stringify(payload, null, 2);
 }
 
-export function importAllData(jsonStr: string): { success: boolean; message: string } {
+export const MAX_BACKUP_BYTES = 5_000_000;
+const BACKUP_VERSION = 1;
+const NOT_A_BACKUP = 'This is not a Rummy Scorecard backup file.';
+
+export interface RestorableBackup {
+  games: GameState[];
+  players: SavedRosterPlayer[];
+  skippedGames: number;
+}
+
+const isRosterPlayer = (p: unknown): p is SavedRosterPlayer =>
+  isPlainObject(p) && typeof p.id === 'string' && typeof p.name === 'string' && p.name.trim() !== '';
+
+/** Reads and checks a whole backup file without writing anything. */
+export function readBackup(json: string): { ok: true; backup: RestorableBackup } | { ok: false; message: string } {
+  let parsed: unknown;
   try {
-    const parsed = JSON.parse(jsonStr);
-    if (!parsed || typeof parsed !== 'object') {
-      return { success: false, message: 'Invalid backup file format' };
-    }
-
-    let restoredGames = 0;
-    let restoredPlayers = 0;
-
-    if (Array.isArray(parsed.savedPlayers)) {
-      const validPlayers = parsed.savedPlayers.filter(
-        (p: unknown): p is SavedRosterPlayer =>
-          isPlainObject(p) && typeof p.id === 'string' && typeof p.name === 'string'
-      );
-      savePlayerRoster(validPlayers);
-      restoredPlayers = validPlayers.length;
-    }
-
-    if (Array.isArray(parsed.savedGames)) {
-      const validGames = parsed.savedGames.filter(isValidGameState);
-      const serialized = JSON.stringify(validGames);
-      localStorage.setItem(SAVED_GAMES_LIST_KEY, serialized);
-      void mirror(SAVED_GAMES_LIST_KEY, serialized);
-      restoredGames = validGames.length;
-    }
-
-    if (parsed.activeGame && isValidGameState(parsed.activeGame)) {
-      saveActiveGame(parsed.activeGame);
-    }
-
-    return {
-      success: true,
-      message: `Successfully restored ${restoredGames} matches and ${restoredPlayers} players!`,
-    };
-  } catch (err) {
-    return { success: false, message: err instanceof Error ? err.message : 'Failed to parse backup file' };
+    parsed = JSON.parse(json);
+  } catch {
+    return { ok: false, message: NOT_A_BACKUP };
   }
+  if (!isPlainObject(parsed) || !Array.isArray(parsed.savedGames) || !Array.isArray(parsed.savedPlayers)) {
+    return { ok: false, message: NOT_A_BACKUP };
+  }
+  if (typeof parsed.version !== 'number' || parsed.version > BACKUP_VERSION) {
+    return { ok: false, message: 'This backup was made by a newer version of the app. Update the app first.' };
+  }
+
+  const games = parsed.savedGames.filter(isValidGameState);
+  const active = parsed.activeGame;
+  if (isValidGameState(active) && !games.some(g => g.gameId === active.gameId)) games.unshift(active);
+
+  return {
+    ok: true,
+    backup: {
+      games,
+      players: parsed.savedPlayers.filter(isRosterPlayer),
+      skippedGames: parsed.savedGames.length - parsed.savedGames.filter(isValidGameState).length,
+    },
+  };
+}
+
+/**
+ * Adds a checked backup to what's already on the phone. Nothing is deleted: a match in
+ * both keeps whichever copy has more rounds, and existing player names are kept.
+ * The match currently open is left alone.
+ */
+export async function restoreBackup(
+  backup: RestorableBackup
+): Promise<{ added: number; updated: number; playersAdded: number }> {
+  const list = readRawList() ?? [];
+  let added = 0;
+  let updated = 0;
+
+  for (const incoming of backup.games) {
+    const index = list.findIndex(entry => entryId(entry) === incoming.gameId);
+    if (index < 0) {
+      list.push(incoming);
+      added++;
+      continue;
+    }
+    const existing = list[index];
+    const existingRounds = isValidGameState(existing) ? existing.rounds.length : -1;
+    if (incoming.rounds.length > existingRounds) {
+      list[index] = incoming;
+      updated++;
+    }
+  }
+
+  const roster = loadPlayerRoster();
+  const known = new Set(roster.map(p => p.id));
+  const newPlayers = backup.players.filter(p => !known.has(p.id));
+
+  await writeList(list);
+  if (newPlayers.length > 0) savePlayerRoster([...roster, ...newPlayers]);
+  await mirrorQueue;
+
+  return { added, updated, playersAdded: newPlayers.length };
 }
 
 export function loadAnnounceAfterRound(): boolean {

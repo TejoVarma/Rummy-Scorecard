@@ -1,6 +1,6 @@
 import { GameRules, GameState, PlayerId, PlayerRoundScore, RoundRecord } from '../domain/types';
 import { GameAction } from './gameActions';
-import { getNextDealerIndex, relocateReEnteredPlayer, reorderSeats } from '../domain/seating';
+import { getNextDealerIndex, relocateReEnteredPlayer } from '../domain/seating';
 import {
   calculateReEntryScore,
   getActivePlayerIds,
@@ -179,7 +179,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const activeScores = state.seats
         .filter(id => id !== playerId && !isEliminated(lastRound.cumulativeScores[id] ?? 0, state.rules.poolLimit))
         .map(id => lastRound.cumulativeScores[id] ?? 0);
-      const newScore = customReEntryScore ?? calculateReEntryScore(activeScores, state.rules);
+      const newScore = customReEntryScore ?? calculateReEntryScore(activeScores);
       if (!Number.isInteger(newScore) || newScore < 1 || !isEligibleForReEntry(newScore, state.rules.poolLimit)) {
         return state;
       }
@@ -208,53 +208,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         seats,
         currentDealerIndex: Math.max(0, seats.indexOf(currentDealerId)),
         rounds,
-      };
-    }
-
-    case 'UNDO_ROUND': {
-      if (state.rounds.length === 0 || state.dealSplit) return state;
-      const lastRound = state.rounds[state.rounds.length - 1];
-      const poppedRounds = state.rounds.slice(0, -1);
-      const previousRound = poppedRounds[poppedRounds.length - 1];
-
-      // Restore seats and dealer from previous round snapshot or initial setup
-      const restoredSeats = previousRound 
-        ? previousRound.seatsSnapshot 
-        : (lastRound.seatsSnapshot || state.seats);
-      const lastDealerId = lastRound.dealerPlayerId;
-      const restoredDealerIndex = restoredSeats.indexOf(lastDealerId);
-
-      // Restore players snapshot so reEntryCount and reEntryScore don't leak
-      const restoredPlayers = previousRound
-        ? previousRound.playersSnapshot
-        : Object.fromEntries(
-            Object.entries(state.players).map(([id, p]) => [
-              id,
-              { ...p, reEntryCount: 0, reEntryScore: undefined },
-            ])
-          );
-
-      return {
-        ...state,
-        status: 'playing',
-        winnerPlayerId: undefined,
-        currentDealerIndex: restoredDealerIndex >= 0 ? restoredDealerIndex : 0,
-        seats: restoredSeats,
-        players: restoredPlayers,
-        rounds: poppedRounds,
-      };
-    }
-
-    case 'REORDER_SEATS': {
-      const { fromIndex, toIndex } = action.payload;
-      const currentDealerId = state.seats[state.currentDealerIndex];
-      const newSeats = reorderSeats(state.seats, fromIndex, toIndex);
-      const newDealerIndex = newSeats.indexOf(currentDealerId);
-
-      return {
-        ...state,
-        seats: newSeats,
-        currentDealerIndex: newDealerIndex >= 0 ? newDealerIndex : 0,
       };
     }
 

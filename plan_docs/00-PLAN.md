@@ -65,7 +65,15 @@ Exit: tested on a real phone. The image arrives in WhatsApp. The voice speaks af
 
 ## Phase 5: quality and accessibility (P2)
 
-Add a colour legend on the scoreboard (🟩 all-drop round, 🟦 normal round, grey = already out), asked about on 2026-11-09. R#18-21, R#24, R#26, R#27: remove the dead UNDO/REORDER/custom_fixed code, re-enable pinch-zoom, use real buttons and 44px tap targets, use `aria-label`s, split ScoreboardScreen and RoundInputModal into smaller components, and add RTL tests for the score-entry flow.
+| Step | What |
+|---|---|
+| ✅ 5.1 | Remove dead code: Undo/Reorder actions, `custom_fixed`/`reEntryScoreMode`, duplicate drop helpers, unused types, `StatusChip` (lesson 18) |
+| 5.2 | Colour legend on the scoreboard (🟩 all-drop, 🟦 normal, grey = out; D/MD/FC/R) and readable label sizes |
+| 5.3 | Score entry screen: one config list instead of 10 copied blocks, real buttons for clear chips, tap targets, labelled inputs |
+| 5.4 | Accessibility sweep: pinch-zoom, dialogs with role/aria-modal, labels on icon buttons, 44px targets, keyboard/TalkBack-friendly rows and cards |
+| 5.5 | Split the ~700-line ScoreboardScreen into smaller components |
+| 5.6 | Polish: no wrong-theme flash at launch, safe stacked-modal scroll lock, confetti only when a game just finished |
+| ✗ | Skipped on purpose: `minifyEnabled` on Android (web bundle already minified, risk to plugins), CSP `style-src 'unsafe-inline'` (needed by React/Tailwind inline styles, no user HTML rendered) |
 
 ## Phase 6: final testing
 

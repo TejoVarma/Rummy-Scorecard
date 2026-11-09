@@ -5,8 +5,6 @@ import {
   isEligibleForReEntry,
   getActivePlayerIds,
   getEligibleForReEntryPlayers,
-  getDropStatus,
-  getRemainingDrops,
   analyzePlayerDrops,
 } from '../domain/elimination';
 import { DEFAULT_RULES } from '../domain/scoring';
@@ -22,7 +20,7 @@ describe('elimination domain tests', () => {
   it('calculates re-entry score as highest active score + 1', () => {
     const activeScores = [45, 120, 168, 88];
     // Highest is 168, so re-entry should be 169
-    expect(calculateReEntryScore(activeScores, DEFAULT_RULES)).toBe(169);
+    expect(calculateReEntryScore(activeScores)).toBe(169);
   });
 
   it('determines re-entry eligibility', () => {
@@ -175,72 +173,71 @@ describe('elimination domain tests', () => {
     });
   });
 
-  describe('getDropStatus and getRemainingDrops', () => {
+  describe('drop status and drops remaining', () => {
     // Standard 201 pool with open drop = 20
     const pool201 = 201;
     const drop20 = 20;
 
     it('identifies safe players with 2 or more drops remaining', () => {
       // Score 0: 10 drops remaining
-      expect(getDropStatus(0, pool201, drop20)).toBe('safe');
-      expect(getRemainingDrops(0, pool201, drop20)).toBe(10);
+      expect(analyzePlayerDrops(0, pool201, drop20).status).toBe('safe');
+      expect(analyzePlayerDrops(0, pool201, drop20).openDropsRemaining).toBe(10);
 
       // Score 160: 2 drops remaining (160 + 20 = 180, 180 + 20 = 200 < 201)
-      expect(getDropStatus(160, pool201, drop20)).toBe('safe');
-      expect(getRemainingDrops(160, pool201, drop20)).toBe(2);
+      expect(analyzePlayerDrops(160, pool201, drop20).status).toBe('safe');
+      expect(analyzePlayerDrops(160, pool201, drop20).openDropsRemaining).toBe(2);
     });
 
     it('identifies one_drop players with exactly 1 drop remaining (yellow)', () => {
       // Score 161: 1 drop remaining (161 + 20 = 181, 181 + 20 = 201 >= 201)
-      expect(getDropStatus(161, pool201, drop20)).toBe('one_drop');
-      expect(getRemainingDrops(161, pool201, drop20)).toBe(1);
+      expect(analyzePlayerDrops(161, pool201, drop20).status).toBe('one_drop');
+      expect(analyzePlayerDrops(161, pool201, drop20).openDropsRemaining).toBe(1);
 
       // Score 180 (exact screenshot case): 1 drop remaining (180 + 20 = 200 < 201)
-      expect(getDropStatus(180, pool201, drop20)).toBe('one_drop');
-      expect(getRemainingDrops(180, pool201, drop20)).toBe(1);
+      expect(analyzePlayerDrops(180, pool201, drop20).status).toBe('one_drop');
+      expect(analyzePlayerDrops(180, pool201, drop20).openDropsRemaining).toBe(1);
     });
 
     it('identifies compulsory players with 0 drops remaining (red)', () => {
       // Score 181: 0 drops remaining (181 + 20 = 201 >= 201)
-      expect(getDropStatus(181, pool201, drop20)).toBe('compulsory');
-      expect(getRemainingDrops(181, pool201, drop20)).toBe(0);
+      expect(analyzePlayerDrops(181, pool201, drop20).status).toBe('compulsory');
+      expect(analyzePlayerDrops(181, pool201, drop20).openDropsRemaining).toBe(0);
 
       // Score 200: 0 drops remaining (200 + 20 = 220 >= 201)
-      expect(getDropStatus(200, pool201, drop20)).toBe('compulsory');
-      expect(getRemainingDrops(200, pool201, drop20)).toBe(0);
+      expect(analyzePlayerDrops(200, pool201, drop20).status).toBe('compulsory');
+      expect(analyzePlayerDrops(200, pool201, drop20).openDropsRemaining).toBe(0);
     });
 
     it('identifies eliminated players at or above pool limit', () => {
-      expect(getDropStatus(201, pool201, drop20)).toBe('out');
-      expect(getRemainingDrops(201, pool201, drop20)).toBe(-1);
+      expect(analyzePlayerDrops(201, pool201, drop20).status).toBe('out');
+      expect(analyzePlayerDrops(201, pool201, drop20).openDropsRemaining).toBe(-1);
 
-      expect(getDropStatus(240, pool201, drop20)).toBe('out');
-      expect(getRemainingDrops(240, pool201, drop20)).toBe(-1);
+      expect(analyzePlayerDrops(240, pool201, drop20).status).toBe('out');
+      expect(analyzePlayerDrops(240, pool201, drop20).openDropsRemaining).toBe(-1);
     });
 
     it('handles 101 pool with open drop = 20', () => {
       const pool101 = 101;
       // Score 60: safe (60 + 20 = 80, 80 + 20 = 100 < 101)
-      expect(getDropStatus(60, pool101, drop20)).toBe('safe');
+      expect(analyzePlayerDrops(60, pool101, drop20).status).toBe('safe');
       // Score 80: one_drop (80 + 20 = 100 < 101)
-      expect(getDropStatus(80, pool101, drop20)).toBe('one_drop');
+      expect(analyzePlayerDrops(80, pool101, drop20).status).toBe('one_drop');
       // Score 81: compulsory (81 + 20 = 101 >= 101)
-      expect(getDropStatus(81, pool101, drop20)).toBe('compulsory');
+      expect(analyzePlayerDrops(81, pool101, drop20).status).toBe('compulsory');
       // Score 101: out
-      expect(getDropStatus(101, pool101, drop20)).toBe('out');
+      expect(analyzePlayerDrops(101, pool101, drop20).status).toBe('out');
     });
 
     it('performs comprehensive drop analysis including middle drop and full count', () => {
       // Score 150 in 201 pool (openDrop: 20, middleDrop: 40, fullCount: 80)
-      const safeAnalysis = analyzePlayerDrops(150, 201, 20, 40, 80);
+      const safeAnalysis = analyzePlayerDrops(150, 201, 20, 40);
       expect(safeAnalysis.status).toBe('safe');
       expect(safeAnalysis.canOpenDrop).toBe(true);
       expect(safeAnalysis.canMiddleDrop).toBe(true);
       expect(safeAnalysis.canTwoOpenDrops).toBe(true);
-      expect(safeAnalysis.canFullCount).toBe(false); // 150 + 80 = 230 >= 201
 
       // Score 180 (Bava in screenshot): can open drop (200), cannot middle drop (220)
-      const oneDropAnalysis = analyzePlayerDrops(180, 201, 20, 40, 80);
+      const oneDropAnalysis = analyzePlayerDrops(180, 201, 20, 40);
       expect(oneDropAnalysis.status).toBe('one_drop');
       expect(oneDropAnalysis.canOpenDrop).toBe(true);
       expect(oneDropAnalysis.canMiddleDrop).toBe(false);
@@ -248,7 +245,7 @@ describe('elimination domain tests', () => {
       expect(oneDropAnalysis.openDropsRemaining).toBe(1);
 
       // Score 181: cannot even open drop (201 >= 201)
-      const compulsoryAnalysis = analyzePlayerDrops(181, 201, 20, 40, 80);
+      const compulsoryAnalysis = analyzePlayerDrops(181, 201, 20, 40);
       expect(compulsoryAnalysis.status).toBe('compulsory');
       expect(compulsoryAnalysis.canOpenDrop).toBe(false);
       expect(compulsoryAnalysis.canMiddleDrop).toBe(false);
@@ -256,14 +253,11 @@ describe('elimination domain tests', () => {
 
       // Asymmetric drops: openDrop = 15, middleDrop = 45 in 201 pool
       // Score 160: 160 + 15 = 175 < 201, 160 + 30 = 190 < 201, but 160 + 45 = 205 >= 201 (no MD!)
-      const asymAnalysis = analyzePlayerDrops(160, 201, 15, 45, 80);
+      const asymAnalysis = analyzePlayerDrops(160, 201, 15, 45);
       expect(asymAnalysis.status).toBe('one_drop');
       expect(asymAnalysis.canMiddleDrop).toBe(false);
       expect(asymAnalysis.canTwoOpenDrops).toBe(true);
 
-      // Defensive guard for non-positive openDrop
-      expect(getRemainingDrops(50, 201, 0)).toBe(0);
-      expect(getRemainingDrops(50, 201, -10)).toBe(0);
     });
   });
 });

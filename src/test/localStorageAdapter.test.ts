@@ -49,7 +49,6 @@ describe('localStorageAdapter Schema Validation', () => {
       middleDrop: 48,
       fullCount: 80,
       allowReEntry: true,
-      reEntryScoreMode: 'highest_plus_one',
     },
     players: {
       p1: { id: 'p1', name: 'Akka', avatarColor: '#10b981', reEntryCount: 0 },
@@ -85,6 +84,11 @@ describe('localStorageAdapter Schema Validation', () => {
   it('enforces referential integrity between seats and players', () => {
     // p3 is in seats but NOT in players
     expect(isValidGameState({ ...validGameState, seats: ['p1', 'p3'] })).toBe(false);
+  });
+
+  it('still loads games saved by older versions that had a re-entry mode setting', () => {
+    const older = { ...validGameState, rules: { ...validGameState.rules, reEntryScoreMode: 'highest_plus_one' } };
+    expect(isValidGameState(older)).toBe(true);
   });
 
   it('preserves corrupted backup key when saved games list contains corrupted JSON', () => {

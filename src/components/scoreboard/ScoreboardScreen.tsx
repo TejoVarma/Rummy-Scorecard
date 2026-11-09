@@ -71,8 +71,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
           latestScores[id] ?? 0,
           rules.poolLimit,
           rules.openDrop,
-          rules.middleDrop,
-          rules.fullCount
+          rules.middleDrop
         ),
       ])
     );

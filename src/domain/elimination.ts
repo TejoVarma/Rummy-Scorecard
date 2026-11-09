@@ -9,7 +9,6 @@ export interface PlayerDropAnalysis {
   canOpenDrop: boolean;
   canMiddleDrop: boolean;
   canTwoOpenDrops: boolean;
-  canFullCount: boolean;
 }
 
 /**
@@ -18,7 +17,6 @@ export interface PlayerDropAnalysis {
  * - pool limit (101, 201, custom)
  * - open drop score
  * - middle drop (MD) score
- * - full count score
  *
  * Rules:
  * - 'out': score >= poolLimit
@@ -30,8 +28,7 @@ export function analyzePlayerDrops(
   score: number,
   poolLimit: number,
   openDrop: number,
-  middleDrop: number = openDrop * 2,
-  fullCount: number = 80
+  middleDrop: number = openDrop * 2
 ): PlayerDropAnalysis {
   if (score >= poolLimit) {
     return {
@@ -41,7 +38,6 @@ export function analyzePlayerDrops(
       canOpenDrop: false,
       canMiddleDrop: false,
       canTwoOpenDrops: false,
-      canFullCount: false,
     };
   }
 
@@ -52,7 +48,6 @@ export function analyzePlayerDrops(
   const canOpenDrop = score + safeOpenDrop < poolLimit;
   const canTwoOpenDrops = score + 2 * safeOpenDrop < poolLimit;
   const canMiddleDrop = score + safeMiddleDrop < poolLimit;
-  const canFullCount = score + fullCount < poolLimit;
   const openDropsRemaining = Math.max(0, Math.floor(remainingMargin / safeOpenDrop));
 
   let status: DropStatus;
@@ -71,29 +66,10 @@ export function analyzePlayerDrops(
     canOpenDrop,
     canMiddleDrop,
     canTwoOpenDrops,
-    canFullCount,
   };
 }
 
-export function getDropStatus(
-  score: number,
-  poolLimit: number,
-  openDrop: number,
-  middleDrop: number = openDrop * 2
-): DropStatus {
-  return analyzePlayerDrops(score, poolLimit, openDrop, middleDrop).status;
-}
 
-/**
- * Returns the exact number of open drops remaining before elimination.
- * Returns 0 if compulsory, or -1 if already eliminated.
- */
-export function getRemainingDrops(score: number, poolLimit: number, openDrop: number): number {
-  if (score >= poolLimit) return -1;
-  if (openDrop <= 0) return 0;
-  const margin = poolLimit - 1 - score;
-  return Math.max(0, Math.floor(margin / openDrop));
-}
 
 /**
  * Checks whether a cumulative score has reached or crossed the pool limit.
@@ -106,18 +82,9 @@ export function isEliminated(score: number, poolLimit: number): boolean {
  * Calculates the exact re-entry score.
  * Formula: Highest active player score + 1.
  */
-export function calculateReEntryScore(
-  activeScores: number[],
-  rules: GameRules
-): number {
+export function calculateReEntryScore(activeScores: number[]): number {
   if (activeScores.length === 0) return 0;
-  
-  if (rules.reEntryScoreMode === 'highest_plus_one') {
-    const highest = Math.max(...activeScores);
-    return highest + 1;
-  }
-  
-  return Math.max(...activeScores);
+  return Math.max(...activeScores) + 1;
 }
 
 /**
@@ -179,7 +146,7 @@ export function getEligibleForReEntryPlayers(
     return [];
   }
 
-  const potentialReEntryScore = calculateReEntryScore(activeScores, rules);
+  const potentialReEntryScore = calculateReEntryScore(activeScores);
 
   // Boundary check: re-entry score must be strictly below pool limit
   if (!isEligibleForReEntry(potentialReEntryScore, rules.poolLimit)) {

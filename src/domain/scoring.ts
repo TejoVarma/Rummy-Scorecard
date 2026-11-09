@@ -6,7 +6,6 @@ export const DEFAULT_RULES: GameRules = {
   middleDrop: 48,
   fullCount: 80,
   allowReEntry: true,
-  reEntryScoreMode: 'highest_plus_one',
   entryAmount: 0,
 };
 

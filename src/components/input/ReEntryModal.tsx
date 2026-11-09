@@ -33,7 +33,7 @@ export const ReEntryModal: React.FC<ReEntryModalProps> = ({
     .map(id => latestScores[id] ?? 0);
 
   const highestActive = activeScores.length > 0 ? Math.max(...activeScores) : 0;
-  const calculatedScore = calculateReEntryScore(activeScores, rules);
+  const calculatedScore = calculateReEntryScore(activeScores);
 
   const [scoreInput, setScoreInput] = useState<string>(String(calculatedScore));
   const [scoreError, setScoreError] = useState<string | null>(null);

@@ -25,19 +25,9 @@ export type GameAction =
       };
     }
   | {
-      type: 'UNDO_ROUND';
-    }
-  | {
       type: 'EDIT_LAST_ROUND';
       payload: {
         roundScores: Record<PlayerId, { type: ScoreInputType; points: number }>;
-      };
-    }
-  | {
-      type: 'REORDER_SEATS';
-      payload: {
-        fromIndex: number;
-        toIndex: number;
       };
     }
   | {

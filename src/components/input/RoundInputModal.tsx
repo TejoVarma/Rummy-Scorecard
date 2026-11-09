@@ -171,7 +171,7 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
           const currentTotal = cumulativeScores[playerId] ?? 0;
           const currentInput = scores[playerId];
           const isDealer = playerId === currentDealerId;
-          const dropAnalysis = analyzePlayerDrops(currentTotal, rules.poolLimit, rules.openDrop, rules.middleDrop, rules.fullCount);
+          const dropAnalysis = analyzePlayerDrops(currentTotal, rules.poolLimit, rules.openDrop, rules.middleDrop);
           const dropStatus = dropAnalysis.status;
 
           return (

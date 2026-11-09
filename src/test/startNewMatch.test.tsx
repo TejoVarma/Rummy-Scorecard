@@ -19,7 +19,6 @@ const savedMatch: GameState = {
     middleDrop: 48,
     fullCount: 80,
     allowReEntry: true,
-    reEntryScoreMode: 'highest_plus_one',
   },
   players: {
     p1: { id: 'p1', name: 'Ravi', avatarColor: '#3b82f6', reEntryCount: 0 },

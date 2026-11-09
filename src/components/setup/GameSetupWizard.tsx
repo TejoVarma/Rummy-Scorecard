@@ -92,7 +92,6 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
       middleDrop: finalMiddleDrop,
       fullCount: finalFullCount,
       allowReEntry: adjustReEntry,
-      reEntryScoreMode: 'highest_plus_one',
       entryAmount: finalEntryAmount,
     };
 

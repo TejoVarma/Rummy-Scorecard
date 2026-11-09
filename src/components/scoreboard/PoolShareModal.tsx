@@ -45,7 +45,7 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
       margin: Math.max(1, rules.poolLimit - score),
       drops: Math.max(
         0,
-        analyzePlayerDrops(score, rules.poolLimit, rules.openDrop, rules.middleDrop, rules.fullCount).openDropsRemaining
+        analyzePlayerDrops(score, rules.poolLimit, rules.openDrop, rules.middleDrop).openDropsRemaining
       ),
     });
     if (dealSplit) {

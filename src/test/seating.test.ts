@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getNextDealerIndex, relocateReEnteredPlayer, reorderSeats } from '../domain/seating';
+import { getNextDealerIndex, relocateReEnteredPlayer } from '../domain/seating';
 
 describe('seating domain tests', () => {
   it('advances dealer clockwise to next active player', () => {
@@ -58,11 +58,5 @@ describe('seating domain tests', () => {
     const newSeats2 = relocateReEnteredPlayer(seats, 'Siri', 'Pavan');
     // Pavan should be placed to the LEFT of Siri (before Siri):
     expect(newSeats2).toEqual(['Tejo', 'Bava', 'Rohini', 'Pavan', 'Siri']);
-  });
-
-  it('re-orders seats correctly', () => {
-    const seats = ['A', 'B', 'C', 'D'];
-    expect(reorderSeats(seats, 0, 2)).toEqual(['B', 'C', 'A', 'D']);
-    expect(reorderSeats(seats, 3, 0)).toEqual(['D', 'A', 'B', 'C']);
   });
 });

@@ -83,21 +83,3 @@ export function relocateReEnteredPlayer(
     ...remainingSeats.slice(dealerIndex)
   ];
 }
-
-/**
- * Re-orders a player list by moving a player from fromIndex to toIndex.
- */
-export function reorderSeats(
-  seats: PlayerId[],
-  fromIndex: number,
-  toIndex: number
-): PlayerId[] {
-  if (fromIndex < 0 || fromIndex >= seats.length) return seats;
-  if (toIndex < 0 || toIndex >= seats.length) return seats;
-  if (fromIndex === toIndex) return seats;
-
-  const result = [...seats];
-  const [removed] = result.splice(fromIndex, 1);
-  result.splice(toIndex, 0, removed);
-  return result;
-}

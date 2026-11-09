@@ -15,6 +15,7 @@
 | 2026-11-09 | Old keystore: removed from the repo and rotated. Purging git history is skipped, because the old key is burned either way. |
 | 2026-11-09 | `plan_docs/` and `lessons/` are **published** in the public repo. |
 | 2026-11-09 | Announce: **totals only**, in **English**, spoken **automatically after each round (on/off switch) plus a replay button**. |
+| 2026-11-09 | **Distribution: APK only, no Play Store for now.** Signed `RummyScoreboard.apk` from CI or a local build, shared directly. Revisit Play later (needs a $25 account, AAB, store listing, privacy policy, a 12-tester closed test, and care with the ₹ stake wording under the gambling policy). |
 | 2026-11-09 | Capacitor 8, not 7: the text-to-speech plugin has no Capacitor 7 version. Node 22 pinned per project with fnm + `.nvmrc` (global Node 18 kept). Android SDK installed locally so builds are verified without pushing. |
 | 2026-11-09 | Platform upgrade (Capacitor + targetSdk) comes **before** the new features, so the new plugins are installed only once, on the new version. |
 
@@ -43,7 +44,7 @@ Exit: the app builds and runs on a phone at the new SDK, and CI is green with li
 | Step | What | You'll learn |
 |---|---|---|
 | ✅ 3.1 | **Share Image + Share Text on the phone** (v1.4; also fixed the share sheet reopening after a cancel). Render the scorecard to a PNG (`html-to-image`, already installed), write it to the cache folder (`@capacitor/filesystem`), and open the share sheet with the file (`@capacitor/share` `files`). The Share button asks "Image or Text". | Turning DOM into an image, Base64 and blobs, how Android shares files (FileProvider), and native vs web code paths |
-| 3.2 | **Announce totals.** A text-to-speech plugin (the version is chosen in the research step to match the Capacitor version), with a browser `speechSynthesis` fallback. Text: "Round 6. Ravi 45. Amit 120. Kiran out." A Settings switch "Announce after each round" (saved). A 🔊 replay button on the scoreboard. Announcements also run after an edit. | Capacitor plugins, text-to-speech, and a pure "message builder" function with unit tests |
+| ✅ 3.2 | **Announce totals** (v1.5). A text-to-speech plugin (the version is chosen in the research step to match the Capacitor version), with a browser `speechSynthesis` fallback. Text: "Round 6. Ravi 45. Amit 120. Kiran out." A Settings switch "Announce after each round" (saved). A 🔊 replay button on the scoreboard. Announcements also run after an edit. | Capacitor plugins, text-to-speech, and a pure "message builder" function with unit tests |
 
 Exit: tested on a real phone. The image arrives in WhatsApp. The voice speaks after submit and on replay, and is silent when switched off.
 

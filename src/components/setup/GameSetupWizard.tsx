@@ -144,6 +144,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
           <input
             id="setup-title"
             type="text"
+            autoCapitalize="sentences"
             value={title}
             maxLength={50}
             onChange={e => setTitle(e.target.value)}

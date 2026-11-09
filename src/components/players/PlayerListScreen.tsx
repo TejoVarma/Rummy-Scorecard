@@ -148,6 +148,7 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
               <input
                 aria-label="New player name"
                 type="text"
+                autoCapitalize="words"
                 autoFocus
                 placeholder="Enter player name"
                 maxLength={25}
@@ -194,6 +195,7 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
               <input
                 aria-label="Player name"
                 type="text"
+                autoCapitalize="words"
                 autoFocus
                 maxLength={25}
                 value={editName}

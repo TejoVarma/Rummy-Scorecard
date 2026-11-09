@@ -152,7 +152,9 @@ export const SelectPlayersModal: React.FC<SelectPlayersModalProps> = ({
         {isAddOpen ? (
           <form onSubmit={handleAddNewPlayer} className="p-3 bg-[var(--color-card)] border-t border-[var(--color-border)] flex gap-2">
             <input
+              aria-label="New player name"
               type="text"
+              autoCapitalize="words"
               autoFocus
               placeholder="Player name"
               maxLength={25}

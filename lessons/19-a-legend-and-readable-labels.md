@@ -23,7 +23,6 @@ export const CELL_CODES = {
   full_count: { code: 'FC', label: 'Full count' },
   out: { code: 'X', label: 'Out' },
   reEntry: { code: 'RE', label: 'Re-entry (with the score they came back on)' },
-  dealer: { code: '*', label: 'Dealer' },
 } as const;
 ```
 
@@ -54,6 +53,24 @@ export const ScoreLegend: React.FC = () => (
 - `<section aria-label="Legend">` gives it the **region** role, so screen readers can jump to it, and the test can find it by name.
 - `flex-wrap` lets the items flow onto more lines on a narrow phone instead of scrolling sideways.
 - The colour swatches are `aria-hidden`. They're decoration next to words that already say the same thing. **Colour is never the only signal.**
+
+## Later change: a crown for the dealer
+
+Tejo asked for a **👑 crown** instead of the `*` before the dealer's name, matching the crown already used on the score entry screen. The dealer isn't a *cell code*, so it left `CELL_CODES`. The legend shows it as its own item (a `Crown` icon plus "Dealer"), and the table header draws it like this:
+
+```tsx
+<span className="flex items-center justify-center gap-0.5 max-w-full">
+  {isDealer && <Crown aria-hidden className="w-3 h-3 shrink-0 text-amber-300" />}
+  <span className={`text-xs truncate block ...`}>{player?.name}</span>
+  {isDealer && <span className="sr-only">(dealer)</span>}
+</span>
+```
+
+- `aria-hidden` on the icon means TalkBack skips the picture.
+- `sr-only` (a Tailwind class) hides text visually but keeps it for screen readers, so they hear **"Ravi (dealer)"**. That's better than "crown Ravi" or "star Ravi".
+- The name keeps its own `truncate`, so a long name shortens without pushing the crown off.
+
+The test checks that the dealer's column header contains an icon and "(dealer)", that no name starts with `*`, and that the legend shows the crown.
 
 ## Where it goes, and why
 

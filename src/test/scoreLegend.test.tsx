@@ -61,7 +61,7 @@ describe('scoreboard legend', () => {
       /FC\s*full count/i,
       /X\s*out/i,
       /RE\s*re-entry/i,
-      /\*\s*dealer/i,
+      /dealer/i,
     ]) {
       expect(legend.textContent).toMatch(text);
     }
@@ -77,4 +77,15 @@ describe('scoreboard legend', () => {
     expect(screen.getByLabelText('Show (won the round)')).toBeTruthy();
     expect(screen.getByLabelText('Middle drop')).toBeTruthy();
   });
+
+  it('marks the dealer with a crown instead of an asterisk', () => {
+    renderBoard(board(1));
+    const dealerCell = screen.getAllByRole('columnheader').find(th => th.textContent?.includes('(dealer)'));
+    expect(dealerCell).toBeTruthy();
+    expect(dealerCell!.querySelector('svg')).not.toBeNull();
+    expect(screen.queryByText(/^\*/)).toBeNull();
+    const legend = screen.getByRole('region', { name: /legend/i });
+    expect(legend.querySelector('svg')).not.toBeNull();
+  });
 });
+

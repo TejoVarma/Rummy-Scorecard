@@ -1,4 +1,5 @@
 import { forwardRef } from 'react';
+import { Crown } from 'lucide-react';
 import { GameRules, Player, PlayerId, PlayerRoundScore, RoundRecord } from '../../domain/types';
 import { PlayerDropAnalysis } from '../../domain/elimination';
 import { CELL_CODES, ScoreLegend } from './ScoreLegend';
@@ -107,11 +108,15 @@ export const ScoreTable = forwardRef<HTMLDivElement, ScoreTableProps>(function S
                   }`}
                 >
                   <div className="flex flex-col items-center justify-center min-h-[30px]">
-                    <span
-                      className={`text-xs truncate block max-w-full ${statusColour(isOut, drops?.status, 'name')}`}
-                      title={reEntryCount > 0 ? `${player?.name} (re-entry x${reEntryCount})` : player?.name}
-                    >
-                      {isDealer ? `${CELL_CODES.dealer.code}${player?.name}` : player?.name}
+                    <span className="flex items-center justify-center gap-0.5 max-w-full">
+                      {isDealer && <Crown aria-hidden className="w-3 h-3 shrink-0 text-amber-300" />}
+                      <span
+                        className={`text-xs truncate block ${statusColour(isOut, drops?.status, 'name')}`}
+                        title={reEntryCount > 0 ? `${player?.name} (re-entry x${reEntryCount})` : player?.name}
+                      >
+                        {player?.name}
+                      </span>
+                      {isDealer && <span className="sr-only">(dealer)</span>}
                     </span>
                     {!isOut && drops?.status === 'compulsory' && (
                       <span className="text-[11px] font-extrabold leading-tight tracking-tight text-rose-500 block uppercase mt-0.5">

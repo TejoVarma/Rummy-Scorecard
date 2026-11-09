@@ -1,4 +1,5 @@
 import React from 'react';
+import { Crown } from 'lucide-react';
 
 /** What each score-cell code means. The cells and the legend both read from here. */
 export const CELL_CODES = {
@@ -8,7 +9,6 @@ export const CELL_CODES = {
   full_count: { code: 'FC', label: 'Full count' },
   out: { code: 'X', label: 'Out' },
   reEntry: { code: 'RE', label: 'Re-entry (with the score they came back on)' },
-  dealer: { code: '*', label: 'Dealer' },
 } as const;
 
 const Swatch: React.FC<{ className: string; label: string }> = ({ className, label }) => (
@@ -34,6 +34,9 @@ export const ScoreLegend: React.FC = () => (
           <strong className="font-mono text-[var(--color-text)]">{code}</strong> {label}
         </span>
       ))}
+      <span className="flex items-center gap-1">
+        <Crown aria-hidden className="w-3.5 h-3.5 text-amber-400" /> Dealer
+      </span>
     </div>
   </section>
 );

@@ -26,3 +26,6 @@
 | 22 | [Splitting a big component without changing what it does](22-splitting-a-big-component.md) | 5.5 |
 | 23 | [Doing things at the right moment (theme flash, stacked dialogs, confetti)](23-doing-things-at-the-right-moment.md) | 5.6 |
 | 24 | [Let the user see it before you change the look](24-let-the-user-see-before-you-change-the-look.md) | Phase 5 review |
+| 25 | [The project story, for interviews](25-the-project-story-for-interviews.md) | 6.3 |
+| 26 | [The whole system, explained (tech, design and why)](26-the-whole-system-explained.md) | Overview |
+| 27 | [The final review: five reviewers, one app](27-the-final-review.md) | 6.1 |

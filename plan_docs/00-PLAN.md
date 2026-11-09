@@ -80,9 +80,9 @@ Exit: tested on a real phone. The image arrives in WhatsApp. The voice speaks af
 
 | Step | What |
 |---|---|
-| 6.1 | Run the five ECC reviewers again (typescript, react, security, silent-failure, code) plus `verification-loop`; fix whatever they confirm |
-| 🟡 6.2 | **First round done 2026-11-09:** 8 flows in `e2e/game.spec.ts` (scores, cap, one-Show rule, edit, deal, reload, start-new-match, re-entry), running in CI. Extend after the features. Playwright e2e in the repo (`e2e-testing` skill), at a phone-sized screen: new game, scores, drops, re-entry, deal, edit, share choice. Runs in CI |
-| 6.3 | Real-phone checklist for native-only behaviour: Image/Text share sheet, voice announcement, back button, install and update of the signed APK |
+| ✅ 6.1 | Final review by five reviewers on the whole app; all medium/low non-visual findings fixed (lesson 27). Run the five ECC reviewers again (typescript, react, security, silent-failure, code) plus `verification-loop`; fix whatever they confirm |
+| ✅ 6.2 | **Done:** browser tests now also cover share image/text, announce, drop deal and backup round trip (15 flows). **First round done 2026-11-09:** 8 flows in `e2e/game.spec.ts` (scores, cap, one-Show rule, edit, deal, reload, start-new-match, re-entry), running in CI. Extend after the features. Playwright e2e in the repo (`e2e-testing` skill), at a phone-sized screen: new game, scores, drops, re-entry, deal, edit, share choice. Runs in CI |
+| ✅ 6.3 | Real-phone checklist in `plan_docs/phone-checklist.md`; README rewritten to match the app; interview story in lesson 25. Real-phone checklist for native-only behaviour: Image/Text share sheet, voice announcement, back button, install and update of the signed APK |
 
 ## Open questions
 

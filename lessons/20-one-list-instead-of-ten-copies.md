@@ -1,5 +1,7 @@
 # 20 · One list instead of ten copies (the score entry screen)
 
+> **Update after Tejo reviewed the screens side by side (v1.8):** Tejo chose the **original bright colours** (`#16a34a`, `#ea580c`, `#ca8a04`) and the **original button size** (`px-3.5 py-1.5 text-xs`). The darker, larger buttons pushed "Out" onto a second line and SUBMIT off-screen, and looked dull. The "0–80" range hint was also removed. Kept: one `SCORE_OPTIONS` list, real clear buttons with ✕, named score boxes. The contrast table below records what was measured; Tejo traded some contrast for the look the table plays with, which is a legitimate product decision.
+
 ## The problem it solves
 
 `RoundInputModal` (the screen where you enter a round's scores) repeated almost the same block **ten times**:

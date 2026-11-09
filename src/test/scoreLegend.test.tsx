@@ -48,17 +48,16 @@ function renderBoard(state: GameState) {
 afterEach(cleanup);
 
 describe('scoreboard legend', () => {
-  it('explains the row colours and every cell code', () => {
+  it('explains the row colours and every cell code in a few words', () => {
     renderBoard(board(1));
     const legend = screen.getByRole('region', { name: /legend/i });
     for (const text of [
-      /all-drop round/i,
-      /normal round/i,
-      /already out/i,
+      /all drop/i,
+      /normal/i,
       /R\s*show/i,
       /D\s*drop/i,
-      /MD\s*middle drop/i,
-      /FC\s*full count/i,
+      /MD\s*mid drop/i,
+      /FC\s*full/i,
       /X\s*out/i,
       /RE\s*re-entry/i,
       /dealer/i,

@@ -16,6 +16,7 @@
 | 2026-11-09 | Old keystore: removed from the repo and rotated. Purging git history is skipped, because the old key is burned either way. |
 | 2026-11-09 | `plan_docs/` and `lessons/` are **published** in the public repo. |
 | 2026-11-09 | Announce: **totals only**, in **English**, spoken **automatically after each round (on/off switch) plus a replay button**. |
+| 2026-11-09 | **Look decisions (Tejo, from side-by-side screenshots):** keep 👑 dealer crown, a short always-visible legend, ✕ on a chosen score; back to the original bright colours, button sizes, compact top bar, small Deal pill, New Game chips and deal tabs; no range hint. Invisible accessibility work stays. |
 | 2026-11-09 | **No limit on saved matches** (Tejo): local storage only, ~5–10 MB ≈ several hundred matches; the save-failure banner covers a full phone. Replaces the 30/50 cap. |
 | 2026-11-09 | **Distribution: APK only, no Play Store for now.** Signed `RummyScoreboard.apk` from CI or a local build, shared directly. Revisit Play later (needs a $25 account, AAB, store listing, privacy policy, a 12-tester closed test, and care with the ₹ stake wording under the gambling policy). |
 | 2026-11-09 | Capacitor 8, not 7: the text-to-speech plugin has no Capacitor 7 version. Node 22 pinned per project with fnm + `.nvmrc` (global Node 18 kept). Android SDK installed locally so builds are verified without pushing. |

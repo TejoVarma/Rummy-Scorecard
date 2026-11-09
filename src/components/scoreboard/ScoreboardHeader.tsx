@@ -21,24 +21,24 @@ export const ScoreboardHeader: React.FC<ScoreboardHeaderProps> = ({
   onOpenSettings,
   onDelete,
 }) => (
-  <div className="flex items-center justify-between px-2 py-1.5 bg-[var(--color-primary)] text-white shadow-sm shrink-0">
-    <div className="flex items-center gap-1 min-w-0">
-      <IconButton label="Back to Home" onClick={onBack} className="hover:bg-black/10">
+  <div className="flex items-center justify-between px-3.5 py-3 bg-[var(--color-primary)] text-white shadow-sm shrink-0">
+    <div className="flex items-center gap-3 min-w-0">
+      <IconButton label="Back to Home" onClick={onBack} compact className="hover:bg-black/10">
         <ArrowLeft className="w-5 h-5 text-white" />
       </IconButton>
       <h1 className="font-semibold text-base tracking-normal truncate">{title}</h1>
     </div>
 
-    <div className="flex items-center shrink-0">
+    <div className="flex items-center gap-1.5 shrink-0">
       {canAnnounce && (
-        <IconButton label="Announce scores" onClick={onAnnounce} className="hover:bg-black/10">
+        <IconButton label="Announce scores" onClick={onAnnounce} compact className="hover:bg-black/10">
           <Volume2 className="w-4 h-4 text-white" />
         </IconButton>
       )}
-      <IconButton label="Share Scorecard" onClick={onShare} className="hover:bg-black/10">
+      <IconButton label="Share Scorecard" onClick={onShare} compact className="hover:bg-black/10">
         <Share2 className="w-4 h-4 text-white" />
       </IconButton>
-      <IconButton label="Settings" onClick={onOpenSettings} className="hover:bg-black/10">
+      <IconButton label="Settings" onClick={onOpenSettings} compact className="hover:bg-black/10">
         <Settings className="w-4 h-4 text-white" />
       </IconButton>
       <IconButton
@@ -46,7 +46,7 @@ export const ScoreboardHeader: React.FC<ScoreboardHeaderProps> = ({
         onClick={() => {
           if (window.confirm(`Delete "${title}" permanently? Its scores and deal can't be recovered.`)) onDelete();
         }}
-        className="hover:bg-rose-600/30 text-rose-200"
+        compact className="hover:bg-rose-600/30 text-rose-200"
       >
         <Trash2 className="w-4 h-4" />
       </IconButton>

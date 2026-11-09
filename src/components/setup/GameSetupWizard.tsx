@@ -162,7 +162,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
                   key={preset}
                   type="button"
                   onClick={() => setPool(String(preset))}
-                  className={`min-h-[44px] px-2 py-0.5 rounded text-[11px] font-medium transition ${
+                  className={`px-2 py-0.5 rounded text-[11px] font-medium transition ${
                     pool === String(preset)
                       ? 'bg-[var(--color-primary)] text-white'
                       : 'bg-[var(--color-subtle)] text-[var(--color-muted)] hover:bg-black/5 dark:hover:bg-white/5'
@@ -238,7 +238,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
                     key={val}
                     type="button"
                     onClick={() => setEntryAmount(String(val))}
-                    className={`min-h-[44px] px-2 py-0.5 rounded text-[11px] font-mono font-medium transition ${
+                    className={`px-2 py-0.5 rounded text-[11px] font-mono font-medium transition ${
                       entryAmount === String(val)
                         ? 'bg-[var(--color-primary)] text-white'
                         : 'bg-[var(--color-subtle)] text-[var(--color-muted)] hover:bg-black/5 dark:hover:bg-white/5'

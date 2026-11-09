@@ -7,9 +7,9 @@ import { useBackButton, BACK_PRIORITY } from '../../hooks/useBackButton';
 
 // The quick-pick options, in the order they appear. Points always come from the game's rules.
 const SCORE_OPTIONS: Array<{ type: Exclude<ScoreInputType, 'custom'>; label: string; color: string }> = [
-  { type: 'show', label: 'Show', color: '#15803d' },
-  { type: 'open_drop', label: 'Drop', color: '#c2410c' },
-  { type: 'middle_drop', label: 'M Drop', color: '#a16207' },
+  { type: 'show', label: 'Show', color: '#16a34a' },
+  { type: 'open_drop', label: 'Drop', color: '#ea580c' },
+  { type: 'middle_drop', label: 'M Drop', color: '#ca8a04' },
   { type: 'full_count', label: 'Full', color: '#7c3aed' },
   { type: 'out', label: 'Out', color: '#dc2626' },
 ];
@@ -239,7 +239,7 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
                   </div>
                 </div>
 
-                <div className="relative min-w-[120px] h-11 rounded-full border border-zinc-500/80 px-2 flex items-center justify-center bg-[var(--color-card)] focus-within:border-[var(--color-primary)] transition">
+                <div className="relative min-w-[110px] h-[38px] rounded-full border border-zinc-500/80 px-2.5 flex items-center justify-center bg-[var(--color-card)] focus-within:border-[var(--color-primary)] transition">
                   <span aria-hidden className="absolute -top-2 left-3 bg-[var(--color-card)] px-1 text-[11px] font-medium text-zinc-400 select-none">
                     Score
                   </span>
@@ -249,7 +249,7 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
                       onClick={() => clearScore(playerId)}
                       aria-label={`Clear ${chosen.label} for ${player?.name}`}
                       style={{ backgroundColor: chosen.color }}
-                      className="min-h-[32px] px-4 rounded-full text-white font-medium text-xs leading-none shadow-sm"
+                      className="px-3.5 py-1 rounded-full text-white font-medium text-xs leading-none shadow-sm"
                     >
                       {chosen.label} ✕
                     </button>
@@ -260,7 +260,6 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
                       pattern="[0-9]*"
                       maxLength={3}
                       aria-label={`Score for ${player?.name}`}
-                      placeholder={`0–${rules.fullCount}`}
                       value={currentInput?.type === 'custom' ? currentInput.points : ''}
                       onChange={e => handleCustomScoreChange(playerId, e.target.value)}
                       className="w-full text-center font-mono font-bold text-sm bg-transparent border-none text-[var(--color-text)] placeholder:text-zinc-500 placeholder:font-normal focus:outline-none"
@@ -278,7 +277,7 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
                       onClick={() => handleSelectType(playerId, option.type)}
                       aria-pressed={currentInput?.type === option.type}
                       style={{ backgroundColor: option.color }}
-                      className={`min-h-[40px] px-4 rounded-full font-medium text-sm text-white transition ${
+                      className={`px-3.5 py-1.5 rounded-full font-medium text-xs text-white transition ${
                         currentInput?.type === option.type ? 'ring-2 ring-white/70 shadow-md' : 'hover:opacity-95'
                       }`}
                     >

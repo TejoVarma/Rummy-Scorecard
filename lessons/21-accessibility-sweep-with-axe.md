@@ -1,5 +1,7 @@
 # 21 · An accessibility sweep, checked by axe
 
+> **Update after Tejo reviewed the screens side by side (v1.8):** after seeing the screens, Tejo kept the invisible improvements (names, dialogs, labels, zoom, focus) but put several **visible** sizes back: the scoreboard top bar is compact again (`IconButton` has a `compact` option), and the Deal pill, New Game chips and deal tabs are their original size. The lesson below is what was tried first. The takeaway: accessibility changes that alter the look need the product owner's eyes before they ship.
+
 ## The problem it solves
 
 **Accessibility** means the app works for everyone: people with low vision, people using **TalkBack** (Android's screen reader), people using a keyboard or switch control, and anyone tapping one-handed at a noisy table. The review had found:

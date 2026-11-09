@@ -59,10 +59,9 @@ describe('score entry screen', () => {
     expect(within(card('Ravi')).getByRole('textbox', { name: 'Score for Ravi' })).toBeTruthy();
   });
 
-  it('the typed score box has a name and shows the maximum', () => {
+  it('the typed score box has a name and caps at full count', () => {
     open();
     const box = within(card('Amit')).getByRole('textbox', { name: 'Score for Amit' });
-    expect(box.getAttribute('placeholder')).toBe('0–80');
     fireEvent.change(box, { target: { value: '95' } });
     expect((box as HTMLInputElement).value).toBe('80');
   });

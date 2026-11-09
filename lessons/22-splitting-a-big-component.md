@@ -1,5 +1,7 @@
 # 22 · Splitting a big component without changing what it does
 
+> **Update after Tejo reviewed the screens side by side (v1.8):** `IconButton` gained a `compact` prop. The crowded scoreboard top bar uses it to keep its original small buttons (`p-1.5`), while other icon buttons keep the 44 px target. The name (`aria-label`) is still required either way.
+
 ## The problem it solves
 
 `ScoreboardScreen.tsx` had grown to **657 lines** and did everything: the top bar, the rules summary, the score table, the banners, the bottom buttons, sharing, and three dialogs. Big components are:

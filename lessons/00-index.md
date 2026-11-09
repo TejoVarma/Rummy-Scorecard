@@ -25,3 +25,4 @@
 | 21 | [An accessibility sweep, checked by axe](21-accessibility-sweep-with-axe.md) | 5.4 |
 | 22 | [Splitting a big component without changing what it does](22-splitting-a-big-component.md) | 5.5 |
 | 23 | [Doing things at the right moment (theme flash, stacked dialogs, confetti)](23-doing-things-at-the-right-moment.md) | 5.6 |
+| 24 | [Let the user see it before you change the look](24-let-the-user-see-before-you-change-the-look.md) | Phase 5 review |

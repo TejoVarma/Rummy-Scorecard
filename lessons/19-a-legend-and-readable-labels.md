@@ -1,5 +1,7 @@
 # 19 · A colour legend and readable labels
 
+> **Update after Tejo reviewed the screens side by side (v1.8):** the legend stays, but shows **short words only**: *All drop · Normal · R Show · D Drop · MD Mid drop · FC Full · X Out · RE Re-entry · 👑 Dealer*, on one or two lines. Each entry in `CELL_CODES` now has a `short` word for the legend, while `label` keeps the full wording for screen readers. The first version's longer sentences pushed the legend below the visible area.
+
 ## The problem it solves
 
 Tejo asked: *"Some entries are green and some are blue. Why?"* If the person who **built** the app has to ask, the screen isn't explaining itself. The same was true of the cell codes (R, D, MD, FC, X, RE, and the `*` before the dealer's name), which appeared nowhere in words.

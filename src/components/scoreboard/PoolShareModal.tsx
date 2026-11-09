@@ -251,7 +251,7 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
               <button
                 type="button"
                 onClick={() => setMode('proportional')}
-                className={`min-h-[44px] py-1.5 px-2 rounded text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
+                className={`py-1.5 px-2 rounded text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
                   mode === 'proportional'
                     ? 'bg-[var(--color-primary)] text-white shadow-sm'
                     : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'
@@ -263,7 +263,7 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
               <button
                 type="button"
                 onClick={() => setMode('equal')}
-                className={`min-h-[44px] py-1.5 px-2 rounded text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
+                className={`py-1.5 px-2 rounded text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
                   mode === 'equal'
                     ? 'bg-[var(--color-primary)] text-white shadow-sm'
                     : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'
@@ -275,7 +275,7 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
               <button
                 type="button"
                 onClick={() => setMode('drops')}
-                className={`min-h-[44px] py-1.5 px-2 rounded text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
+                className={`py-1.5 px-2 rounded text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
                   mode === 'drops'
                     ? 'bg-[var(--color-primary)] text-white shadow-sm'
                     : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'
@@ -287,7 +287,7 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
               <button
                 type="button"
                 onClick={() => setMode('custom')}
-                className={`min-h-[44px] py-1.5 px-2 rounded text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
+                className={`py-1.5 px-2 rounded text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
                   mode === 'custom'
                     ? 'bg-[var(--color-primary)] text-white shadow-sm'
                     : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'

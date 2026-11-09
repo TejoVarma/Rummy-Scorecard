@@ -10,13 +10,14 @@ import { Capacitor } from '@capacitor/core';
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onResetGame: () => void;
+  // Left undefined when there's no match in progress, which hides the button.
+  onStartNewMatch?: () => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
   onClose,
-  onResetGame,
+  onStartNewMatch,
 }) => {
   const { themeId, setThemeId, colorMode, toggleColorMode } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -173,21 +174,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           />
         </div>
 
-        {/* Start New Game */}
-        <div className="pt-3 border-t border-[var(--color-border)]">
-          <button
-            type="button"
-            onClick={() => {
-              if (window.confirm('Start a new match? Current scores will be cleared.')) {
-                onResetGame();
+        {onStartNewMatch && (
+          <div className="pt-3 border-t border-[var(--color-border)] space-y-1.5">
+            <button
+              type="button"
+              onClick={() => {
+                onStartNewMatch();
                 onClose();
-              }
-            }}
-            className="w-full py-2.5 px-3 rounded font-medium text-xs bg-rose-950/40 text-rose-300 border border-rose-800/40 hover:bg-rose-900/40 transition flex items-center justify-center gap-1.5"
-          >
-            <RefreshCw className="w-3.5 h-3.5" /> Start New Match
-          </button>
-        </div>
+              }}
+              className="w-full py-2.5 px-3 rounded font-medium text-xs bg-[var(--color-primary)] text-white hover:opacity-90 transition flex items-center justify-center gap-1.5"
+            >
+              <RefreshCw className="w-3.5 h-3.5" /> Start New Match
+            </button>
+            <p className="text-[11px] text-[var(--color-muted)] text-center">
+              Your current match stays in Continue Game.
+            </p>
+          </div>
+        )}
       </div>
     </Modal>
   );

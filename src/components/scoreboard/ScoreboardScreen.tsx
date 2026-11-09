@@ -264,7 +264,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
           <button
             type="button"
             onClick={() => {
-              if (window.confirm('Are you sure you want to delete this game permanently? This action cannot be undone.')) {
+              if (window.confirm(`Delete "${title}" permanently? Its scores and deal can't be recovered.`)) {
                 onDeleteGame();
               }
             }}

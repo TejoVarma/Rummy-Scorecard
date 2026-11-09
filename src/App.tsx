@@ -176,7 +176,7 @@ export function App() {
         <SettingsModal
           isOpen={isSettingsOpen}
           onClose={() => setIsSettingsOpen(false)}
-          onResetGame={handleDeleteGame}
+          onStartNewMatch={state.status !== 'setup' ? () => setCurrentScreen('new_game') : undefined}
         />
       )}
 

@@ -53,33 +53,17 @@ export function getNextDealerIndex(
 }
 
 /**
- * Moves a re-entered player's seating position to sit immediately to the LEFT of
- * the current card distributor/dealer (i.e. immediately before the dealer in the seating order).
- * 
- * Example:
- * Seats: [P1, P2, P3 (Dealer), P4]
- * P4 re-enters.
- * After relocation to left of dealer P3: [P1, P2, P4 (Re-entered), P3 (Dealer)]
+ * Seats re-entering players together just before the dealer, in the order given:
+ * the first one furthest from the dealer, the last one right beside them (dealt last).
  */
-export function relocateReEnteredPlayer(
-  seats: PlayerId[],
-  currentDealerId: PlayerId,
-  reEnteringPlayerId: PlayerId
-): PlayerId[] {
-  // 1. Remove re-entering player from their old seat position
-  const remainingSeats = seats.filter(id => id !== reEnteringPlayerId);
-  
-  // 2. Find dealer index in remaining seats
-  const dealerIndex = remainingSeats.indexOf(currentDealerId);
-  if (dealerIndex === -1) {
-    // If dealer wasn't found, place at the start (left)
-    return [reEnteringPlayerId, ...remainingSeats];
-  }
+export function seatReEnteredPlayers(seats: PlayerId[], currentDealerId: PlayerId, reEnteringIds: PlayerId[]): PlayerId[] {
+  const coming = new Set(reEnteringIds);
+  const remaining = seats.filter(id => !coming.has(id));
+  const dealerIndex = remaining.indexOf(currentDealerId);
+  if (dealerIndex === -1) return [...reEnteringIds, ...remaining];
+  return [...remaining.slice(0, dealerIndex), ...reEnteringIds, ...remaining.slice(dealerIndex)];
+}
 
-  // 3. Insert immediately to the LEFT of the dealer (before dealerIndex)
-  return [
-    ...remainingSeats.slice(0, dealerIndex),
-    reEnteringPlayerId,
-    ...remainingSeats.slice(dealerIndex)
-  ];
+export function relocateReEnteredPlayer(seats: PlayerId[], currentDealerId: PlayerId, reEnteringPlayerId: PlayerId): PlayerId[] {
+  return seatReEnteredPlayers(seats, currentDealerId, [reEnteringPlayerId]);
 }

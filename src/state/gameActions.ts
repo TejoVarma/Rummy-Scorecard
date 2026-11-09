@@ -25,6 +25,14 @@ export type GameAction =
       };
     }
   | {
+      // In the order picked (highest card first); the last one sits beside the dealer.
+      type: 'RE_ENTER_PLAYERS';
+      payload: {
+        playerIds: PlayerId[];
+        customReEntryScore?: number;
+      };
+    }
+  | {
       type: 'EDIT_LAST_ROUND';
       payload: {
         roundScores: Record<PlayerId, { type: ScoreInputType; points: number }>;

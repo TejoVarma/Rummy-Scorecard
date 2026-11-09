@@ -35,7 +35,8 @@ interface ScoreboardScreenProps {
   onOpenEditScore: () => void;
   onOpenSettings: () => void;
   onAnnounceScores: () => void;
-  onPromptReEntry: (playerId: PlayerId) => void;
+  /** Opens re-entry with these players already picked (empty: pick in card order). */
+  onPromptReEntry: (preselected: PlayerId[]) => void;
   onDeleteGame: () => void;
   onAcceptDeal: (dealSplit: DealSplit) => void;
 }
@@ -166,16 +167,26 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
             {eligibleReEntryPlayers.map(id => players[id]?.name).join(', ')} eliminated!
           </span>
           <div className="flex gap-1.5 shrink-0">
-            {eligibleReEntryPlayers.map(id => (
+            {eligibleReEntryPlayers.length > 1 ? (
               <button
-                key={id}
                 type="button"
-                onClick={() => onPromptReEntry(id)}
+                onClick={() => onPromptReEntry([])}
                 className="min-h-[44px] px-2.5 py-1 text-xs font-semibold rounded bg-[var(--color-primary)] hover:opacity-90 text-white flex items-center gap-1 shadow-sm transition active:scale-95"
               >
-                <UserPlus className="w-3 h-3" /> Re-Enter {players[id]?.name}
+                <UserPlus className="w-3 h-3" /> Re-Enter
               </button>
-            ))}
+            ) : (
+              eligibleReEntryPlayers.map(id => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => onPromptReEntry([id])}
+                  className="min-h-[44px] px-2.5 py-1 text-xs font-semibold rounded bg-[var(--color-primary)] hover:opacity-90 text-white flex items-center gap-1 shadow-sm transition active:scale-95"
+                >
+                  <UserPlus className="w-3 h-3" /> Re-Enter {players[id]?.name}
+                </button>
+              ))
+            )}
           </div>
         </div>
       )}

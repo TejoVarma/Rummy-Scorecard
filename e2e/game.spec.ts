@@ -136,3 +136,25 @@ test('the round banner congratulates the real winner, not a knocked-out player i
   await expect(page.getByText(/Congrats Kiran/)).toBeVisible();
   await expect(page.getByText(/Congrats Ravi/)).toHaveCount(0);
 });
+
+test('two players out in the same round re-enter together at one score, seated in card order', async ({ page }) => {
+  await startGame(page, ['Ravi', 'Amit', 'Kiran', 'Suresh']);
+  for (let round = 0; round < 3; round++) {
+    await enterRound(page, { Ravi: 'Show', Amit: 'Full', Kiran: 'Full', Suresh: 'Drop' });
+  }
+  expect(await totals(page)).toEqual(['0', '240', '240', '72']);
+
+  await page.getByRole('button', { name: /^re-enter$/i }).click();
+  await page.getByRole('checkbox', { name: 'Kiran' }).click();
+  await page.getByRole('checkbox', { name: 'Amit' }).click();
+  await expect(page.getByRole('textbox')).toHaveValue('73');
+  await page.getByRole('button', { name: /confirm re-entry/i }).click();
+
+  const header = (await page.locator('table thead th').allInnerTexts()).map(t => t.replace(/\s+/g, ' ').trim());
+  const dealer = header.findIndex(t => t.includes('(dealer)'));
+  const name = (i: number) => header[(i + header.length) % header.length].replace(/\((dealer|re entry)\)/g, '').trim();
+  expect(name(dealer - 1)).toBe('Amit');
+  expect(name(dealer - 2)).toBe('Kiran');
+  expect((await totals(page)).sort()).toEqual(['0', '72', '73', '73']);
+  await expect(page.getByRole('button', { name: /re-enter/i })).toHaveCount(0);
+});

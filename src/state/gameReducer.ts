@@ -1,8 +1,8 @@
 import { GameRules, GameState, PlayerId, PlayerRoundScore, RoundRecord } from '../domain/types';
 import { GameAction } from './gameActions';
-import { getNextDealerIndex, relocateReEnteredPlayer } from '../domain/seating';
+import { getNextDealerIndex, seatReEnteredPlayers } from '../domain/seating';
 import {
-  calculateReEntryScore,
+  sharedReEntryScore,
   getActivePlayerIds,
   getEligibleForReEntryPlayers,
   isEligibleForReEntry,
@@ -169,30 +169,47 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
     }
 
-    case 'RE_ENTER_PLAYER': {
-      const { playerId, customReEntryScore } = action.payload;
-      const lastRound = state.rounds[state.rounds.length - 1];
-      const player = state.players[playerId];
-      const eligible = getEligibleForReEntryPlayers(state.rounds, state.seats, state.rules, Boolean(state.dealSplit));
-      if (!lastRound || !player || !eligible.includes(playerId)) return state;
+    case 'RE_ENTER_PLAYER':
+      return gameReducer(state, {
+        type: 'RE_ENTER_PLAYERS',
+        payload: { playerIds: [action.payload.playerId], customReEntryScore: action.payload.customReEntryScore },
+      });
 
-      const activeScores = state.seats
-        .filter(id => id !== playerId && !isEliminated(lastRound.cumulativeScores[id] ?? 0, state.rules.poolLimit))
-        .map(id => lastRound.cumulativeScores[id] ?? 0);
-      const newScore = customReEntryScore ?? calculateReEntryScore(activeScores);
-      if (!Number.isInteger(newScore) || newScore < 1 || !isEligibleForReEntry(newScore, state.rules.poolLimit)) {
+    case 'RE_ENTER_PLAYERS': {
+      const { playerIds, customReEntryScore } = action.payload;
+      const lastRound = state.rounds[state.rounds.length - 1];
+      const eligible = getEligibleForReEntryPlayers(state.rounds, state.seats, state.rules, Boolean(state.dealSplit));
+      const valid =
+        lastRound &&
+        playerIds.length > 0 &&
+        new Set(playerIds).size === playerIds.length &&
+        playerIds.every(id => state.players[id] && eligible.includes(id));
+      if (!valid) return state;
+
+      const newScore = customReEntryScore ?? sharedReEntryScore(lastRound, state.seats, state.rules.poolLimit);
+      if (
+        typeof newScore !== 'number' ||
+        !Number.isInteger(newScore) ||
+        newScore < 1 ||
+        !isEligibleForReEntry(newScore, state.rules.poolLimit)
+      ) {
         return state;
       }
 
       // Re-entered players sit just before the dealer, so they're dealt last.
       const currentDealerId = state.seats[state.currentDealerIndex];
-      const seats = relocateReEnteredPlayer(state.seats, currentDealerId, playerId);
-      const cumulativeScores = { ...lastRound.cumulativeScores, [playerId]: newScore };
+      const seats = seatReEnteredPlayers(state.seats, currentDealerId, playerIds);
+      const cumulativeScores = { ...lastRound.cumulativeScores };
+      const players = { ...state.players };
+      for (const id of playerIds) {
+        cumulativeScores[id] = newScore;
+        players[id] = { ...players[id], reEntryCount: players[id].reEntryCount + 1, reEntryScore: newScore };
+      }
       const rounds = [...state.rounds];
       rounds[rounds.length - 1] = {
         ...lastRound,
         cumulativeScores,
-        reEnteredInRound: [...(lastRound.reEnteredInRound || []), playerId],
+        reEnteredInRound: [...(lastRound.reEnteredInRound || []), ...playerIds],
       };
 
       const activeIds = getActivePlayerIds(seats, cumulativeScores, state.rules.poolLimit);
@@ -201,10 +218,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         status: completed ? 'completed' : 'playing',
         winnerPlayerId: completed && activeIds.size === 1 ? Array.from(activeIds)[0] : undefined,
-        players: {
-          ...state.players,
-          [playerId]: { ...player, reEntryCount: player.reEntryCount + 1, reEntryScore: newScore },
-        },
+        players,
         seats,
         currentDealerIndex: Math.max(0, seats.indexOf(currentDealerId)),
         rounds,

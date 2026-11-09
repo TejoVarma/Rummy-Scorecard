@@ -115,6 +115,20 @@ export function getActivePlayerIds(
 }
 
 /**
+ * The score everyone re-entering after this round gets: the highest total among players
+ * still in, plus one. Players already re-entered this round don't count, so two players
+ * who went out together get the same score whichever order they come back in.
+ * Null when nobody is still in.
+ */
+export function sharedReEntryScore(lastRound: RoundRecord, seats: PlayerId[], poolLimit: number): number | null {
+  const reEntered = new Set(lastRound.reEnteredInRound || []);
+  const stillIn = seats
+    .filter(id => !reEntered.has(id) && !isEliminated(lastRound.cumulativeScores[id] ?? 0, poolLimit))
+    .map(id => lastRound.cumulativeScores[id] ?? 0);
+  return stillIn.length > 0 ? calculateReEntryScore(stillIn) : null;
+}
+
+/**
  * Determines which players are currently eligible for re-entry.
  * In Indian Pool Rummy:
  * 1. Re-entry must be allowed by rules.
@@ -134,20 +148,9 @@ export function getEligibleForReEntryPlayers(
   const lastRound = rounds[rounds.length - 1];
   const latestScores = lastRound.cumulativeScores;
 
-  // Active players in the game right now
-  const activeScores = seats
-    .filter(id => !isEliminated(latestScores[id] ?? 0, rules.poolLimit))
-    .map(id => latestScores[id] ?? 0);
-
   // If no active players left or game is over, no one can re-enter
-  if (activeScores.length === 0) {
-    return [];
-  }
-
-  const potentialReEntryScore = calculateReEntryScore(activeScores);
-
-  // Boundary check: re-entry score must be strictly below pool limit
-  if (!isEligibleForReEntry(potentialReEntryScore, rules.poolLimit)) {
+  const potentialReEntryScore = sharedReEntryScore(lastRound, seats, rules.poolLimit);
+  if (potentialReEntryScore === null || !isEligibleForReEntry(potentialReEntryScore, rules.poolLimit)) {
     return [];
   }
 

@@ -159,7 +159,7 @@ describe('re-entry score box', () => {
   it('says what is wrong with an out-of-range score instead of quietly changing it', () => {
     const onConfirm = vi.fn();
     render(
-      <ReEntryModal isOpen onClose={() => {}} state={reEntryState()} reEnteringPlayerId="p1" onConfirmReEntry={onConfirm} />
+      <ReEntryModal isOpen onClose={() => {}} state={reEntryState()} eligiblePlayerIds={['p1']} initialSelection={['p1']} onConfirmReEntry={onConfirm} />
     );
     fireEvent.change(screen.getByRole('textbox'), { target: { value: '250' } });
     fireEvent.click(screen.getByRole('button', { name: /confirm re-entry/i }));

@@ -20,6 +20,7 @@ import { GameSetupWizard } from './components/setup/GameSetupWizard';
 import { ScoreboardScreen } from './components/scoreboard/ScoreboardScreen';
 import { RoundInputModal } from './components/input/RoundInputModal';
 import { ReEntryModal } from './components/input/ReEntryModal';
+import { getEligibleForReEntryPlayers } from './domain/elimination';
 import { SettingsModal } from './components/settings/SettingsModal';
 import { GameRules, GameState, Player, PlayerId, ScoreInputType, DealSplit } from './domain/types';
 import { useBackButton, BACK_PRIORITY } from './hooks/useBackButton';
@@ -44,7 +45,7 @@ export function App() {
   const [isInputModalOpen, setIsInputModalOpen] = useState(false);
   const [isEditingLastRound, setIsEditingLastRound] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [reEntryTargetPlayerId, setReEntryTargetPlayerId] = useState<PlayerId | null>(null);
+  const [reEntryPreselected, setReEntryPreselected] = useState<PlayerId[] | null>(null);
   const [showExitToast, setShowExitToast] = useState(false);
   const [announceAfterRound, setAnnounceAfterRound] = useState(loadAnnounceAfterRound);
   const [saveFailed, setSaveFailed] = useState(false);
@@ -168,11 +169,8 @@ export function App() {
     }
   }, [isEditingLastRound]);
 
-  const handleConfirmReEntry = useCallback((playerId: PlayerId, customScore?: number) => {
-    dispatch({
-      type: 'RE_ENTER_PLAYER',
-      payload: { playerId, customReEntryScore: customScore },
-    });
+  const handleConfirmReEntry = useCallback((playerIds: PlayerId[], score: number) => {
+    dispatch({ type: 'RE_ENTER_PLAYERS', payload: { playerIds, customReEntryScore: score } });
   }, []);
 
   const handleDeleteGame = useCallback(async () => {
@@ -237,7 +235,7 @@ export function App() {
           }}
           onOpenSettings={() => setIsSettingsOpen(true)}
           onAnnounceScores={announceScores}
-          onPromptReEntry={id => setReEntryTargetPlayerId(id)}
+          onPromptReEntry={setReEntryPreselected}
           onDeleteGame={handleDeleteGame}
           onAcceptDeal={handleAcceptDeal}
         />
@@ -255,13 +253,14 @@ export function App() {
       )}
 
       {/* Re-Entry Dialog Modal */}
-      {reEntryTargetPlayerId && (
+      {reEntryPreselected && (
         <ReEntryModal
-          key={reEntryTargetPlayerId}
-          isOpen={Boolean(reEntryTargetPlayerId)}
-          onClose={() => setReEntryTargetPlayerId(null)}
+          key={reEntryPreselected.join(',') || 'pick'}
+          isOpen
+          onClose={() => setReEntryPreselected(null)}
           state={state}
-          reEnteringPlayerId={reEntryTargetPlayerId}
+          eligiblePlayerIds={getEligibleForReEntryPlayers(state.rounds, state.seats, state.rules, Boolean(state.dealSplit))}
+          initialSelection={reEntryPreselected}
           onConfirmReEntry={handleConfirmReEntry}
         />
       )}

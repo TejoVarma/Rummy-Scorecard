@@ -68,7 +68,7 @@ Exit: tested on a real phone. The image arrives in WhatsApp. The voice speaks af
 | Step | What |
 |---|---|
 | ✅ 5.1 | Remove dead code: Undo/Reorder actions, `custom_fixed`/`reEntryScoreMode`, duplicate drop helpers, unused types, `StatusChip` (lesson 18) |
-| 5.2 | Colour legend on the scoreboard (🟩 all-drop, 🟦 normal, grey = out; D/MD/FC/R) and readable label sizes |
+| ✅ 5.2 | Colour legend on the scoreboard (🟩 all-drop, 🟦 normal, grey = out; D/MD/FC/R) and readable label sizes |
 | 5.3 | Score entry screen: one config list instead of 10 copied blocks, real buttons for clear chips, tap targets, labelled inputs |
 | 5.4 | Accessibility sweep: pinch-zoom, dialogs with role/aria-modal, labels on icon buttons, 44px targets, keyboard/TalkBack-friendly rows and cards |
 | 5.5 | Split the ~700-line ScoreboardScreen into smaller components |

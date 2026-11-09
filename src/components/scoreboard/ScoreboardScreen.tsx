@@ -6,6 +6,7 @@ import { isAllDropRound, roundWinnerId } from '../../domain/roundSummary';
 import { Settings, Trophy, Share2, Trash2, ArrowLeft, UserPlus, Loader2, Handshake, Image as ImageIcon, FileText, Volume2 } from 'lucide-react';
 import { useBackButton, BACK_PRIORITY } from '../../hooks/useBackButton';
 import { PoolShareModal } from './PoolShareModal';
+import { CELL_CODES, ScoreLegend } from './ScoreLegend';
 import {
   buildScorecardText,
   captureElement,
@@ -359,12 +360,12 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
 
                         {/* Drop Warning / Compulsory Pill */}
                         {!isOut && dropStatus === 'compulsory' && (
-                          <span className="text-[8px] sm:text-[9px] font-extrabold leading-tight tracking-tight text-rose-500 block uppercase mt-0.5">
+                          <span className="text-[11px] font-extrabold leading-tight tracking-tight text-rose-500 block uppercase mt-0.5">
                             COMPULSORY
                           </span>
                         )}
                         {!isOut && dropStatus === 'one_drop' && (
-                          <span className="text-[8px] sm:text-[9px] font-extrabold leading-tight tracking-tight text-yellow-400 block uppercase mt-0.5">
+                          <span className="text-[11px] font-extrabold leading-tight tracking-tight text-yellow-400 block uppercase mt-0.5">
                             {oneDropLabel}
                           </span>
                         )}
@@ -372,7 +373,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                         {/* Explicit re-entry badge showing the exact count */}
                         {isReEntered && (
                           <span
-                            className={`text-[9px] font-bold leading-tight tracking-tight block mt-0.5 ${
+                            className={`text-[11px] font-bold leading-tight tracking-tight block mt-0.5 ${
                               isOut ? 'text-rose-400/80 line-through' : 'text-[#ef4444]'
                             }`}
                           >
@@ -436,31 +437,31 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                             switch (scoreInfo.type) {
                               case 'show':
                                 return (
-                                  <div className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg ${cellBgClass} text-[#facc15] font-bold text-sm text-center shadow-sm`}>
+                                  <div className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg ${cellBgClass} text-[#facc15] font-bold text-sm text-center shadow-sm`} title={CELL_CODES.show.label} aria-label={CELL_CODES.show.label}>
                                     R
                                   </div>
                                 );
                               case 'open_drop':
                                 return (
-                                  <div className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg ${cellBgClass} text-white font-bold text-sm text-center shadow-sm`}>
+                                  <div className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg ${cellBgClass} text-white font-bold text-sm text-center shadow-sm`} title={CELL_CODES.open_drop.label} aria-label={CELL_CODES.open_drop.label}>
                                     D
                                   </div>
                                 );
                               case 'middle_drop':
                                 return (
-                                  <div className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg ${cellBgClass} text-white font-bold text-sm text-center shadow-sm`}>
+                                  <div className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg ${cellBgClass} text-white font-bold text-sm text-center shadow-sm`} title={CELL_CODES.middle_drop.label} aria-label={CELL_CODES.middle_drop.label}>
                                     MD
                                   </div>
                                 );
                               case 'full_count':
                                 return (
-                                  <div className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg ${cellBgClass} text-white font-bold text-sm text-center shadow-sm`}>
+                                  <div className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg ${cellBgClass} text-white font-bold text-sm text-center shadow-sm`} title={CELL_CODES.full_count.label} aria-label={CELL_CODES.full_count.label}>
                                     FC
                                   </div>
                                 );
                               case 'out':
                                 return (
-                                  <div className="w-full max-w-[48px] mx-auto py-1.5 rounded-lg bg-[#27272a] text-[#71717a] font-bold text-sm text-center">
+                                  <div title={CELL_CODES.out.label} aria-label={CELL_CODES.out.label} className="w-full max-w-[48px] mx-auto py-1.5 rounded-lg bg-[#27272a] text-[#71717a] font-bold text-sm text-center">
                                     X
                                   </div>
                                 );
@@ -469,7 +470,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                                 if (wasReEnteredHere) {
                                   return (
                                     <div className={`w-full max-w-[48px] mx-auto py-1 rounded-lg ${cellBgClass} text-center shadow-sm flex items-center justify-center gap-0.5`}>
-                                      <span className="text-[#ef4444] font-extrabold text-xs">RE</span>
+                                      <span className="text-[#ef4444] font-extrabold text-xs" title={CELL_CODES.reEntry.label}>RE</span>
                                       <span className="text-[#4ade80] font-mono font-bold text-[10px] align-sub">
                                         {scoreInfo.points}
                                       </span>
@@ -537,6 +538,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
               )}
             </tbody>
           </table>
+          {rounds.length > 0 && <ScoreLegend />}
         </div>
       </div>
 

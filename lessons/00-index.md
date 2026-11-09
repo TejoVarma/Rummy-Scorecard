@@ -20,3 +20,4 @@
 | 16 | [Closing the last silent failures (the Phase 4 review)](16-closing-the-last-silent-failures.md) | Phase 4 review |
 | 17 | [Splitting the prize pool by drops (a payout waterfall)](17-split-the-pool-by-drops.md) | 3.3 |
 | 18 | [Removing dead code safely](18-removing-dead-code.md) | 5.1 |
+| 19 | [A colour legend and readable labels](19-a-legend-and-readable-labels.md) | 5.2 |

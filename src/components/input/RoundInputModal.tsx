@@ -1,9 +1,18 @@
 import React, { useState } from 'react';
 import { GameState, PlayerId, ScoreInputType } from '../../domain/types';
-import { validateRoundScores } from '../../domain/scoring';
+import { getPointsForInputType, validateRoundScores } from '../../domain/scoring';
 import { analyzePlayerDrops } from '../../domain/elimination';
 import { ArrowLeft, Crown } from 'lucide-react';
 import { useBackButton, BACK_PRIORITY } from '../../hooks/useBackButton';
+
+// The quick-pick options, in the order they appear. Points always come from the game's rules.
+const SCORE_OPTIONS: Array<{ type: Exclude<ScoreInputType, 'custom'>; label: string; color: string }> = [
+  { type: 'show', label: 'Show', color: '#15803d' },
+  { type: 'open_drop', label: 'Drop', color: '#c2410c' },
+  { type: 'middle_drop', label: 'M Drop', color: '#a16207' },
+  { type: 'full_count', label: 'Full', color: '#7c3aed' },
+  { type: 'out', label: 'Out', color: '#dc2626' },
+];
 
 interface RoundInputModalProps {
   isOpen: boolean;
@@ -57,12 +66,7 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
 
   const handleSelectType = (playerId: PlayerId, type: ScoreInputType) => {
     setErrorMessage(null);
-    let pts = 0;
-    if (type === 'show') pts = 0;
-    else if (type === 'open_drop') pts = rules.openDrop;
-    else if (type === 'middle_drop') pts = rules.middleDrop;
-    else if (type === 'full_count') pts = rules.fullCount;
-    else if (type === 'out') pts = rules.poolLimit;
+    const pts = getPointsForInputType(type, undefined, rules);
 
     setScores(prev => {
       const next = { ...prev };
@@ -75,6 +79,14 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
         }
       }
       next[playerId] = { type, points: pts };
+      return next;
+    });
+  };
+
+  const clearScore = (playerId: PlayerId) => {
+    setScores(prev => {
+      const next = { ...prev };
+      delete next[playerId];
       return next;
     });
   };
@@ -173,6 +185,7 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
           const isDealer = playerId === currentDealerId;
           const dropAnalysis = analyzePlayerDrops(currentTotal, rules.poolLimit, rules.openDrop, rules.middleDrop);
           const dropStatus = dropAnalysis.status;
+          const chosen = SCORE_OPTIONS.find(option => option.type === currentInput?.type);
 
           return (
             <div
@@ -212,167 +225,52 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
                   </div>
                 </div>
 
-                {/* Outlined Score Capsule matching Screenshot */}
-                <div className="relative min-w-[110px] h-[38px] rounded-full border border-zinc-500/80 px-2.5 flex items-center justify-center bg-[var(--color-card)] focus-within:border-[var(--color-primary)] transition">
-                  <span className="absolute -top-2 left-3 bg-[var(--color-card)] px-1 text-[10px] font-medium text-zinc-400 select-none">
+                <div className="relative min-w-[120px] h-11 rounded-full border border-zinc-500/80 px-2 flex items-center justify-center bg-[var(--color-card)] focus-within:border-[var(--color-primary)] transition">
+                  <span aria-hidden className="absolute -top-2 left-3 bg-[var(--color-card)] px-1 text-[11px] font-medium text-zinc-400 select-none">
                     Score
                   </span>
-
-                  {/* Render Badge when selected, exactly like screenshot */}
-                  {currentInput?.type === 'show' && (
-                    <span
-                      onClick={() => {
-                        setScores(prev => {
-                          const next = { ...prev };
-                          delete next[playerId];
-                          return next;
-                        });
-                      }}
-                      className="px-3.5 py-1 rounded-full bg-[#16a34a] text-white font-medium text-xs leading-none shadow-sm cursor-pointer"
-                      title="Tap to clear"
+                  {chosen ? (
+                    <button
+                      type="button"
+                      onClick={() => clearScore(playerId)}
+                      aria-label={`Clear ${chosen.label} for ${player?.name}`}
+                      style={{ backgroundColor: chosen.color }}
+                      className="min-h-[32px] px-4 rounded-full text-white font-medium text-xs leading-none shadow-sm"
                     >
-                      Show
-                    </span>
-                  )}
-                  {currentInput?.type === 'open_drop' && (
-                    <span
-                      onClick={() => {
-                        setScores(prev => {
-                          const next = { ...prev };
-                          delete next[playerId];
-                          return next;
-                        });
-                      }}
-                      className="px-3.5 py-1 rounded-full bg-[#ea580c] text-white font-medium text-xs leading-none shadow-sm cursor-pointer"
-                      title="Tap to clear"
-                    >
-                      Drop
-                    </span>
-                  )}
-                  {currentInput?.type === 'middle_drop' && (
-                    <span
-                      onClick={() => {
-                        setScores(prev => {
-                          const next = { ...prev };
-                          delete next[playerId];
-                          return next;
-                        });
-                      }}
-                      className="px-3.5 py-1 rounded-full bg-[#ca8a04] text-white font-medium text-xs leading-none shadow-sm cursor-pointer"
-                      title="Tap to clear"
-                    >
-                      M Drop
-                    </span>
-                  )}
-                  {currentInput?.type === 'full_count' && (
-                    <span
-                      onClick={() => {
-                        setScores(prev => {
-                          const next = { ...prev };
-                          delete next[playerId];
-                          return next;
-                        });
-                      }}
-                      className="px-3.5 py-1 rounded-full bg-[#7c3aed] text-white font-medium text-xs leading-none shadow-sm cursor-pointer"
-                      title="Tap to clear"
-                    >
-                      Full
-                    </span>
-                  )}
-                  {currentInput?.type === 'out' && (
-                    <span
-                      onClick={() => {
-                        setScores(prev => {
-                          const next = { ...prev };
-                          delete next[playerId];
-                          return next;
-                        });
-                      }}
-                      className="px-3.5 py-1 rounded-full bg-[#dc2626] text-white font-medium text-xs leading-none shadow-sm cursor-pointer"
-                      title="Tap to clear"
-                    >
-                      Out
-                    </span>
-                  )}
-
-                  {/* Single controlled numeric text input when no preset pill badge is active */}
-                  {(!currentInput || currentInput.type === 'custom') && (
+                      {chosen.label} ✕
+                    </button>
+                  ) : (
                     <input
                       type="text"
                       inputMode="numeric"
                       pattern="[0-9]*"
                       maxLength={3}
-                      placeholder=""
+                      aria-label={`Score for ${player?.name}`}
+                      placeholder={`0–${rules.fullCount}`}
                       value={currentInput?.type === 'custom' ? currentInput.points : ''}
                       onChange={e => handleCustomScoreChange(playerId, e.target.value)}
-                      className="w-full text-center font-mono font-bold text-sm bg-transparent border-none text-[var(--color-text)] focus:outline-none"
+                      className="w-full text-center font-mono font-bold text-sm bg-transparent border-none text-[var(--color-text)] placeholder:text-zinc-500 placeholder:font-normal focus:outline-none"
                     />
                   )}
                 </div>
               </div>
 
-              {/* Pill Action Buttons (Controlled by Show Score Options checkbox) */}
               {showScoreOptions && (
                 <div className="flex flex-wrap gap-2 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => handleSelectType(playerId, 'show')}
-                    className={`px-3.5 py-1.5 rounded-full font-medium text-xs transition ${
-                      currentInput?.type === 'show'
-                        ? 'bg-[#16a34a] text-white ring-2 ring-white/60 shadow-md'
-                        : 'bg-[#16a34a] text-white hover:opacity-95'
-                    }`}
-                  >
-                    Show
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleSelectType(playerId, 'open_drop')}
-                    className={`px-3.5 py-1.5 rounded-full font-medium text-xs transition ${
-                      currentInput?.type === 'open_drop'
-                        ? 'bg-[#ea580c] text-white ring-2 ring-white/60 shadow-md'
-                        : 'bg-[#ea580c] text-white hover:opacity-95'
-                    }`}
-                  >
-                    Drop
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleSelectType(playerId, 'middle_drop')}
-                    className={`px-3.5 py-1.5 rounded-full font-medium text-xs transition ${
-                      currentInput?.type === 'middle_drop'
-                        ? 'bg-[#ca8a04] text-white ring-2 ring-white/60 shadow-md'
-                        : 'bg-[#ca8a04] text-white hover:opacity-95'
-                    }`}
-                  >
-                    M Drop
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleSelectType(playerId, 'full_count')}
-                    className={`px-3.5 py-1.5 rounded-full font-medium text-xs transition ${
-                      currentInput?.type === 'full_count'
-                        ? 'bg-[#7c3aed] text-white ring-2 ring-white/60 shadow-md'
-                        : 'bg-[#7c3aed] text-white hover:opacity-95'
-                    }`}
-                  >
-                    Full
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleSelectType(playerId, 'out')}
-                    className={`px-3.5 py-1.5 rounded-full font-medium text-xs transition ${
-                      currentInput?.type === 'out'
-                        ? 'bg-[#dc2626] text-white ring-2 ring-white/60 shadow-md'
-                        : 'bg-[#dc2626] text-white hover:opacity-95'
-                    }`}
-                  >
-                    Out
-                  </button>
+                  {SCORE_OPTIONS.map(option => (
+                    <button
+                      key={option.type}
+                      type="button"
+                      onClick={() => handleSelectType(playerId, option.type)}
+                      aria-pressed={currentInput?.type === option.type}
+                      style={{ backgroundColor: option.color }}
+                      className={`min-h-[40px] px-4 rounded-full font-medium text-sm text-white transition ${
+                        currentInput?.type === option.type ? 'ring-2 ring-white/70 shadow-md' : 'hover:opacity-95'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
                 </div>
               )}
             </div>

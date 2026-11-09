@@ -21,3 +21,4 @@
 | 17 | [Splitting the prize pool by drops (a payout waterfall)](17-split-the-pool-by-drops.md) | 3.3 |
 | 18 | [Removing dead code safely](18-removing-dead-code.md) | 5.1 |
 | 19 | [A colour legend and readable labels](19-a-legend-and-readable-labels.md) | 5.2 |
+| 20 | [One list instead of ten copies (the score entry screen)](20-one-list-instead-of-ten-copies.md) | 5.3 |

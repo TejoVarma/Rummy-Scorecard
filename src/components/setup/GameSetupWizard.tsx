@@ -4,6 +4,7 @@ import { DEFAULT_RULES, POOL_PRESETS } from '../../domain/scoring';
 import { ArrowLeft, ArrowUp, ArrowDown, Trash2, Crown } from 'lucide-react';
 import { SelectPlayersModal } from '../players/SelectPlayersModal';
 import { loadPlayerRoster } from '../../storage/localStorageAdapter';
+import { validateRules } from '../../domain/rules';
 
 interface GameSetupWizardProps {
   onBack: () => void;
@@ -69,23 +70,6 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
     const parsedAmount = parseInt(entryAmount, 10);
     const finalEntryAmount = isNaN(parsedAmount) || parsedAmount < 0 ? 0 : parsedAmount;
 
-    if (finalOpenDrop <= 0) {
-      alert('Open Drop must be greater than 0.');
-      return;
-    }
-    if (finalOpenDrop >= finalMiddleDrop) {
-      alert('Open Drop must be strictly less than Middle Drop.');
-      return;
-    }
-    if (finalMiddleDrop >= finalFullCount) {
-      alert('Middle Drop must be strictly less than Full Count.');
-      return;
-    }
-    if (finalOpenDrop >= finalPool) {
-      alert('Open Drop cannot be greater than or equal to the Pool Limit.');
-      return;
-    }
-
     const rules: GameRules = {
       poolLimit: finalPool,
       openDrop: finalOpenDrop,
@@ -95,6 +79,12 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
       reEntryScoreMode: 'highest_plus_one',
       entryAmount: finalEntryAmount,
     };
+
+    const problem = validateRules(rules);
+    if (problem) {
+      alert(problem);
+      return;
+    }
 
     const playerObjs: Player[] = selectedPlayers.map((p, idx) => ({
       id: p.id,

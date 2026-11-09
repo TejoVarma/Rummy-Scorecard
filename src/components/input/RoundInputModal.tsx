@@ -113,7 +113,7 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
     }
 
     const completeScores = scores as Record<PlayerId, { type: ScoreInputType; points: number }>;
-    const validation = validateRoundScores(completeScores, activeSeats);
+    const validation = validateRoundScores(completeScores, activeSeats, rules);
     if (!validation.valid) {
       setErrorMessage(validation.error || 'Invalid scores');
       return;

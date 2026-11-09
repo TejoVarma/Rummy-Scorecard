@@ -40,28 +40,33 @@ export function getPointsForInputType(
 }
 
 /**
- * Validates that round scores contain exactly one 'show' (winner),
- * and all custom hand scores are valid (0 to 80).
+ * Checks a round before it's saved: every player still in has a score, each score
+ * matches its button under these rules, typed hand scores are 0 to full count,
+ * and exactly one player made the show.
  */
 export function validateRoundScores(
-  scores: Record<string, { type: ScoreInputType; points: number }>,
-  activePlayerIds: string[]
+  scores: Record<string, { type: ScoreInputType; points: number } | undefined>,
+  activePlayerIds: string[],
+  rules: GameRules
 ): { valid: boolean; error?: string } {
   for (const id of activePlayerIds) {
     const s = scores[id];
     if (!s) {
       return { valid: false, error: 'All active players must have a score recorded.' };
     }
+    if (!Number.isInteger(s.points)) {
+      return { valid: false, error: 'Scores must be whole numbers.' };
+    }
     if (s.type === 'custom') {
-      if (s.points < 0 || s.points > 80) {
-        return { valid: false, error: 'Custom hand points must be between 0 and 80.' };
+      if (s.points < 0 || s.points > rules.fullCount) {
+        return { valid: false, error: `Custom hand points must be between 0 and ${rules.fullCount}.` };
       }
+    } else if (s.points !== getPointsForInputType(s.type, undefined, rules)) {
+      return { valid: false, error: 'A score does not match the chosen option.' };
     }
   }
 
-  const activeScores = activePlayerIds.map(id => scores[id]);
-  const showCount = activeScores.filter(s => s?.type === 'show').length;
-
+  const showCount = activePlayerIds.filter(id => scores[id]?.type === 'show').length;
   if (showCount === 0) {
     return { valid: false, error: 'One player must be marked with Show (0 pts).' };
   }

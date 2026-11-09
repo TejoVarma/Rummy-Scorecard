@@ -21,7 +21,7 @@ describe('scoring domain tests', () => {
       p2: { type: 'open_drop' as const, points: 24 },
       p3: { type: 'middle_drop' as const, points: 48 },
     };
-    const res = validateRoundScores(scores, ['p1', 'p2', 'p3']);
+    const res = validateRoundScores(scores, ['p1', 'p2', 'p3'], DEFAULT_RULES);
     expect(res.valid).toBe(true);
 
     // No winner
@@ -29,13 +29,13 @@ describe('scoring domain tests', () => {
       p1: { type: 'open_drop' as const, points: 24 },
       p2: { type: 'open_drop' as const, points: 24 },
     };
-    expect(validateRoundScores(noWinner, ['p1', 'p2']).valid).toBe(false);
+    expect(validateRoundScores(noWinner, ['p1', 'p2'], DEFAULT_RULES).valid).toBe(false);
 
     // Multiple winners
     const multiWinners = {
       p1: { type: 'show' as const, points: 0 },
       p2: { type: 'show' as const, points: 0 },
     };
-    expect(validateRoundScores(multiWinners, ['p1', 'p2']).valid).toBe(false);
+    expect(validateRoundScores(multiWinners, ['p1', 'p2'], DEFAULT_RULES).valid).toBe(false);
   });
 });

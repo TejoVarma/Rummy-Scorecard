@@ -54,15 +54,15 @@ Exit: tested on a real phone. The image arrives in WhatsApp. The voice speaks af
 |---|---|---|
 | ✅ 4.1 | Winner and all-drop detection use `type === 'show'` only | R#7 |
 | ✅ 4.2 | Edit form: only active players, the correct dealer crown, and a warning if a re-entry will be cancelled | R#8, R#9 |
-| 4.3 | Move the rules into the reducer: round-score validation, re-entry eligibility, a deal lock on edit/undo/accept, and START_GAME checks | R#10 |
-| 4.4 | `validateRoundScores` uses `rules.fullCount` | R#11 |
+| ✅ 4.3 | Move the rules into the reducer: round-score validation, re-entry eligibility, a deal lock on edit/undo/accept, and START_GAME checks | R#10 |
+| ✅ 4.4 | `validateRoundScores` uses `rules.fullCount` | R#11 |
 | 4.5 | Storage: restore from Preferences at startup, report failed saves, keep corrupt data instead of overwriting it, run saves one at a time, and warn before the 30-game cap evicts a game | R#6, R#13-15 |
 | 4.6 | Backup: strict validation, confirm before import, merge by gameId, version check, size cap, export as a file | R#12, R#17 |
 | 4.7 | Fix the wizard title month and input handling | R#16, R#25 |
 
 ## Phase 5: quality and accessibility (P2)
 
-R#18-21, R#24, R#26, R#27: remove the dead UNDO/REORDER/custom_fixed code, re-enable pinch-zoom, use real buttons and 44px tap targets, use `aria-label`s, split ScoreboardScreen and RoundInputModal into smaller components, and add RTL tests for the score-entry flow.
+Add a colour legend on the scoreboard (🟩 all-drop round, 🟦 normal round, grey = already out), asked about on 2026-11-09. R#18-21, R#24, R#26, R#27: remove the dead UNDO/REORDER/custom_fixed code, re-enable pinch-zoom, use real buttons and 44px tap targets, use `aria-label`s, split ScoreboardScreen and RoundInputModal into smaller components, and add RTL tests for the score-entry flow.
 
 ## Phase 6: final testing
 

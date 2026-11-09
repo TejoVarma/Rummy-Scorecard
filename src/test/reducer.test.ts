@@ -63,14 +63,14 @@ describe('gameReducer integration tests', () => {
       },
     });
 
-    // p3 gets 105 points and is eliminated
+    // p3 is put Out and eliminated
     state = gameReducer(state, {
       type: 'SUBMIT_ROUND',
       payload: {
         roundScores: {
           p1: { type: 'show', points: 0 },
           p2: { type: 'middle_drop', points: 48 },
-          p3: { type: 'custom', points: 105 },
+          p3: { type: 'out', points: 100 },
         },
       },
     });
@@ -150,13 +150,13 @@ describe('gameReducer integration tests', () => {
       },
     });
 
-    // Round 1: p1 is dealer. p2 (next to dealer) gets 105 points and is eliminated!
+    // Round 1: p1 is dealer. p2 (next to dealer) is put Out and eliminated!
     state = gameReducer(state, {
       type: 'SUBMIT_ROUND',
       payload: {
         roundScores: {
           p1: { type: 'show', points: 0 },
-          p2: { type: 'custom', points: 105 }, // eliminated!
+          p2: { type: 'out', points: 100 }, // eliminated!
           p3: { type: 'open_drop', points: 24 },
           p4: { type: 'open_drop', points: 24 },
         },
@@ -261,13 +261,13 @@ describe('gameReducer integration tests', () => {
       },
     });
 
-    // p2 gets 105 points and is eliminated -> p1 is declared winner
+    // p2 is put Out -> p1 is declared winner
     state = gameReducer(state, {
       type: 'SUBMIT_ROUND',
       payload: {
         roundScores: {
           p1: { type: 'show', points: 0 },
-          p2: { type: 'custom', points: 105 },
+          p2: { type: 'out', points: 101 },
         },
       },
     });
@@ -311,13 +311,13 @@ describe('gameReducer integration tests', () => {
     expect(state.currentDealerIndex).toBe(4);
     expect(state.seats[state.currentDealerIndex]).toBe('p5');
 
-    // Round 1: Player 5 deals. Player 1 (first player after p5) gets eliminated (score 205).
+    // Round 1: Player 5 deals. Player 1 (first player after p5) is put Out.
     // Player 5 should deal again so Player 2 gets the open card!
     state = gameReducer(state, {
       type: 'SUBMIT_ROUND',
       payload: {
         roundScores: {
-          p1: { type: 'custom', points: 205 }, // eliminated!
+          p1: { type: 'out', points: 201 }, // eliminated!
           p2: { type: 'open_drop', points: 24 },
           p3: { type: 'middle_drop', points: 48 },
           p4: { type: 'middle_drop', points: 48 },
@@ -349,14 +349,14 @@ describe('gameReducer integration tests', () => {
       },
     });
 
-    // Round 1: p3 gets 105 points and is eliminated!
+    // Round 1: p3 is put Out and eliminated!
     state = gameReducer(state, {
       type: 'SUBMIT_ROUND',
       payload: {
         roundScores: {
           p1: { type: 'show', points: 0 },
           p2: { type: 'middle_drop', points: 48 },
-          p3: { type: 'custom', points: 105 },
+          p3: { type: 'out', points: 100 },
         },
       },
     });
@@ -373,7 +373,7 @@ describe('gameReducer integration tests', () => {
     expect(state.seats).toEqual(['p1', 'p3', 'p2']);
     expect(state.players['p3'].reEntryCount).toBe(1);
 
-    // Now edit Round 1: suppose p3 actually had open drop (24 points) instead of 105!
+    // Now edit Round 1: suppose p3 actually had open drop (24 points) instead of Out!
     state = gameReducer(state, {
       type: 'EDIT_LAST_ROUND',
       payload: {
@@ -414,6 +414,12 @@ describe('gameReducer integration tests', () => {
 
     expect(state.status).toBe('playing');
     expect(state.dealSplit).toBeUndefined();
+
+    // A deal is made mid-game, after at least one round.
+    state = gameReducer(state, {
+      type: 'SUBMIT_ROUND',
+      payload: { roundScores: { p1: { type: 'show', points: 0 }, p2: { type: 'open_drop', points: 24 } } },
+    });
 
     state = gameReducer(state, {
       type: 'ACCEPT_DEAL',
@@ -458,13 +464,13 @@ describe('gameReducer integration tests', () => {
       },
     });
 
-    // Round 1: p2 gets 105 points and is eliminated
+    // Round 1: p2 is put Out
     state = gameReducer(state, {
       type: 'SUBMIT_ROUND',
       payload: {
         roundScores: {
           p1: { type: 'show', points: 0 },
-          p2: { type: 'custom', points: 105 },
+          p2: { type: 'out', points: 101 },
         },
       },
     });
@@ -509,9 +515,9 @@ describe('gameReducer integration tests', () => {
       type: 'SUBMIT_ROUND',
       payload: {
         roundScores: {
-          p1: { type: 'open_drop', points: 20 },
+          p1: { type: 'open_drop', points: 24 },
           p2: { type: 'show', points: 0 },
-          p3: { type: 'custom', points: 105 },
+          p3: { type: 'out', points: 101 },
         },
       },
     });

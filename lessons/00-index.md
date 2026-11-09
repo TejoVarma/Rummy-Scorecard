@@ -13,3 +13,4 @@
 | 09 | [Announcing the totals out loud (text-to-speech)](09-announce-totals-with-text-to-speech.md) | 3.2 |
 | 10 | [The round winner is whoever *showed*, not whoever scored zero](10-winner-is-the-show-not-zero.md) | 4.1 |
 | 11 | [Edit a round as it was played](11-edit-the-round-as-it-was-played.md) | 4.2 |
+| 12 | [The reducer enforces the rules, not just the buttons](12-the-reducer-enforces-the-rules.md) | 4.3 + 4.4 |

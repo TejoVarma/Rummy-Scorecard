@@ -9,6 +9,8 @@ export interface ThemeStyles {
   text: string;
   muted: string;
   subtle: string;
+  /** Highlighted numbers on the theme-coloured banner: a light tint of the theme's own colour. */
+  accent: string;
 }
 
 export interface ThemeOption {
@@ -32,6 +34,7 @@ export const THEMES: Record<ThemeId, ThemeOption> = {
       text: '#f8fafc',
       muted: '#94a3b8',
       subtle: '#141f36',
+      accent: '#e0f2fe',
     },
     lightStyles: {
       bg: '#f0f9ff',
@@ -41,6 +44,7 @@ export const THEMES: Record<ThemeId, ThemeOption> = {
       text: '#0c4a6e',
       muted: '#0369a1',
       subtle: '#e0f2fe',
+      accent: '#e0f2fe',
     },
   },
   forest_felt: {
@@ -55,6 +59,7 @@ export const THEMES: Record<ThemeId, ThemeOption> = {
       text: '#ecfdf5',
       muted: '#6ee7b7',
       subtle: '#02140e',
+      accent: '#d1fae5',
     },
     lightStyles: {
       bg: '#f0fdf4',
@@ -64,6 +69,7 @@ export const THEMES: Record<ThemeId, ThemeOption> = {
       text: '#064e3b',
       muted: '#047857',
       subtle: '#dcfce7',
+      accent: '#d1fae5',
     },
   },
   midnight_navy: {
@@ -78,6 +84,7 @@ export const THEMES: Record<ThemeId, ThemeOption> = {
       text: '#faf5ff',
       muted: '#d8b4fe',
       subtle: '#0f071c',
+      accent: '#ede9fe',
     },
     lightStyles: {
       bg: '#faf5ff',
@@ -87,6 +94,7 @@ export const THEMES: Record<ThemeId, ThemeOption> = {
       text: '#3b0764',
       muted: '#7e22ce',
       subtle: '#f3e8ff',
+      accent: '#ede9fe',
     },
   },
   classic_charcoal: {
@@ -101,6 +109,7 @@ export const THEMES: Record<ThemeId, ThemeOption> = {
       text: '#fef2f2',
       muted: '#fca5a5',
       subtle: '#170507',
+      accent: '#ffe4e6',
     },
     lightStyles: {
       bg: '#fff1f2',
@@ -110,6 +119,7 @@ export const THEMES: Record<ThemeId, ThemeOption> = {
       text: '#881337',
       muted: '#be123c',
       subtle: '#ffe4e6',
+      accent: '#ffe4e6',
     },
   },
 };

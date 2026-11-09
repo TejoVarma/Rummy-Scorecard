@@ -31,6 +31,7 @@ function applyThemeStyles(theme: (typeof THEMES)[ThemeId], colorMode: ColorMode)
   root.style.setProperty('--color-text', styles.text);
   root.style.setProperty('--color-muted', styles.muted);
   root.style.setProperty('--color-subtle', styles.subtle);
+  root.style.setProperty('--color-accent', styles.accent);
   root.classList.toggle('dark', colorMode === 'dark');
 }
 

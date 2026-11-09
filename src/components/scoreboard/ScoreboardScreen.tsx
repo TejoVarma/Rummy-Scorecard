@@ -203,9 +203,9 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
               <span className="text-white/90">Stake: <strong className="text-white font-mono">₹{entryAmount}</strong></span>
               <span className="flex items-center gap-1">
                 <span className="text-white/90">Total Pool:</span>
-                <strong className="text-emerald-300 font-mono font-bold text-sm">₹{totalPoolAmount}</strong>
+                <strong className="text-[var(--color-accent)] font-mono font-bold text-sm">₹{totalPoolAmount}</strong>
                 {totalReEntries > 0 && (
-                  <span className="text-[10px] text-amber-300 font-semibold font-mono">
+                  <span className="text-[10px] text-[var(--color-accent)] font-semibold font-mono">
                     (+{totalReEntries * entryAmount})
                   </span>
                 )}
@@ -223,7 +223,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
           )}
 
           <div className="text-center pt-1 font-semibold text-white text-xs sm:text-sm tracking-wide">
-            Rounds Completed: <span className="font-mono text-yellow-300 font-extrabold text-sm sm:text-base">{rounds.length}</span>
+            Rounds Completed: <span className="font-mono text-[var(--color-accent)] font-extrabold text-sm sm:text-base">{rounds.length}</span>
           </div>
         </div>
 

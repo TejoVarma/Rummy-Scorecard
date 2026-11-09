@@ -65,6 +65,7 @@ Tejo chose two of the visual notes to change:
   };
   ```
   Layering a translucent gradient over a plain colour works on every Android WebView, unlike newer CSS such as `color-mix()`. The "Congrats" bar uses `bg-[var(--color-primary)]` too.
+- **The banner's highlighted numbers follow the theme too.** The pool amount, the re-entry extra and the round count were three unrelated colours (green, amber, yellow), and the green looked wrong on the red Crimson banner. Each theme now has an `accent`: a light tint of its own colour (pale sky `#e0f2fe`, mint `#d1fae5`, violet `#ede9fe`, rose `#ffe4e6`). It's set as `--color-accent` and used for all three numbers. Tints were chosen **by measuring contrast** against each banner, about 3:1 on all of them, the guideline for large bold text. The deeper tints measured under 3:1. Checked with screenshots of all 4 themes × dark and light.
 - **The score cells stay blue and green on purpose.** Their colours **mean** something (normal round vs all-drop round), and the Emerald theme would otherwise make normal rounds green too.
 
 The other notes stay as they are, by choice.

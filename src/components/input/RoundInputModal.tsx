@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { GameState, PlayerId, ScoreInputType } from '../../domain/types';
 import { getPointsForInputType, validateRoundScores } from '../../domain/scoring';
 import { analyzePlayerDrops } from '../../domain/elimination';
@@ -60,9 +60,14 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
   });
 
   const [showScoreOptions, setShowScoreOptions] = useState<boolean>(true);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (isOpen) dialogRef.current?.focus();
+  }, [isOpen]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   if (!isOpen) return null;
+
 
   const handleSelectType = (playerId: PlayerId, type: ScoreInputType) => {
     setErrorMessage(null);
@@ -147,7 +152,13 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-[var(--color-bg)] text-[var(--color-text)] font-sans select-none overflow-hidden transition-colors duration-200">
+    <div
+      ref={dialogRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="round-input-title"
+      tabIndex={-1}
+      className="fixed inset-0 z-50 flex flex-col focus:outline-none bg-[var(--color-bg)] text-[var(--color-text)] font-sans select-none overflow-hidden transition-colors duration-200">
       {/* Top App Bar matching Screenshot */}
       <div className="flex items-center gap-3 px-4 py-3.5 bg-[var(--color-primary)] text-white shadow shrink-0">
         <button
@@ -159,7 +170,7 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
         >
           <ArrowLeft className="w-5 h-5 text-white" />
         </button>
-        <h1 className="font-semibold text-lg tracking-normal">
+        <h1 id="round-input-title" className="font-semibold text-lg tracking-normal">
           {isEditingLastRound ? `Edit Round ${rounds.length} Scores` : 'Add Round Scores'}
         </h1>
       </div>
@@ -191,6 +202,8 @@ export const RoundInputModal: React.FC<RoundInputModalProps> = ({
           return (
             <div
               key={playerId}
+              role="group"
+              aria-label={player?.name}
               className="p-4 rounded-xl bg-[var(--color-card)] border border-[var(--color-border)] space-y-3 shadow-sm"
             >
               {/* Header row: Name + Current Total on left, Outlined Capsule on right */}

@@ -20,9 +20,7 @@ async function startGame(page: Page, players: string[], stake?: number) {
 }
 
 function playerCard(page: Page, name: string): Locator {
-  return page
-    .getByText(name, { exact: true })
-    .locator('xpath=ancestor::div[contains(@class,"rounded-xl")][1]');
+  return page.getByRole('group', { name, exact: true });
 }
 
 // The last row of the score table holds each player's running total, in seat order.

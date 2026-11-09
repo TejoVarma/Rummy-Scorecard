@@ -257,7 +257,6 @@ describe('elimination domain tests', () => {
       expect(asymAnalysis.status).toBe('one_drop');
       expect(asymAnalysis.canMiddleDrop).toBe(false);
       expect(asymAnalysis.canTwoOpenDrops).toBe(true);
-
     });
   });
 });

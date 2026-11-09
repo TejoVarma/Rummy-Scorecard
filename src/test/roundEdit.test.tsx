@@ -46,7 +46,7 @@ function openEditor(state: GameState, onSubmitRound = vi.fn()) {
 }
 
 function cardFor(name: string) {
-  return screen.getByText(name, { exact: true }).closest('div.rounded-xl') as HTMLElement;
+  return screen.getByRole('group', { name });
 }
 
 afterEach(() => {

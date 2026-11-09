@@ -162,7 +162,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
                   key={preset}
                   type="button"
                   onClick={() => setPool(String(preset))}
-                  className={`px-2 py-0.5 rounded text-[11px] font-medium transition ${
+                  className={`min-h-[44px] px-2 py-0.5 rounded text-[11px] font-medium transition ${
                     pool === String(preset)
                       ? 'bg-[var(--color-primary)] text-white'
                       : 'bg-[var(--color-subtle)] text-[var(--color-muted)] hover:bg-black/5 dark:hover:bg-white/5'
@@ -238,7 +238,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
                     key={val}
                     type="button"
                     onClick={() => setEntryAmount(String(val))}
-                    className={`px-2 py-0.5 rounded text-[11px] font-mono font-medium transition ${
+                    className={`min-h-[44px] px-2 py-0.5 rounded text-[11px] font-mono font-medium transition ${
                       entryAmount === String(val)
                         ? 'bg-[var(--color-primary)] text-white'
                         : 'bg-[var(--color-subtle)] text-[var(--color-muted)] hover:bg-black/5 dark:hover:bg-white/5'
@@ -354,7 +354,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
                       onClick={() => movePlayer(idx, 'up')}
                       disabled={idx === 0}
                       title="Move up"
-                      aria-label="Move up"
+                      aria-label={`Move ${player.name} up`}
                       className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded text-slate-400 hover:text-white disabled:opacity-20"
                     >
                       <ArrowUp className="w-3.5 h-3.5" />
@@ -364,7 +364,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
                       onClick={() => movePlayer(idx, 'down')}
                       disabled={idx === selectedPlayers.length - 1}
                       title="Move down"
-                      aria-label="Move down"
+                      aria-label={`Move ${player.name} down`}
                       className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded text-slate-400 hover:text-white disabled:opacity-20"
                     >
                       <ArrowDown className="w-3.5 h-3.5" />
@@ -374,7 +374,7 @@ export const GameSetupWizard: React.FC<GameSetupWizardProps> = ({ onBack, onStar
                       onClick={() => removePlayer(player.id)}
                       disabled={selectedPlayers.length <= 2}
                       title="Remove"
-                      aria-label="Remove"
+                      aria-label={`Remove ${player.name}`}
                       className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded text-rose-400 hover:text-rose-300 disabled:opacity-20"
                     >
                       <Trash2 className="w-3.5 h-3.5" />

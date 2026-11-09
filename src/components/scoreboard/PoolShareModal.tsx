@@ -251,7 +251,7 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
               <button
                 type="button"
                 onClick={() => setMode('proportional')}
-                className={`py-1.5 px-2 rounded text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
+                className={`min-h-[44px] py-1.5 px-2 rounded text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
                   mode === 'proportional'
                     ? 'bg-[var(--color-primary)] text-white shadow-sm'
                     : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'
@@ -263,7 +263,7 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
               <button
                 type="button"
                 onClick={() => setMode('equal')}
-                className={`py-1.5 px-2 rounded text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
+                className={`min-h-[44px] py-1.5 px-2 rounded text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
                   mode === 'equal'
                     ? 'bg-[var(--color-primary)] text-white shadow-sm'
                     : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'
@@ -275,7 +275,7 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
               <button
                 type="button"
                 onClick={() => setMode('drops')}
-                className={`py-1.5 px-2 rounded text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
+                className={`min-h-[44px] py-1.5 px-2 rounded text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
                   mode === 'drops'
                     ? 'bg-[var(--color-primary)] text-white shadow-sm'
                     : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'
@@ -287,7 +287,7 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
               <button
                 type="button"
                 onClick={() => setMode('custom')}
-                className={`py-1.5 px-2 rounded text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
+                className={`min-h-[44px] py-1.5 px-2 rounded text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
                   mode === 'custom'
                     ? 'bg-[var(--color-primary)] text-white shadow-sm'
                     : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'
@@ -349,6 +349,7 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
                       type="text"
                       inputMode="numeric"
                       pattern="[0-9]*"
+                      aria-label={`Payout for ${player.name}`}
                       value={customPayouts[player.playerId] ?? ''}
                       onChange={e => {
                         const clean = e.target.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
@@ -410,14 +411,14 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
               <button
                 type="button"
                 onClick={() => setShowConfirmAccept(false)}
-                className="flex-1 py-2 rounded-lg border border-[var(--color-border)] text-xs font-semibold hover:bg-black/5 dark:hover:bg-white/5 transition"
+                className="min-h-[44px] flex-1 py-2 rounded-lg border border-[var(--color-border)] text-xs font-semibold hover:bg-black/5 dark:hover:bg-white/5 transition"
               >
                 Go Back
               </button>
               <button
                 type="button"
                 onClick={handleConfirmAccept}
-                className="flex-1 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition"
+                className="min-h-[44px] flex-1 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition"
               >
                 Yes, Finalize Deal
               </button>
@@ -431,7 +432,7 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
           <button
             type="button"
             onClick={handleShareDeal}
-            className="w-full py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-subtle)] hover:bg-black/5 dark:hover:bg-white/5 text-xs font-bold text-[var(--color-text)] transition flex items-center justify-center gap-2"
+            className="min-h-[44px] w-full py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-subtle)] hover:bg-black/5 dark:hover:bg-white/5 text-xs font-bold text-[var(--color-text)] transition flex items-center justify-center gap-2"
           >
             {isCopied ? <Check className="w-4 h-4 text-emerald-500" /> : <Share2 className="w-4 h-4 text-[var(--color-primary)]" />}
             {isCopied ? 'Deal Copied to Clipboard!' : 'Share / Copy Deal Breakdown'}

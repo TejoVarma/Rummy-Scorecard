@@ -159,7 +159,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                 key={id}
                 type="button"
                 onClick={() => onPromptReEntry(id)}
-                className="px-2.5 py-1 text-xs font-semibold rounded bg-[var(--color-primary)] hover:opacity-90 text-white flex items-center gap-1 shadow-sm transition active:scale-95"
+                className="min-h-[44px] px-2.5 py-1 text-xs font-semibold rounded bg-[var(--color-primary)] hover:opacity-90 text-white flex items-center gap-1 shadow-sm transition active:scale-95"
               >
                 <UserPlus className="w-3 h-3" /> Re-Enter {players[id]?.name}
               </button>
@@ -202,7 +202,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
                   <button
                     type="button"
                     onClick={() => setIsPoolShareOpen(true)}
-                    className="ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-amber-950 hover:bg-amber-300 transition shadow-xs flex items-center gap-1 active:scale-95"
+                    className="min-h-[44px] ml-1.5 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-400 text-amber-950 hover:bg-amber-300 transition shadow-xs flex items-center gap-1 active:scale-95"
                   >
                     <Handshake className="w-3 h-3" /> Deal
                   </button>
@@ -258,7 +258,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
             <button
               type="button"
               onClick={() => setIsPoolShareOpen(true)}
-              className="px-2.5 py-1 text-[11px] font-bold rounded bg-emerald-700 hover:bg-emerald-600 text-white shrink-0 shadow-sm transition active:scale-95"
+              className="min-h-[44px] px-2.5 py-1 text-[11px] font-bold rounded bg-emerald-700 hover:bg-emerald-600 text-white shrink-0 shadow-sm transition active:scale-95"
             >
               Details
             </button>
@@ -304,7 +304,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
           <button
             type="button"
             onClick={() => setDismissedRoundToast(rounds[rounds.length - 1]?.roundNumber)}
-            className="text-[11px] font-bold px-2 py-0.5 rounded bg-black/20 hover:bg-black/30 tracking-wider uppercase text-cyan-100 transition active:scale-95 shrink-0"
+            className="min-h-[44px] text-[11px] font-bold px-2 py-0.5 rounded bg-black/20 hover:bg-black/30 tracking-wider uppercase text-cyan-100 transition active:scale-95 shrink-0"
           >
             DISMISS
           </button>

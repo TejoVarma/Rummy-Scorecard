@@ -87,9 +87,7 @@ function renderAppWith(state: GameState) {
 async function submitRound() {
   fireEvent.click(screen.getByRole('button', { name: 'ENTER SCORE' }));
   for (const [name, button] of [['Ravi', 'Show'], ['Amit', 'Drop'], ['Kiran', 'Full']] as const) {
-    const card = screen.getAllByText(name, { exact: true })
-      .map(el => el.closest('div.rounded-xl'))
-      .find(Boolean) as HTMLElement;
+    const card = screen.getByRole('group', { name });
     const btn = Array.from(card.querySelectorAll('button')).find(b => b.textContent?.trim() === button)!;
     fireEvent.click(btn);
   }

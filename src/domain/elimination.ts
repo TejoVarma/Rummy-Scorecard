@@ -69,8 +69,6 @@ export function analyzePlayerDrops(
   };
 }
 
-
-
 /**
  * Checks whether a cumulative score has reached or crossed the pool limit.
  */

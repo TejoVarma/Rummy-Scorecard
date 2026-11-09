@@ -142,6 +142,26 @@ It names the person, and reassures you that past matches keep their names (each 
 
 Totals: **191/191** unit tests, **15/15** browser tests, build ✅.
 
+## Round two: what the reviewers found after the sweep
+
+Two reviewers checked all of Phase 5 afterwards. axe passing did **not** mean the job was finished. They found gaps that automation can't see:
+
+| Gap | Fix |
+|---|---|
+| The **score entry screen** and the **Add/Edit Player popups** were hand-built overlays, not dialogs (step 1 only fixed the shared `Modal`) | `role="dialog"`, `aria-modal`, `aria-labelledby` pointing at their heading; focus moved into score entry |
+| The Edit Player box and the custom deal boxes had **no names** | `aria-label="Player name"`, `` `Payout for ${player.name}` `` |
+| New Game had **12 buttons with 3 identical names** ("Move up", "Move down", "Remove") | `` `Move ${player.name} up` ``, `` `Remove ${player.name}` `` |
+| **Text buttons** still below 44 px: Re-Enter, the small Deal pill (10 px text), Details, Dismiss, Continue's Back/New, New Game chips, deal-mode tabs | `min-h-[44px]` added. The Deal pill text went to 11 px |
+| **"Resume Game" was named "Resume Sunday Marathon"**, so a voice-control command "click Resume Game" did nothing (WCAG 2.5.3, *label in name*) | `` `Resume Game: ${game.title}` ``: the visible words come first |
+| **My own mistake from lesson 19:** `aria-label` on a plain `<div>` is **ignored**. ARIA only allows names on elements with a role, so TalkBack still read "M D" | `role="img"` on the code boxes, so their label is used. RE cells are read as "Re-entry (with the score they came back on): 73" |
+| Closing a dialog left focus on the page body | `Modal` remembers what had focus when it opened and **gives focus back** on close |
+
+The tool-assisted pass also had a lesson of its own: the first automatic "grow the small buttons" script missed most of them. Its pattern stopped at the `>` inside `onClick={() => …}`, and it didn't handle `` className={`…`} ``. Checking the script's output count against the reviewer's list caught that.
+
+Six new tests cover these: score entry is a dialog, cells are read by meaning (`getByRole('img', { name: 'Drop' })`), payout boxes are named, the seating buttons name the player, the add-player popup is a dialog with a named box, and focus returns to Settings after closing. Totals: **201/201** unit tests, **15/15** browser tests.
+
+**The takeaway:** automated checks (axe) catch missing names and roles, but not *ambiguous* names, voice-control mismatches, or ARIA that's present but ignored. Human review (and a real TalkBack session) is still needed.
+
 ## What can go wrong (interview angle)
 
 **"How do you test accessibility?"** Automate what can be automated (axe in unit/e2e tests catches roughly a third to half of issues: names, roles, labels, ARIA misuse). Then test by hand with a real screen reader and with zoom, because automation can't judge whether a name is *helpful*.

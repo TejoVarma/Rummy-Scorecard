@@ -140,9 +140,9 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
       {/* Add Player Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="w-full max-w-xs bg-[var(--color-card)] rounded-xl p-5 border border-[var(--color-border)] shadow-2xl space-y-4 text-[var(--color-text)]">
+          <div role="dialog" aria-modal="true" aria-labelledby="add-player-title" className="w-full max-w-xs bg-[var(--color-card)] rounded-xl p-5 border border-[var(--color-border)] shadow-2xl space-y-4 text-[var(--color-text)]">
             <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-base">Add New Player</h2>
+              <h2 id="add-player-title" className="font-semibold text-base">Add New Player</h2>
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
@@ -154,6 +154,7 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
             </div>
             <form onSubmit={handleAddPlayer} className="space-y-3">
               <input
+                aria-label="New player name"
                 type="text"
                 autoFocus
                 placeholder="Enter player name"
@@ -185,9 +186,9 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
       {/* Edit Player Modal */}
       {editingPlayer && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="w-full max-w-xs bg-[var(--color-card)] rounded-xl p-5 border border-[var(--color-border)] shadow-2xl space-y-4 text-[var(--color-text)]">
+          <div role="dialog" aria-modal="true" aria-labelledby="edit-player-title" className="w-full max-w-xs bg-[var(--color-card)] rounded-xl p-5 border border-[var(--color-border)] shadow-2xl space-y-4 text-[var(--color-text)]">
             <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-base">Edit Player Name</h2>
+              <h2 id="edit-player-title" className="font-semibold text-base">Edit Player Name</h2>
               <button
                 type="button"
                 onClick={() => setEditingPlayer(null)}
@@ -199,6 +200,7 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
             </div>
             <form onSubmit={handleEditPlayer} className="space-y-3">
               <input
+                aria-label="Player name"
                 type="text"
                 autoFocus
                 maxLength={25}

@@ -65,7 +65,7 @@ test('with the setting on, a new round is announced automatically', async ({ pag
 
   await page.getByRole('button', { name: 'ENTER SCORE' }).click();
   const card = (name: string) =>
-    page.getByText(name, { exact: true }).locator('xpath=ancestor::div[contains(@class,"rounded-xl")][1]');
+    page.getByRole('group', { name, exact: true });
   await card('Ravi').getByRole('button', { name: 'Drop', exact: true }).click();
   await card('Amit').getByRole('button', { name: 'Show', exact: true }).click();
   await page.getByRole('button', { name: 'SUBMIT' }).click();

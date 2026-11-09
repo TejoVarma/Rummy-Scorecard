@@ -28,7 +28,7 @@ function open(state = started()) {
   return onSubmitRound;
 }
 
-const card = (name: string) => screen.getByText(name, { exact: true }).closest('div.rounded-xl') as HTMLElement;
+const card = (name: string) => screen.getByRole('group', { name });
 
 afterEach(cleanup);
 

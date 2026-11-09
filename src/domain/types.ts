@@ -9,7 +9,6 @@ export interface GameRules {
   entryAmount?: number;       // Pool stake / entry amount per player (e.g. 100)
 }
 
-
 export interface Player {
   id: PlayerId;
   name: string;

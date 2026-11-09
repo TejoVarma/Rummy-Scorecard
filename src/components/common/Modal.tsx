@@ -23,9 +23,13 @@ export const Modal: React.FC<ModalProps> = ({
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
 
-  // Move focus into the dialog so screen readers announce it and keyboards land inside.
+  // Move focus into the dialog so screen readers announce it and keyboards land inside,
+  // then hand it back to whatever opened the dialog when it closes.
   useEffect(() => {
-    if (isOpen) dialogRef.current?.focus();
+    if (!isOpen) return;
+    const opener = document.activeElement as HTMLElement | null;
+    dialogRef.current?.focus();
+    return () => opener?.focus?.();
   }, [isOpen]);
 
   // Several dialogs can be open at once (Settings over the scoreboard), so count them and

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup, within } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import axe from 'axe-core';
 import { App } from '../App';
@@ -54,6 +54,7 @@ function renderApp() {
 
 beforeEach(() => {
   localStorage.clear();
+  HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue(null);
   const g = JSON.stringify(savedGame());
   localStorage.setItem('rummy_active_game_v1', g);
   localStorage.setItem('rummy_saved_games_list_v1', `[${g}]`);
@@ -145,4 +146,56 @@ describe('screen readers and touch', () => {
     expect(confirm).toHaveBeenCalledWith(expect.stringMatching(/Ravi/));
     expect(screen.getByText('Ravi')).toBeTruthy();
   });
+
+  it('the score entry screen is announced as a dialog', () => {
+    renderApp();
+    fireEvent.click(screen.getByRole('button', { name: /ongoing game/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'ENTER SCORE' }));
+    expect(screen.getByRole('dialog', { name: 'Add Round Scores' })).toBeTruthy();
+  });
+
+  it('score cells are read by meaning, not by code', () => {
+    renderApp();
+    fireEvent.click(screen.getByRole('button', { name: /ongoing game/i }));
+    expect(screen.getByRole('img', { name: 'Show (won the round)' })).toBeTruthy();
+    expect(screen.getByRole('img', { name: 'Drop' })).toBeTruthy();
+  });
+
+  it('custom deal amounts are named per player', () => {
+    renderApp();
+    fireEvent.click(screen.getByRole('button', { name: /ongoing game/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^deal$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /custom/i }));
+    expect(screen.getByRole('textbox', { name: 'Payout for Ravi' })).toBeTruthy();
+  });
+
+  it('seating buttons on New Game say which player they move', () => {
+    renderApp();
+    fireEvent.click(screen.getByRole('button', { name: /start new game/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'SELECT PLAYERS' }));
+    fireEvent.click(screen.getByText('Ravi'));
+    fireEvent.click(screen.getByText('Amit'));
+    fireEvent.click(screen.getByRole('button', { name: /done \(2\)/i }));
+    expect(screen.getByRole('button', { name: 'Move Amit up' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Remove Ravi' })).toBeTruthy();
+  });
+
+  it('the add-player popup is a dialog with a named box', () => {
+    renderApp();
+    fireEvent.click(screen.getByRole('button', { name: /add players/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add Player' }));
+    const dialog = screen.getByRole('dialog', { name: 'Add New Player' });
+    expect(within(dialog).getByRole('textbox', { name: 'New player name' })).toBeTruthy();
+  });
+
+  it('closing a dialog puts focus back on the button that opened it', () => {
+    renderApp();
+    fireEvent.click(screen.getByRole('button', { name: /ongoing game/i }));
+    const settings = screen.getByRole('button', { name: 'Settings' });
+    settings.focus();
+    fireEvent.click(settings);
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    expect(document.activeElement).toBe(settings);
+  });
 });
+

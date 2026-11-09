@@ -26,7 +26,7 @@ const CODED_TYPES = ['show', 'open_drop', 'middle_drop', 'full_count'] as const;
 function ScoreCell({ score, reEntered, rowColour }: { score: PlayerRoundScore; reEntered: boolean; rowColour: string }) {
   if (score.type === 'out') {
     return (
-      <div title={CELL_CODES.out.label} aria-label={CELL_CODES.out.label} className={`${CELL} bg-[#27272a] text-[#71717a]`}>
+      <div role="img" title={CELL_CODES.out.label} aria-label={CELL_CODES.out.label} className={`${CELL} bg-[#27272a] text-[#71717a]`}>
         {CELL_CODES.out.code}
       </div>
     );
@@ -36,14 +36,18 @@ function ScoreCell({ score, reEntered, rowColour }: { score: PlayerRoundScore; r
     const { code, label } = CELL_CODES[coded];
     const textColour = coded === 'show' ? 'text-[#facc15]' : 'text-white';
     return (
-      <div title={label} aria-label={label} className={`${CELL} ${rowColour} ${textColour} shadow-sm`}>
+      <div role="img" title={label} aria-label={label} className={`${CELL} ${rowColour} ${textColour} shadow-sm`}>
         {code}
       </div>
     );
   }
   if (reEntered) {
     return (
-      <div className={`w-full max-w-[48px] mx-auto py-1 rounded-lg ${rowColour} text-center shadow-sm flex items-center justify-center gap-0.5`}>
+      <div
+        role="img"
+        aria-label={`${CELL_CODES.reEntry.label}: ${score.points}`}
+        className={`w-full max-w-[48px] mx-auto py-1 rounded-lg ${rowColour} text-center shadow-sm flex items-center justify-center gap-0.5`}
+      >
         <span className="text-[#ef4444] font-extrabold text-xs" title={CELL_CODES.reEntry.label}>
           {CELL_CODES.reEntry.code}
         </span>
@@ -54,11 +58,13 @@ function ScoreCell({ score, reEntered, rowColour }: { score: PlayerRoundScore; r
   return <div className={`${CELL} ${rowColour} text-white shadow-sm font-mono`}>{score.points}</div>;
 }
 
-function statusColour(isOut: boolean, status: PlayerDropAnalysis['status'] | undefined, normal: string) {
-  if (isOut) return 'text-rose-400/80 line-through';
-  if (status === 'compulsory') return 'text-rose-500 font-extrabold';
-  if (status === 'one_drop') return 'text-yellow-400 font-extrabold';
-  return normal;
+// Names in the header are bolder than the totals underneath them.
+function statusColour(isOut: boolean, status: PlayerDropAnalysis['status'] | undefined, variant: 'name' | 'total') {
+  const name = variant === 'name';
+  if (isOut) return name ? 'text-rose-400/80 line-through' : 'text-rose-400/70 line-through';
+  if (status === 'compulsory') return name ? 'text-rose-500 font-extrabold' : 'text-rose-400 font-bold';
+  if (status === 'one_drop') return name ? 'text-yellow-400 font-extrabold' : 'text-yellow-400 font-bold';
+  return 'text-white font-bold';
 }
 
 export const ScoreTable = forwardRef<HTMLDivElement, ScoreTableProps>(function ScoreTable(
@@ -102,10 +108,10 @@ export const ScoreTable = forwardRef<HTMLDivElement, ScoreTableProps>(function S
                 >
                   <div className="flex flex-col items-center justify-center min-h-[30px]">
                     <span
-                      className={`text-xs truncate block max-w-full ${statusColour(isOut, drops?.status, 'text-white font-bold')}`}
+                      className={`text-xs truncate block max-w-full ${statusColour(isOut, drops?.status, 'name')}`}
                       title={reEntryCount > 0 ? `${player?.name} (re-entry x${reEntryCount})` : player?.name}
                     >
-                      {isDealer ? `*${player?.name}` : player?.name}
+                      {isDealer ? `${CELL_CODES.dealer.code}${player?.name}` : player?.name}
                     </span>
                     {!isOut && drops?.status === 'compulsory' && (
                       <span className="text-[11px] font-extrabold leading-tight tracking-tight text-rose-500 block uppercase mt-0.5">
@@ -185,14 +191,7 @@ export const ScoreTable = forwardRef<HTMLDivElement, ScoreTableProps>(function S
                 {seats.map(playerId => {
                   const score = latestScores[playerId] ?? 0;
                   const isOut = score >= rules.poolLimit;
-                  const status = dropAnalysisMap[playerId]?.status;
-                  const colour = isOut
-                    ? 'text-rose-400/70 line-through'
-                    : status === 'compulsory'
-                    ? 'text-rose-400 font-bold'
-                    : status === 'one_drop'
-                    ? 'text-yellow-400 font-bold'
-                    : 'text-white font-bold';
+                  const colour = statusColour(isOut, dropAnalysisMap[playerId]?.status, 'total');
                   return (
                     <td
                       key={playerId}

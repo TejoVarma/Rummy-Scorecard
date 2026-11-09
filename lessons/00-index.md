@@ -11,3 +11,4 @@
 | 07 | [End-to-end tests with Playwright](07-end-to-end-tests-with-playwright.md) | 6.2 (first round) |
 | 08 | [Share the scorecard as an Image or as Text](08-share-as-image-or-text.md) | 3.1 |
 | 09 | [Announcing the totals out loud (text-to-speech)](09-announce-totals-with-text-to-speech.md) | 3.2 |
+| 10 | [The round winner is whoever *showed*, not whoever scored zero](10-winner-is-the-show-not-zero.md) | 4.1 |

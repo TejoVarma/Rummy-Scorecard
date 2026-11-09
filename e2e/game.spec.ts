@@ -126,3 +126,15 @@ test('a knocked-out player re-enters at the highest active score plus one', asyn
   expect((await totals(page)).sort()).toEqual(['0', '72', '73']);
   await expect(page.getByRole('button', { name: /re-enter amit/i })).toHaveCount(0);
 });
+
+test('the round banner congratulates the real winner, not a knocked-out player in seat 1', async ({ page }) => {
+  await startGame(page, ['Ravi', 'Amit', 'Kiran']);
+  for (let round = 0; round < 3; round++) {
+    await enterRound(page, { Ravi: 'Full', Amit: 'Show', Kiran: 'Drop' });
+  }
+  expect((await totals(page))[0]).toBe('240');
+
+  await enterRound(page, { Amit: 'Drop', Kiran: 'Show' });
+  await expect(page.getByText(/Congrats Kiran/)).toBeVisible();
+  await expect(page.getByText(/Congrats Ravi/)).toHaveCount(0);
+});

@@ -2,6 +2,7 @@ import React, { useState, useRef, useMemo } from 'react';
 import { GameState, PlayerId, DealSplit } from '../../domain/types';
 import { getEligibleForReEntryPlayers, analyzePlayerDrops } from '../../domain/elimination';
 import { Confetti } from '../common/Confetti';
+import { isAllDropRound, roundWinnerId } from '../../domain/roundSummary';
 import { Settings, Trophy, Share2, Trash2, ArrowLeft, UserPlus, Loader2, Handshake, Image as ImageIcon, FileText, Volume2 } from 'lucide-react';
 import { useBackButton, BACK_PRIORITY } from '../../hooks/useBackButton';
 import { PoolShareModal } from './PoolShareModal';
@@ -92,42 +93,12 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
   const isLastRoundEdited = Boolean(lastRound?.isEdited);
   const [dismissedRoundToast, setDismissedRoundToast] = useState<number | null>(null);
 
-  // Precompute All-Drop rounds for O(1) cell coloring
-  const allDropRoundIndices = useMemo(() => {
-    const indices = new Set<number>();
-    rounds.forEach((round, rIdx) => {
-      const scoreEntries = Object.entries(round.scores);
-      if (scoreEntries.length <= 1) return;
-      let showCount = 0;
-      let dropCount = 0;
-      let isAllDrop = true;
-      for (const [, info] of scoreEntries) {
-        if (info.type === 'show' || info.points === 0) {
-          showCount++;
-        } else if (info.type === 'open_drop') {
-          dropCount++;
-        } else {
-          isAllDrop = false;
-          break;
-        }
-      }
-      if (isAllDrop && showCount === 1 && dropCount > 0) {
-        indices.add(rIdx);
-      }
-    });
-    return indices;
-  }, [rounds]);
+  const allDropRoundIndices = useMemo(
+    () => new Set(rounds.flatMap((round, i) => (isAllDropRound(round) ? [i] : []))),
+    [rounds]
+  );
 
-  // Identify winner of the last completed round for congrats toast
-  const lastRoundWinnerId = useMemo(() => {
-    if (!lastRound) return null;
-    for (const [pId, scoreInfo] of Object.entries(lastRound.scores)) {
-      if (scoreInfo.type === 'show' || scoreInfo.points === 0) {
-        return pId;
-      }
-    }
-    return null;
-  }, [lastRound]);
+  const lastRoundWinnerId = lastRound ? roundWinnerId(lastRound) : null;
 
   const handleShare = async (kind: 'image' | 'text') => {
     if (sharingAs) return;

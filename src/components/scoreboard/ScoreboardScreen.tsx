@@ -20,6 +20,12 @@ import {
   shareText,
 } from '../../services/share';
 
+// The selected theme's colour, shaded darker to the right like the original banner.
+const THEMED_BANNER = {
+  backgroundColor: 'var(--color-primary)',
+  backgroundImage: 'linear-gradient(to right, rgba(255,255,255,0.06), rgba(0,0,0,0.28))',
+};
+
 interface ScoreboardScreenProps {
   state: GameState;
   onBack: () => void;
@@ -178,7 +184,10 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
         </div>
 
         {/* Subheader info block matching Screenshot 1 & 2 */}
-        <div className="px-4 py-2.5 bg-gradient-to-r from-[#0078d4] via-[#0284c7] to-[#1e40af] text-white border-b border-black/10 text-xs shadow-inner shrink-0">
+        <div
+          className="px-4 py-2.5 text-white border-b border-black/10 text-xs shadow-inner shrink-0"
+          style={THEMED_BANNER}
+        >
           <div className="flex justify-between items-center py-0.5">
             <span className="text-white/90">Game Score: <strong className="text-white font-mono font-bold text-sm">{rules.poolLimit}</strong></span>
             <span className="text-white/90">Open drop: <strong className="text-white font-mono font-bold text-sm">{rules.openDrop}</strong></span>
@@ -299,7 +308,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
 
       {/* Round Winner Toast matching Screenshot 2 */}
       {lastRoundWinnerId && !winnerPlayerId && dismissedRoundToast !== rounds[rounds.length - 1]?.roundNumber && (
-        <div className="mx-3 my-1.5 px-3 py-2 rounded-lg bg-[#0284c7] text-white flex items-center justify-between shadow-md shrink-0">
+        <div className="mx-3 my-1.5 px-3 py-2 rounded-lg bg-[var(--color-primary)] text-white flex items-center justify-between shadow-md shrink-0">
           <span className="font-semibold text-xs text-white truncate mr-2">
             Congrats {players[lastRoundWinnerId]?.name}
           </span>

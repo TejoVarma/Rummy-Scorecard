@@ -53,6 +53,22 @@ Moving validation into `domain/` also fixed a **layering** problem: the reducer 
 
 Results: **221/221** unit tests, **15/15** browser tests, lint and types clean.
 
+## Owner's decisions on the visual notes
+
+Tejo chose two of the visual notes to change:
+- **The "Options" / "More options" icons were removed.** They did nothing, and a control that does nothing confuses everyone, screen-reader users most.
+- **The scoreboard follows the theme.** The info banner (rules, stake, pool) was a fixed blue gradient. It now uses the theme's `--color-primary`, shaded darker to the right with a translucent gradient layered on top:
+  ```tsx
+  const THEMED_BANNER = {
+    backgroundColor: 'var(--color-primary)',
+    backgroundImage: 'linear-gradient(to right, rgba(255,255,255,0.06), rgba(0,0,0,0.28))',
+  };
+  ```
+  Layering a translucent gradient over a plain colour works on every Android WebView, unlike newer CSS such as `color-mix()`. The "Congrats" bar uses `bg-[var(--color-primary)]` too.
+- **The score cells stay blue and green on purpose.** Their colours **mean** something (normal round vs all-drop round), and the Emerald theme would otherwise make normal rounds green too.
+
+The other notes stay as they are, by choice.
+
 ## Left for the owner (visual), not changed
 
 - The compact top-bar icons and the small Deal pill are smaller than the 44 px touch guideline (a deliberate choice).

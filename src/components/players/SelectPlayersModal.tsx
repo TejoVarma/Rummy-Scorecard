@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, UserPlus, X, MoreVertical } from 'lucide-react';
+import { Check, UserPlus, X } from 'lucide-react';
 import { SavedRosterPlayer, loadPlayerRoster, savePlayerRoster } from '../../storage/localStorageAdapter';
 import { useBackButton, BACK_PRIORITY } from '../../hooks/useBackButton';
 
@@ -82,14 +82,6 @@ export const SelectPlayersModal: React.FC<SelectPlayersModalProps> = ({
             </button>
             <h2 id="select-players-title" className="font-semibold text-base tracking-normal">Select Players</h2>
           </div>
-          <button
-            type="button"
-            title="Options"
-            aria-label="Options"
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded hover:bg-black/10 transition"
-          >
-            <MoreVertical className="w-5 h-5 text-white" />
-          </button>
         </div>
 
         {/* Informational Subtext */}

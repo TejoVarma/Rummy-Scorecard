@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, User, UserPlus, Trash2, Edit2, MoreVertical, X } from 'lucide-react';
+import { ArrowLeft, User, UserPlus, Trash2, Edit2, X } from 'lucide-react';
 import { SavedRosterPlayer, loadPlayerRoster, savePlayerRoster } from '../../storage/localStorageAdapter';
 import { useBackButton, BACK_PRIORITY } from '../../hooks/useBackButton';
 
@@ -71,14 +71,6 @@ export const PlayerListScreen: React.FC<PlayerListScreenProps> = ({ onBack }) =>
           </button>
           <h1 className="font-medium text-lg tracking-normal">Player List</h1>
         </div>
-        <button
-          type="button"
-          title="More options"
-          aria-label="More options"
-          className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded hover:bg-black/10 active:bg-black/20 transition"
-        >
-          <MoreVertical className="w-5 h-5 text-white" />
-        </button>
       </div>
 
       {/* Player List matching Screenshot 2 */}

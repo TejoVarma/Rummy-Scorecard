@@ -45,6 +45,9 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
   const { title, rules, seats, players, rounds, currentDealerIndex, winnerPlayerId, dealSplit } = state;
   const currentDealerId = seats[currentDealerIndex];
   const [selectedRoundIndex, setSelectedRoundIndex] = useState<number | null>(null);
+  // Celebrate a win that happens while this screen is open, not one from an earlier visit.
+  const [winnerWhenOpened] = useState(winnerPlayerId);
+  const justWon = Boolean(winnerPlayerId) && winnerPlayerId !== winnerWhenOpened;
   const [isShareMenuOpen, setIsShareMenuOpen] = useState(false);
   const [sharingAs, setSharingAs] = useState<ShareKind | null>(null);
   const scoreTableScrollRef = useRef<HTMLDivElement>(null);
@@ -216,7 +219,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
         {/* Winner Celebration Banner */}
         {winnerPlayerId && (
           <div className="shrink-0">
-            <Confetti />
+            {justWon && <Confetti />}
             <div className="mx-3 my-2 p-2.5 rounded-lg bg-[#064e3b] border border-[#059669] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Trophy className="w-5 h-5 text-amber-400 shrink-0" />

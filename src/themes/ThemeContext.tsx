@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useState, useLayoutEffect } from 'react';
 import { ColorMode, THEMES, ThemeId, ThemeOption } from './themeConfig';
 
 interface ThemeContextValue {
@@ -20,6 +20,19 @@ const isValidThemeId = (id: unknown): id is ThemeId =>
 
 const isValidColorMode = (mode: unknown): mode is ColorMode =>
   mode === 'dark' || mode === 'light';
+
+function applyThemeStyles(theme: (typeof THEMES)[ThemeId], colorMode: ColorMode) {
+  const root = document.documentElement;
+  const styles = colorMode === 'dark' ? theme.darkStyles : theme.lightStyles;
+  root.style.setProperty('--color-bg', styles.bg);
+  root.style.setProperty('--color-card', styles.card);
+  root.style.setProperty('--color-border', styles.border);
+  root.style.setProperty('--color-primary', styles.primary);
+  root.style.setProperty('--color-text', styles.text);
+  root.style.setProperty('--color-muted', styles.muted);
+  root.style.setProperty('--color-subtle', styles.subtle);
+  root.classList.toggle('dark', colorMode === 'dark');
+}
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [themeId, setThemeIdState] = useState<ThemeId>(() => {
@@ -68,24 +81,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setColorMode(colorMode === 'dark' ? 'light' : 'dark');
   };
 
-  useEffect(() => {
-    const root = document.documentElement;
-    const styles = colorMode === 'dark' ? theme.darkStyles : theme.lightStyles;
+  // Apply the saved colours once, before any screen draws, so a light theme never flashes dark.
+  useState(() => applyThemeStyles(theme, colorMode));
 
-    root.style.setProperty('--color-bg', styles.bg);
-    root.style.setProperty('--color-card', styles.card);
-    root.style.setProperty('--color-border', styles.border);
-    root.style.setProperty('--color-primary', styles.primary);
-    root.style.setProperty('--color-text', styles.text);
-    root.style.setProperty('--color-muted', styles.muted);
-    root.style.setProperty('--color-subtle', styles.subtle);
-
-    if (colorMode === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-  }, [themeId, colorMode, theme]);
+  // Later changes apply before the browser paints, too.
+  useLayoutEffect(() => applyThemeStyles(theme, colorMode), [theme, colorMode]);
 
   return (
     <ThemeContext.Provider

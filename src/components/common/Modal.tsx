@@ -2,6 +2,8 @@ import React, { useEffect, useId, useRef } from 'react';
 import { X } from 'lucide-react';
 import { useBackButton, BACK_PRIORITY } from '../../hooks/useBackButton';
 
+let openDialogs = 0;
+
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -26,14 +28,15 @@ export const Modal: React.FC<ModalProps> = ({
     if (isOpen) dialogRef.current?.focus();
   }, [isOpen]);
 
+  // Several dialogs can be open at once (Settings over the scoreboard), so count them and
+  // only let the page scroll again when the last one closes.
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
+    if (!isOpen) return;
+    openDialogs += 1;
+    document.body.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow = 'unset';
+      openDialogs -= 1;
+      if (openDialogs === 0) document.body.style.overflow = '';
     };
   }, [isOpen]);
 

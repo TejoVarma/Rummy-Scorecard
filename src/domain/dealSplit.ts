@@ -146,9 +146,13 @@ function roundToRupees(
   floored.forEach(s => (s.fraction = s.amount - s.floor));
   let missing = Math.round(totalPool - floored.reduce((sum, s) => sum + s.floor, 0));
 
-  const byClaim = [...floored].sort(
-    (a, b) => b.fraction - a.fraction || b.player.drops - a.player.drops || a.order - b.order
-  );
+  // Fractions like 0.67 aren't stored exactly, so two "equal" ones can differ by a hair.
+  // Anything closer than a millionth of a rupee counts as a tie, settled by drops.
+  const byClaim = [...floored].sort((a, b) => {
+    const diff = b.fraction - a.fraction;
+    if (Math.abs(diff) > 1e-6) return diff;
+    return b.player.drops - a.player.drops || a.order - b.order;
+  });
   for (const s of floored) payouts[s.player.playerId] = s.floor;
   for (let i = 0; missing > 0 && byClaim.length > 0; i++, missing--) {
     payouts[byClaim[i % byClaim.length].player.playerId] += 1;

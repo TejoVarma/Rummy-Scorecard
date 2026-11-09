@@ -51,6 +51,18 @@ describe('drop split: stakes back, then drops, then the rest equally', () => {
     expect(p3).toBe(833);
   });
 
+  it('treats equal fractions as equal even when the computer stores them slightly differently', () => {
+    // 2166.67 / 1666.67 / 1166.67: two rupees over, to the two players with the most drops.
+    expect(split(5000, [3, 2, 1])).toEqual([2167, 1667, 1166]);
+    // ₹350 stake: 1633.33 / 933.33 / 583.33: one rupee over, to the most drops.
+    const payouts = calculateDropDeal(3150, 350, [
+      { playerId: 'p1', drops: 3 },
+      { playerId: 'p2', drops: 1 },
+      { playerId: 'p3', drops: 0 },
+    ]);
+    expect(payouts).toEqual({ p1: 1634, p2: 933, p3: 583 });
+  });
+
   it('with no stake set, just splits the pool equally', () => {
     const payouts = calculateDropDeal(0, 0, [{ playerId: 'a', drops: 2 }, { playerId: 'b', drops: 0 }]);
     expect(payouts).toEqual({ a: 0, b: 0 });

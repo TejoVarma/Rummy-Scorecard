@@ -101,6 +101,31 @@ Rounding each amount to the nearest rupee on its own can make the total ₹1 off
   - shows `24 pts · 7 drops` under each name while that mode is selected
 - Accepting a drop split goes through the same `validateDeal` as every other deal (lesson 12): the players still in, whole rupees, the exact pool. Drop splits always satisfy it.
 
+## A bug Tejo's spot-check found: "equal" fractions that weren't
+
+Tejo asked to check 3/2/1, 3/2/0 and 3/1/0 with awkward amounts (an odd ₹350 stake, uneven pools). Running the real function over them showed two results that broke our own rule ("an odd rupee goes to the most drops"):
+
+| Case | Exact | App gave | Correct |
+|---|---|---|---|
+| 3/2/1, ₹500, ₹5000 | 2166.67 / 1666.67 / 1166.67 | ₹2166 / ₹1667 / ₹1167 | **₹2167 / ₹1667 / ₹1166** |
+| 3/1/0, ₹350, ₹3150 | 1633.33 / 933.33 / 583.33 | ₹1633 / ₹934 / ₹583 | **₹1634 / ₹933 / ₹583** |
+
+**Why:** computers store decimals in binary, so 2/3 isn't exact. The three ".67" fractions came out as `0.6666666667` vs `0.6666666666`. The sort saw them as different, so it never reached the "most drops" tie-break. Totals were still exact; only *who* got the odd rupee was wrong.
+
+**Fix:** compare fractions with a tolerance.
+
+```ts
+// Fractions like 0.67 aren't stored exactly, so two "equal" ones can differ by a hair.
+// Anything closer than a millionth of a rupee counts as a tie, settled by drops.
+const byClaim = [...floored].sort((a, b) => {
+  const diff = b.fraction - a.fraction;
+  if (Math.abs(diff) > 1e-6) return diff;
+  return b.player.drops - a.player.drops || a.order - b.order;
+});
+```
+
+**Lesson:** never compare floating-point numbers for exact equality. Compare within a tolerance (an "epsilon"), or work in whole units. A test with "nice" numbers (₹500 stakes, round pools) hid this. Awkward numbers found it in seconds, so test with ugly inputs.
+
 ## The tests
 
 **Unit tests** (`src/test/dropDeal.test.ts`, 11 tests):
@@ -112,7 +137,7 @@ Rounding each amount to the nearest rupee on its own can make the total ₹1 off
 
 **End-to-end** (`e2e/dropDeal.spec.ts`): 4 players at ₹500 (pool ₹2000), Dev put out in round 1. The Deal screen → **By Drops** shows `0 pts · 8 drops`, `24 pts · 7 drops`, `80 pts · 5 drops` and **₹700 / ₹675 / ₹625**. Stakes back is ₹1500, and the ₹500 left is shared 8 : 7 : 5. Accepting the deal settles the match.
 
-Totals: **174/174** unit tests and **15/15** browser tests.
+Plus a test for the two tie cases above. Totals: **175/175** unit tests and **15/15** browser tests.
 
 ## What can go wrong (interview angle)
 

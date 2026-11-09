@@ -23,3 +23,4 @@
 | 19 | [A colour legend and readable labels](19-a-legend-and-readable-labels.md) | 5.2 |
 | 20 | [One list instead of ten copies (the score entry screen)](20-one-list-instead-of-ten-copies.md) | 5.3 |
 | 21 | [An accessibility sweep, checked by axe](21-accessibility-sweep-with-axe.md) | 5.4 |
+| 22 | [Splitting a big component without changing what it does](22-splitting-a-big-component.md) | 5.5 |

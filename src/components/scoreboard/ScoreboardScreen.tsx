@@ -3,10 +3,13 @@ import { GameState, PlayerId, DealSplit } from '../../domain/types';
 import { getEligibleForReEntryPlayers, analyzePlayerDrops } from '../../domain/elimination';
 import { Confetti } from '../common/Confetti';
 import { isAllDropRound, roundWinnerId } from '../../domain/roundSummary';
-import { Settings, Trophy, Share2, Trash2, ArrowLeft, UserPlus, Loader2, Handshake, Image as ImageIcon, FileText, Volume2 } from 'lucide-react';
+import { Trophy, UserPlus, Handshake } from 'lucide-react';
 import { useBackButton, BACK_PRIORITY } from '../../hooks/useBackButton';
 import { PoolShareModal } from './PoolShareModal';
-import { CELL_CODES, ScoreLegend } from './ScoreLegend';
+import { ScoreTable } from './ScoreTable';
+import { ScoreboardHeader } from './ScoreboardHeader';
+import { ScoreboardActions } from './ScoreboardActions';
+import { ShareMenu, ShareKind } from './ShareMenu';
 import {
   buildScorecardText,
   captureElement,
@@ -15,7 +18,6 @@ import {
   shareImage,
   shareText,
 } from '../../services/share';
-import { Modal } from '../common/Modal';
 
 interface ScoreboardScreenProps {
   state: GameState;
@@ -44,7 +46,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
   const currentDealerId = seats[currentDealerIndex];
   const [selectedRoundIndex, setSelectedRoundIndex] = useState<number | null>(null);
   const [isShareMenuOpen, setIsShareMenuOpen] = useState(false);
-  const [sharingAs, setSharingAs] = useState<'image' | 'text' | null>(null);
+  const [sharingAs, setSharingAs] = useState<ShareKind | null>(null);
   const scoreTableScrollRef = useRef<HTMLDivElement>(null);
   const [isPoolShareOpen, setIsPoolShareOpen] = useState(false);
   const scorecardCaptureRef = useRef<HTMLDivElement>(null);
@@ -100,7 +102,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
 
   const lastRoundWinnerId = lastRound ? roundWinnerId(lastRound) : null;
 
-  const handleShare = async (kind: 'image' | 'text') => {
+  const handleShare = async (kind: ShareKind) => {
     if (sharingAs) return;
     setSharingAs(kind);
     const shareTitle = `${title.replace(/[\r\n]+/g, ' ').trim()} Scorecard`;
@@ -132,68 +134,15 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
 
   return (
     <div className="flex flex-col h-screen w-full max-w-2xl mx-auto overflow-hidden bg-[var(--color-bg)] text-[var(--color-text)] font-sans select-none transition-colors duration-200">
-      {/* Top App Bar matching Screenshot 5 with dynamic theme color */}
-      <div className="flex items-center justify-between px-3.5 py-3 bg-[var(--color-primary)] text-white shadow-sm shrink-0">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onBack}
-            title="Back to Home"
-            aria-label="Back to Home"
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded hover:bg-black/10 transition"
-          >
-            <ArrowLeft className="w-5 h-5 text-white" />
-          </button>
-          <h1 className="font-semibold text-base tracking-normal truncate max-w-[200px]">
-            {title}
-          </h1>
-        </div>
-
-        <div className="flex items-center gap-1.5">
-          {rounds.length > 0 && (
-            <button
-              type="button"
-              onClick={onAnnounceScores}
-              title="Announce scores"
-              aria-label="Announce scores"
-              className="p-1.5 rounded hover:bg-black/10 transition"
-            >
-              <Volume2 className="w-4 h-4 text-white" />
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={() => setIsShareMenuOpen(true)}
-            title="Share Scorecard"
-            aria-label="Share Scorecard"
-            className="p-1.5 rounded hover:bg-black/10 transition"
-          >
-            <Share2 className="w-4 h-4 text-white" />
-          </button>
-          <button
-            type="button"
-            onClick={onOpenSettings}
-            title="Settings"
-            aria-label="Settings"
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded hover:bg-black/10 transition"
-          >
-            <Settings className="w-4 h-4 text-white" />
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              if (window.confirm(`Delete "${title}" permanently? Its scores and deal can't be recovered.`)) {
-                onDeleteGame();
-              }
-            }}
-            title="Delete Game"
-            aria-label="Delete Game"
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded hover:bg-rose-600/30 text-rose-200 transition"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
+      <ScoreboardHeader
+        title={title}
+        canAnnounce={rounds.length > 0}
+        onBack={onBack}
+        onAnnounce={onAnnounceScores}
+        onShare={() => setIsShareMenuOpen(true)}
+        onOpenSettings={onOpenSettings}
+        onDelete={onDeleteGame}
+      />
 
       {/* Re-Entry Action Banner - only for players eliminated in the most recent round if no deal settled the match */}
       {eligibleReEntryPlayers.length > 0 && rules.allowReEntry && !isDealSettled && (
@@ -313,236 +262,20 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
           </div>
         )}
 
-        {/* Score Matrix Table - NO horizontal scroll for <= 6 players */}
-        <div
+        <ScoreTable
           ref={scoreTableScrollRef}
-          className={`flex-1 ${isCompactFit ? 'overflow-y-auto overflow-x-hidden' : 'overflow-auto'} relative bg-[var(--color-bg)]`}
-        >
-          <table className={`w-full border-collapse ${isCompactFit ? 'table-fixed' : 'min-w-max'}`}>
-            {/* Sticky Player Headers */}
-            <thead className="sticky top-0 z-30 bg-[#1f2937] dark:bg-[#18181b] text-white border-b border-[var(--color-border)] shadow-sm">
-              <tr>
-                {seats.map(playerId => {
-                  const player = players[playerId];
-                  const score = latestScores[playerId] ?? 0;
-                  const isDealer = currentDealerId === playerId;
-                  const isOut = score >= rules.poolLimit;
-                  const dropAnalysis = dropAnalysisMap[playerId];
-                  const dropStatus = dropAnalysis?.status ?? 'safe';
-                  const reEntryCount = player?.reEntryCount ?? 0;
-                  const isReEntered = reEntryCount > 0;
-
-                  const nameColorClass = isOut
-                    ? 'text-rose-400/80 line-through'
-                    : dropStatus === 'compulsory'
-                    ? 'text-rose-500 font-extrabold'
-                    : dropStatus === 'one_drop'
-                    ? 'text-yellow-400 font-extrabold'
-                    : 'text-white font-bold';
-
-                  const oneDropLabel = dropAnalysis.canMiddleDrop ? '1 DROP' : '1 DROP (NO MD)';
-
-                  return (
-                    <th
-                      key={playerId}
-                      style={isCompactFit ? { width: `${100 / seats.length}%` } : { minWidth: '60px' }}
-                      className={`py-2 px-1 text-center font-normal border-r border-[var(--color-border)] last:border-r-0 ${
-                        isDealer ? 'bg-[var(--color-primary)]/15' : ''
-                      }`}
-                    >
-                      <div className="flex flex-col items-center justify-center min-h-[30px]">
-                        {/* Player Name with dealer asterisk * matching screenshots */}
-                        <div className="flex items-center justify-center gap-0.5 max-w-full">
-                          <span
-                            className={`text-xs truncate block ${nameColorClass}`}
-                            title={isReEntered ? `${player?.name} (re-entry x${reEntryCount})` : player?.name}
-                          >
-                            {isDealer ? `*${player?.name}` : player?.name}
-                          </span>
-                        </div>
-
-                        {/* Drop Warning / Compulsory Pill */}
-                        {!isOut && dropStatus === 'compulsory' && (
-                          <span className="text-[11px] font-extrabold leading-tight tracking-tight text-rose-500 block uppercase mt-0.5">
-                            COMPULSORY
-                          </span>
-                        )}
-                        {!isOut && dropStatus === 'one_drop' && (
-                          <span className="text-[11px] font-extrabold leading-tight tracking-tight text-yellow-400 block uppercase mt-0.5">
-                            {oneDropLabel}
-                          </span>
-                        )}
-
-                        {/* Explicit re-entry badge showing the exact count */}
-                        {isReEntered && (
-                          <span
-                            className={`text-[11px] font-bold leading-tight tracking-tight block mt-0.5 ${
-                              isOut ? 'text-rose-400/80 line-through' : 'text-[#ef4444]'
-                            }`}
-                          >
-                            {reEntryCount === 1 ? '(re entry)' : `(re entry #${reEntryCount})`}
-                          </span>
-                        )}
-                      </div>
-                    </th>
-                  );
-                })}
-              </tr>
-            </thead>
-
-            {/* Table Body (Rounds + Next Grid Total Row) */}
-            <tbody className="divide-y divide-[var(--color-border)]">
-              {rounds.length === 0 ? (
-                <tr>
-                  <td colSpan={seats.length} className="py-20 text-center text-xs text-[var(--color-muted)]">
-                    No rounds recorded yet.<br />Tap <strong className="text-[var(--color-primary)]">"ENTER SCORE"</strong> below to begin.
-                  </td>
-                </tr>
-              ) : (
-                <>
-                  {rounds.map((round, rIdx) => {
-                    const isRowSelected = selectedRoundIndex === rIdx;
-                    const isEdited = Boolean(round.isEdited);
-
-                    // O(1) All Drop round check from precomputed memoized set
-                    const isAllDropRound = allDropRoundIndices.has(rIdx);
-                    const cellBgClass = isAllDropRound ? 'bg-[#15803d]' : 'bg-[#0078d4]';
-
-                    return (
-                      <tr
-                        key={round.roundNumber}
-                        onClick={() => setSelectedRoundIndex(isRowSelected ? null : rIdx)}
-                        className={`transition-colors cursor-pointer ${
-                          isEdited ? 'bg-amber-500/15' : ''
-                        } ${
-                          isRowSelected ? 'bg-black/5 dark:bg-white/[0.06]' : 'hover:bg-black/[0.02] dark:hover:bg-white/[0.02]'
-                        }`}
-                      >
-                        {seats.map((playerId, colIdx) => {
-                          const scoreInfo = round.scores[playerId];
-                          const isFirstCol = colIdx === 0;
-
-                          if (!scoreInfo) {
-                            return (
-                              <td
-                                key={playerId}
-                                className={`py-1 px-0.5 text-center border-b border-[var(--color-border)] border-r border-[var(--color-border)] last:border-r-0 text-[var(--color-muted)] font-mono text-xs ${
-                                  isEdited && isFirstCol ? 'border-l-4 border-l-amber-500' : ''
-                                }`}
-                              >
-                                -
-                              </td>
-                            );
-                          }
-
-                          // Cell content matching blue or green rounded boxes
-                          const renderScoreCell = () => {
-                            switch (scoreInfo.type) {
-                              case 'show':
-                                return (
-                                  <div className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg ${cellBgClass} text-[#facc15] font-bold text-sm text-center shadow-sm`} title={CELL_CODES.show.label} aria-label={CELL_CODES.show.label}>
-                                    R
-                                  </div>
-                                );
-                              case 'open_drop':
-                                return (
-                                  <div className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg ${cellBgClass} text-white font-bold text-sm text-center shadow-sm`} title={CELL_CODES.open_drop.label} aria-label={CELL_CODES.open_drop.label}>
-                                    D
-                                  </div>
-                                );
-                              case 'middle_drop':
-                                return (
-                                  <div className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg ${cellBgClass} text-white font-bold text-sm text-center shadow-sm`} title={CELL_CODES.middle_drop.label} aria-label={CELL_CODES.middle_drop.label}>
-                                    MD
-                                  </div>
-                                );
-                              case 'full_count':
-                                return (
-                                  <div className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg ${cellBgClass} text-white font-bold text-sm text-center shadow-sm`} title={CELL_CODES.full_count.label} aria-label={CELL_CODES.full_count.label}>
-                                    FC
-                                  </div>
-                                );
-                              case 'out':
-                                return (
-                                  <div title={CELL_CODES.out.label} aria-label={CELL_CODES.out.label} className="w-full max-w-[48px] mx-auto py-1.5 rounded-lg bg-[#27272a] text-[#71717a] font-bold text-sm text-center">
-                                    X
-                                  </div>
-                                );
-                              default: {
-                                const wasReEnteredHere = round.reEnteredInRound?.includes(playerId);
-                                if (wasReEnteredHere) {
-                                  return (
-                                    <div className={`w-full max-w-[48px] mx-auto py-1 rounded-lg ${cellBgClass} text-center shadow-sm flex items-center justify-center gap-0.5`}>
-                                      <span className="text-[#ef4444] font-extrabold text-xs" title={CELL_CODES.reEntry.label}>RE</span>
-                                      <span className="text-[#4ade80] font-mono font-bold text-[10px] align-sub">
-                                        {scoreInfo.points}
-                                      </span>
-                                    </div>
-                                  );
-                                }
-                                return (
-                                  <div className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg ${cellBgClass} text-white font-bold text-sm text-center shadow-sm font-mono`}>
-                                    {scoreInfo.points}
-                                  </div>
-                                );
-                              }
-                            }
-                          };
-
-                          return (
-                            <td
-                              key={playerId}
-                              className={`py-1 px-0.5 text-center border-b border-[var(--color-border)] border-r border-[var(--color-border)] last:border-r-0 align-middle ${
-                                isEdited && isFirstCol ? 'border-l-4 border-l-amber-500' : ''
-                              }`}
-                            >
-                              {renderScoreCell()}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    );
-                  })}
-
-                  {/* Total Score Grid Row - clean, elegant dark tile matching the grid seamlessly */}
-                  <tr className="bg-black/[0.03] dark:bg-white/[0.02]">
-                    {seats.map(playerId => {
-                      const score = latestScores[playerId] ?? 0;
-                      const isDealer = currentDealerId === playerId;
-                      const isOut = score >= rules.poolLimit;
-                      const dropAnalysis = dropAnalysisMap[playerId];
-                      const dropStatus = dropAnalysis?.status ?? 'safe';
-
-                      const totalColorClass = isOut
-                        ? 'text-rose-400/70 line-through'
-                        : dropStatus === 'compulsory'
-                        ? 'text-rose-400 font-bold'
-                        : dropStatus === 'one_drop'
-                        ? 'text-yellow-400 font-bold'
-                        : 'text-white font-bold';
-
-                      return (
-                        <td
-                          key={playerId}
-                          className={`py-1 px-0.5 text-center border-b border-[var(--color-border)] border-r border-[var(--color-border)] last:border-r-0 align-middle ${
-                            isDealer ? 'bg-[var(--color-primary)]/10' : ''
-                          }`}
-                        >
-                          <div
-                            className={`w-full max-w-[48px] mx-auto py-1.5 rounded-lg bg-[#1e293b] dark:bg-[#18181b] text-center font-mono text-sm shadow-sm ${totalColorClass}`}
-                          >
-                            {score}
-                          </div>
-                        </td>
-                      );
-                    })}
-                  </tr>
-                </>
-              )}
-            </tbody>
-          </table>
-          {rounds.length > 0 && <ScoreLegend />}
-        </div>
+          seats={seats}
+          players={players}
+          rounds={rounds}
+          rules={rules}
+          latestScores={latestScores}
+          currentDealerId={currentDealerId}
+          dropAnalysisMap={dropAnalysisMap}
+          allDropRoundIndices={allDropRoundIndices}
+          selectedRoundIndex={selectedRoundIndex}
+          onSelectRound={setSelectedRoundIndex}
+          isCompactFit={isCompactFit}
+        />
       </div>
 
       {/* Selected Round Info Toast */}
@@ -575,74 +308,22 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
         </div>
       )}
 
-      {/* Bottom Action Pill Buttons matching Screenshot 5 */}
-      <div className="p-3 bg-[var(--color-bg)] border-t border-[var(--color-border)] space-y-2 shrink-0">
-        {dealSplit ? (
-          <button
-            type="button"
-            onClick={() => setIsPoolShareOpen(true)}
-            className="w-full py-3 rounded-full font-bold text-sm bg-emerald-600 hover:bg-emerald-500 text-white shadow transition active:scale-[0.99] flex items-center justify-center gap-2"
-          >
-            <Handshake className="w-4 h-4" /> View Prize Pool Settlement (₹{dealSplit.totalPool})
-          </button>
-        ) : (
-          <>
-            <button
-              type="button"
-              onClick={onOpenScoreInput}
-              disabled={Boolean(winnerPlayerId)}
-              className="w-full py-3 rounded-full font-bold text-sm bg-[var(--color-primary)] hover:opacity-90 disabled:opacity-40 text-white shadow transition active:scale-[0.99] tracking-wider"
-            >
-              ENTER SCORE
-            </button>
+      <ScoreboardActions
+        dealSplit={dealSplit}
+        hasWinner={Boolean(winnerPlayerId)}
+        hasRounds={rounds.length > 0}
+        isLastRoundEdited={isLastRoundEdited}
+        onEnterScore={onOpenScoreInput}
+        onEditScore={onOpenEditScore}
+        onOpenDeal={() => setIsPoolShareOpen(true)}
+      />
 
-            <button
-              type="button"
-              onClick={onOpenEditScore}
-              disabled={rounds.length === 0 || isLastRoundEdited}
-              className="w-full py-2.5 rounded-full font-semibold text-xs border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 disabled:opacity-40 transition active:scale-[0.99] tracking-wider"
-            >
-              EDIT SCORE
-            </button>
-
-            {rounds.length > 0 && !winnerPlayerId && (
-              <button
-                type="button"
-                onClick={() => setIsPoolShareOpen(true)}
-                className="w-full py-2 rounded-full font-semibold text-xs border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 transition flex items-center justify-center gap-1.5 active:scale-[0.99] tracking-wider"
-              >
-                <Handshake className="w-3.5 h-3.5" /> SHARE POOL / MAKE DEAL
-              </button>
-            )}
-          </>
-        )}
-      </div>
-
-      <Modal isOpen={isShareMenuOpen} onClose={() => !sharingAs && setIsShareMenuOpen(false)} title="Share scorecard">
-        <div className="grid grid-cols-2 gap-3">
-          {([
-            { kind: 'image', label: 'Image', hint: 'Picture of the full scoreboard', Icon: ImageIcon },
-            { kind: 'text', label: 'Text', hint: 'Totals as a message', Icon: FileText },
-          ] as const).map(({ kind, label, hint, Icon }) => (
-            <button
-              key={kind}
-              type="button"
-              onClick={() => handleShare(kind)}
-              disabled={sharingAs !== null}
-              aria-label={`Share as ${label}`}
-              className="min-h-[96px] p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] hover:border-[var(--color-primary)] disabled:opacity-50 transition flex flex-col items-center justify-center gap-1.5 text-center"
-            >
-              {sharingAs === kind ? (
-                <Loader2 className="w-6 h-6 animate-spin text-[var(--color-primary)]" />
-              ) : (
-                <Icon className="w-6 h-6 text-[var(--color-primary)]" />
-              )}
-              <span className="font-semibold text-sm">{label}</span>
-              <span className="text-[11px] text-[var(--color-muted)] leading-tight">{hint}</span>
-            </button>
-          ))}
-        </div>
-      </Modal>
+      <ShareMenu
+        isOpen={isShareMenuOpen}
+        sharingAs={sharingAs}
+        onClose={() => setIsShareMenuOpen(false)}
+        onShare={handleShare}
+      />
 
       {isPoolShareOpen && (
         <PoolShareModal

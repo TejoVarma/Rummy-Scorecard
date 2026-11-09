@@ -8,3 +8,4 @@
 | 04 | [Destructive actions vs navigation](04-destructive-actions-vs-navigation.md) | 1.4 |
 | 05 | [Upgrading Capacitor 6 → 8 and Android SDK 34 → 36](05-capacitor-8-and-sdk-36-upgrade.md) | 2.1 |
 | 06 | [Lint as a quality gate (ESLint, typed errors, CI hygiene)](06-lint-as-a-quality-gate.md) | 2.2 |
+| 07 | [End-to-end tests with Playwright](07-end-to-end-tests-with-playwright.md) | 6.2 (first round) |

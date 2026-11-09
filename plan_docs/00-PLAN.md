@@ -68,7 +68,7 @@ R#18-21, R#24, R#26, R#27: remove the dead UNDO/REORDER/custom_fixed code, re-en
 | Step | What |
 |---|---|
 | 6.1 | Run the five ECC reviewers again (typescript, react, security, silent-failure, code) plus `verification-loop`; fix whatever they confirm |
-| 6.2 | Playwright e2e in the repo (`e2e-testing` skill), at a phone-sized screen: new game, scores, drops, re-entry, deal, edit, share choice. Runs in CI |
+| 🟡 6.2 | **First round done 2026-11-09:** 8 flows in `e2e/game.spec.ts` (scores, cap, one-Show rule, edit, deal, reload, start-new-match, re-entry), running in CI. Extend after the features. Playwright e2e in the repo (`e2e-testing` skill), at a phone-sized screen: new game, scores, drops, re-entry, deal, edit, share choice. Runs in CI |
 | 6.3 | Real-phone checklist for native-only behaviour: Image/Text share sheet, voice announcement, back button, install and update of the signed APK |
 
 ## Open questions

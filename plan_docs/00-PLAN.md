@@ -15,6 +15,7 @@
 | 2026-11-09 | Old keystore: removed from the repo and rotated. Purging git history is skipped, because the old key is burned either way. |
 | 2026-11-09 | `plan_docs/` and `lessons/` are **published** in the public repo. |
 | 2026-11-09 | Announce: **totals only**, in **English**, spoken **automatically after each round (on/off switch) plus a replay button**. |
+| 2026-11-09 | Capacitor 8, not 7: the text-to-speech plugin has no Capacitor 7 version. Node 22 pinned per project with fnm + `.nvmrc` (global Node 18 kept). Android SDK installed locally so builds are verified without pushing. |
 | 2026-11-09 | Platform upgrade (Capacitor + targetSdk) comes **before** the new features, so the new plugins are installed only once, on the new version. |
 
 ## Phase 1: safety fixes (P0)
@@ -32,8 +33,8 @@ Exit: tests are green, the APK is signed with the new key, and each bug has a re
 
 | Step | What | Review # | You'll learn |
 |---|---|---|---|
-| 2.1 | Capacitor 6 → 7 (or the current version), targetSdk/compileSdk 35 or higher, fix edge-to-edge insets | R#5 | Mobile SDK levels, Play Store policy, and doing a framework upgrade |
-| 2.2 | CI: Node 22, ESLint, `permissions: contents: read`, coverage limited to `src/` | R#22, R#23 | CI hygiene and lint as a quality gate |
+| ✅ 2.1 | Capacitor 6 → 8.6, targetSdk/compileSdk 36, minSdk 24, Node 22 (`.nvmrc`), Java 21, edge-to-edge handled by dropping `viewport-fit=cover`. App v1.3 | R#5 | Mobile SDK levels, Play Store policy, and doing a framework upgrade |
+| ✅ 2.2 | CI: Node 22 (`.nvmrc`), ESLint 10 + react-hooks (27 errors fixed, none disabled), `permissions: contents: read`, coverage limited to `src/` (honest 52%), vitest 2 → 5. Dev-only audit leftover: minimatch inside ESLint, accepted | R#22, R#23 | CI hygiene and lint as a quality gate |
 
 Exit: the app builds and runs on a phone at the new SDK, and CI is green with lint.
 

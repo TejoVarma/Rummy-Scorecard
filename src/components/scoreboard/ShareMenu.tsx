@@ -1,12 +1,13 @@
 import React from 'react';
-import { FileText, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { FileText, Image as ImageIcon, Loader2, Smartphone } from 'lucide-react';
 import { Modal } from '../common/Modal';
 
-export type ShareKind = 'image' | 'text';
+export type ShareKind = 'image' | 'text' | 'match';
 
 const OPTIONS = [
   { kind: 'image', label: 'Image', hint: 'Picture of the full scoreboard', Icon: ImageIcon },
   { kind: 'text', label: 'Text', hint: 'Totals as a message', Icon: FileText },
+  { kind: 'match', label: 'Match file', hint: 'Continue on another phone', Icon: Smartphone },
 ] as const;
 
 interface ShareMenuProps {
@@ -33,7 +34,7 @@ export const ShareMenu: React.FC<ShareMenuProps> = ({ isOpen, sharingAs, onClose
           onClick={() => onShare(kind)}
           disabled={sharingAs !== null}
           aria-label={`Share as ${label}`}
-          className="min-h-[96px] p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] hover:border-[var(--color-primary)] disabled:opacity-50 transition flex flex-col items-center justify-center gap-1.5 text-center"
+          className="last:odd:col-span-2 min-h-[96px] p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] hover:border-[var(--color-primary)] disabled:opacity-50 transition flex flex-col items-center justify-center gap-1.5 text-center"
         >
           {sharingAs === kind ? (
             <Loader2 className="w-6 h-6 animate-spin text-[var(--color-primary)]" />

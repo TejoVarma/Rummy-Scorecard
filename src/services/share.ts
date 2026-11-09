@@ -132,9 +132,9 @@ export async function shareImage(blob: Blob, fileName: string, title: string): P
   URL.revokeObjectURL(url);
 }
 
-export function scorecardFileName(state: GameState): string {
+export function scorecardFileName(state: GameState, extension: 'png' | 'json' = 'png'): string {
   const safeTitle = state.title.trim().replace(/[^a-zA-Z0-9_-]+/g, '_').replace(/^_+|_+$/g, '') || 'scorecard';
-  return `${safeTitle}-round-${state.rounds.length}.png`;
+  return `${safeTitle}-round-${state.rounds.length}.${extension}`;
 }
 
 /** Hands a text file (such as a backup) to the share sheet on the phone, or downloads it in a browser. */

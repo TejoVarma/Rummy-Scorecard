@@ -6,16 +6,19 @@ import { ScoreboardScreen } from '../components/scoreboard/ScoreboardScreen';
 import { gameReducer, INITIAL_STATE } from '../state/gameReducer';
 import { DEFAULT_RULES } from '../domain/scoring';
 import { GameState } from '../domain/types';
+import { readMatchFile } from '../storage/localStorageAdapter';
 
 const shareMocks = vi.hoisted(() => ({
   shareText: vi.fn().mockResolvedValue(undefined),
   shareImage: vi.fn().mockResolvedValue(undefined),
+  shareTextFile: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('../services/share', async importOriginal => ({
   ...(await importOriginal<typeof import('../services/share')>()),
   shareText: shareMocks.shareText,
   shareImage: shareMocks.shareImage,
+  shareTextFile: shareMocks.shareTextFile,
 }));
 
 function playedGame(stake = 0): GameState {
@@ -123,5 +126,16 @@ describe('Share button', () => {
     await waitFor(() => expect(shareMocks.shareText).toHaveBeenCalledTimes(1));
     expect(shareMocks.shareText.mock.calls[0][1]).toContain('Amit: 80 pts');
     expect(shareMocks.shareImage).not.toHaveBeenCalled();
+  });
+
+  it('shares a match file that another phone can import', async () => {
+    const state = playedGame();
+    renderBoard(state);
+    fireEvent.click(screen.getByTitle('Share Scorecard'));
+    fireEvent.click(screen.getByRole('button', { name: /share as match file/i }));
+    await waitFor(() => expect(shareMocks.shareTextFile).toHaveBeenCalledTimes(1));
+    const [json, fileName] = shareMocks.shareTextFile.mock.calls[0];
+    expect(readMatchFile(json)).toEqual({ ok: true, game: state });
+    expect(fileName).toBe('Friday_Pool-round-1.json');
   });
 });

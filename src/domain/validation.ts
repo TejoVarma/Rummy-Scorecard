@@ -58,7 +58,7 @@ export function isValidGameState(obj: unknown): obj is GameState {
   }
 
   if (!isStringList(c.seats) || c.seats.length === 0) return false;
-  if (new Set(c.seats).size !== c.seats.length || !c.seats.every(id => players[id])) return false;
+  if (new Set(c.seats).size !== c.seats.length || !c.seats.every(id => Object.prototype.hasOwnProperty.call(players, id))) return false;
   if (!Number.isInteger(c.currentDealerIndex)) return false;
   const dealer = c.currentDealerIndex as number;
   if (dealer < 0 || dealer >= c.seats.length) return false;

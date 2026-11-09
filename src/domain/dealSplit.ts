@@ -58,7 +58,9 @@ export function calculateProportionalDeal(
     payouts[x.playerId] = x.floor;
   });
 
-  for (let i = 0; i < leftToDistribute; i++) {
+  // Normally fewer rupees than players are left over; the cap keeps absurd totals from looping forever.
+  const extraRupees = Math.min(Math.round(leftToDistribute), sorted.length);
+  for (let i = 0; i < extraRupees; i++) {
     payouts[sorted[i % sorted.length].playerId] += 1;
   }
 

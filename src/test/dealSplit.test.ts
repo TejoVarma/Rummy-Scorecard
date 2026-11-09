@@ -25,6 +25,15 @@ describe('dealSplit domain tests', () => {
     expect(payouts.p1 + payouts.p2).toBe(1000);
   });
 
+  it('finishes quickly even for a pool too large to add up exactly', () => {
+    const payouts = calculateProportionalDeal(201, 1e300, [
+      { playerId: 'p1', score: 166 },
+      { playerId: 'p2', score: 98 },
+      { playerId: 'p3', score: 49 },
+    ]);
+    expect(Object.keys(payouts)).toHaveLength(3);
+  });
+
   it('guarantees total sum strictly matches total pool with 3 players', () => {
     const payouts = calculateProportionalDeal(201, 700, [
       { playerId: 'p1', score: 50 },

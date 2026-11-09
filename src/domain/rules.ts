@@ -4,6 +4,9 @@ import { validateCustomDeal } from './dealSplit';
 
 const isWholeNumber = (n: unknown): n is number => typeof n === 'number' && Number.isInteger(n);
 
+// Ten crore rupees. Far beyond any real table, and small enough that pool maths stays exact.
+export const MAX_STAKE = 100_000_000;
+
 /** The first rule a game setup breaks, as a message for the player, or null when it's fine. */
 export function validateRules(rules: GameRules): string | null {
   const { poolLimit, openDrop, middleDrop, fullCount, entryAmount = 0 } = rules;
@@ -15,6 +18,7 @@ export function validateRules(rules: GameRules): string | null {
   if (middleDrop >= fullCount) return 'Middle Drop must be less than Full Count.';
   if (openDrop >= poolLimit) return 'Open Drop must be less than the pool score.';
   if (!isWholeNumber(entryAmount) || entryAmount < 0) return 'The stake must be a whole number of rupees, 0 or more.';
+  if (entryAmount > MAX_STAKE) return 'The stake is too large.';
   return null;
 }
 

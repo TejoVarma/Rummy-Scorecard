@@ -18,7 +18,9 @@ import {
   scorecardFileName,
   shareImage,
   shareText,
+  shareTextFile,
 } from '../../services/share';
+import { exportMatch } from '../../storage/localStorageAdapter';
 
 // The selected theme's colour, shaded darker to the right like the original banner.
 const THEMED_BANNER = {
@@ -120,6 +122,8 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
     try {
       if (kind === 'text') {
         await shareText(shareTitle, buildScorecardText(state));
+      } else if (kind === 'match') {
+        await shareTextFile(exportMatch(state), scorecardFileName(state, 'json'), shareTitle);
       } else {
         if (!scorecardCaptureRef.current) throw new Error('Scoreboard is not on screen');
         const blob = await captureElement(scorecardCaptureRef.current, scoreTableScrollRef.current);

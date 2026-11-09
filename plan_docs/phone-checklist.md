@@ -54,6 +54,15 @@ Install the latest `RummyScoreboard.apk` (from GitHub Actions → Artifacts, or 
 - [ ] Force-stop the app mid-game and reopen: the match is still there.
 - [ ] Delete a game from Continue Game: it's gone after a restart too.
 
+## Match hand-over and names (v1.10)
+- [ ] Players → Add Player: the keyboard starts with a capital letter.
+- [ ] Share → **Match file** → WhatsApp to a second phone.
+- [ ] On the second phone, save the file, then Continue Game → **Import match from another phone**. The file can be picked (not greyed out), and the scoreboard opens on the right round with the same totals and dealer.
+- [ ] Play a round there, then import the same old file again: the new round is still there, and a message says the phone already has it further along.
+
+## Updating the app keeps data
+- [ ] Before updating, note a saved match. Install the new APK **over** the old one (don't uninstall). The match is still in Continue Game.
+
 ## Screen reader (optional, TalkBack on)
 - [ ] Top-bar icons are read as "Back to Home", "Announce scores", "Share Scorecard", "Settings", "Delete Game".
 - [ ] Score cells read as "Drop", "Middle drop", "Show (won the round)".

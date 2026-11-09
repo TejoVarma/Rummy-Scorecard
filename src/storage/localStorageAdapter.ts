@@ -1,6 +1,7 @@
 import { Preferences } from '@capacitor/preferences';
 import { GameState } from '../domain/types';
 import { isPlainObject, isValidGameState } from '../domain/validation';
+import { validateRules } from '../domain/rules';
 
 export { isValidGameState };
 
@@ -392,6 +393,93 @@ export async function restoreBackup(
   await mirrorQueue;
 
   return { added, updated, playersAdded: playersSaved ? newPlayers.length : 0, playersSaved };
+}
+
+const MATCH_FILE_KIND = 'rummy-scorecard-match';
+const MATCH_FILE_VERSION = 1;
+const NOT_A_MATCH = 'This is not a Rummy Scorecard match file.';
+// A real match is well under 100 KB.
+export const MAX_MATCH_BYTES = 1_000_000;
+
+/** One match as a file, so another phone can pick it up and carry on. */
+export function exportMatch(game: GameState): string {
+  return JSON.stringify({ kind: MATCH_FILE_KIND, version: MATCH_FILE_VERSION, exportedAt: Date.now(), game });
+}
+
+export function readMatchFile(json: string): { ok: true; game: GameState } | { ok: false; message: string } {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(json);
+  } catch {
+    return { ok: false, message: NOT_A_MATCH };
+  }
+  if (!isPlainObject(parsed)) return { ok: false, message: NOT_A_MATCH };
+  if (Array.isArray(parsed.savedGames)) {
+    return { ok: false, message: 'This is a full backup, not a single match. Restore it from Settings → Import backup.' };
+  }
+  if (parsed.kind !== MATCH_FILE_KIND) return { ok: false, message: NOT_A_MATCH };
+  if (typeof parsed.version !== 'number' || parsed.version > MATCH_FILE_VERSION) {
+    return { ok: false, message: 'This match was shared from a newer version of the app. Update the app first.' };
+  }
+  if (!isValidGameState(parsed.game) || validateRules(parsed.game.rules) !== null) {
+    return { ok: false, message: 'This match file is damaged and can\'t be opened.' };
+  }
+  return { ok: true, game: parsed.game };
+}
+
+export type MatchImportResult =
+  | { outcome: 'added' | 'updated' | 'already_here' | 'kept_phone_copy'; game: GameState }
+  | { outcome: 'refused'; message: string }
+  | { outcome: 'cancelled' };
+
+/**
+ * Saves an imported match and returns the copy to open. If the phone already has the
+ * match (saved or open), the copy that's further along wins, so importing an old file
+ * never loses rounds. Anything on the phone that can't be read is left untouched rather
+ * than overwritten. Throws if the phone couldn't store it.
+ */
+export async function importMatch(
+  incoming: GameState,
+  confirmReplace: (phoneRounds: number, fileRounds: number) => boolean = () => true
+): Promise<MatchImportResult> {
+  const list = readRawList();
+  if (list === null) {
+    return {
+      outcome: 'refused',
+      message: "Your saved matches can't be read right now, so nothing was changed.",
+    };
+  }
+
+  const index = list.findIndex(entry => entryId(entry) === incoming.gameId);
+  const saved = index >= 0 ? list[index] : undefined;
+  if (saved !== undefined && !isValidGameState(saved)) {
+    return {
+      outcome: 'refused',
+      message: "This phone has a copy of this match that can't be read, so it wasn't replaced.",
+    };
+  }
+
+  const active = loadActiveGame();
+  const open = active && active.gameId === incoming.gameId ? active : null;
+  let phoneCopy: GameState | undefined = saved as GameState | undefined;
+  if (open && (!phoneCopy || isFurtherAlong(open, phoneCopy))) phoneCopy = open;
+
+  if (phoneCopy && !isFurtherAlong(incoming, phoneCopy)) {
+    const phoneIsAhead = isFurtherAlong(phoneCopy, incoming);
+    return { outcome: phoneIsAhead ? 'kept_phone_copy' : 'already_here', game: phoneCopy };
+  }
+  if (phoneCopy && !confirmReplace(phoneCopy.rounds.length, incoming.rounds.length)) return { outcome: 'cancelled' };
+
+  const updated = index >= 0 ? list.map((entry, i) => (i === index ? incoming : entry)) : [incoming, ...list];
+  if (!(await writeList(updated))) throw new Error('Could not store the imported match');
+
+  if (open) {
+    const serialized = JSON.stringify(incoming);
+    if (!writeLocal(ACTIVE_GAME_KEY, serialized)) throw new Error('Could not update the open match');
+    await mirror(ACTIVE_GAME_KEY, serialized);
+  }
+
+  return { outcome: index >= 0 ? 'updated' : 'added', game: incoming };
 }
 
 /** How many saved matches exist but can't be read (shown so nothing disappears silently). */

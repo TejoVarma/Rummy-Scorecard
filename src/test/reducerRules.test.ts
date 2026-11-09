@@ -64,6 +64,11 @@ describe('starting a game', () => {
 });
 
 describe('validateRules', () => {
+  it('refuses a stake too large to be real', () => {
+    expect(validateRules({ ...DEFAULT_RULES, entryAmount: 100_000_001 })).toMatch(/stake/i);
+    expect(validateRules({ ...DEFAULT_RULES, entryAmount: 100_000_000 })).toBeNull();
+  });
+
   it('accepts the defaults', () => {
     expect(validateRules(DEFAULT_RULES)).toBeNull();
   });

@@ -9,6 +9,8 @@
 
 | Date | Decision |
 |---|---|
+| 2026-11-09 | **Match hand-over by file, not QR** (Tejo: "whichever is better"): a match is 8–65 KB raw (~1–2 KB compressed best case), past what a screen-to-camera QR reads reliably (~1 KB), and QR needs a camera permission. Share → Match file; Continue Game → Import match. Keeps the further-along copy; doesn't touch the Players list. Opening the file straight from WhatsApp (intent filter) left for later. |
+| 2026-11-09 | Name fields open the keyboard with a capital letter (`autoCapitalize`), a hint only; typed text is saved as typed. |
 | 2026-11-09 | Drop-based pool split **revived and built** (Tejo's rule, any number of players): stakes back → each drop worth one stake (pro rata if short) → rest equal; nearest ₹1, odd rupee to most drops; one stake back even after re-entry. Superseded the earlier "dropped" entry below. |
 | 2026-11-09 | Drop-based pool split (3+ players): **dropped**. Too many table-specific rules (rounding, who covers the shortfall, ties). The existing Custom split covers it. |
 | 2026-11-09 | Share: one Share button that asks **Image or Text**; the user picks. |

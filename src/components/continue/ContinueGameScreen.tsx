@@ -1,7 +1,14 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { GameState } from '../../domain/types';
-import { ArrowLeft, Play, Trash2, Trophy, Clock, Users, Plus } from 'lucide-react';
-import { loadAllSavedGames, deleteGameFromList, countUnreadableSavedGames } from '../../storage/localStorageAdapter';
+import { ArrowLeft, Play, Trash2, Trophy, Clock, Users, Plus, Download } from 'lucide-react';
+import {
+  loadAllSavedGames,
+  deleteGameFromList,
+  countUnreadableSavedGames,
+  readMatchFile,
+  importMatch,
+  MAX_MATCH_BYTES,
+} from '../../storage/localStorageAdapter';
 
 interface ContinueGameScreenProps {
   onBack: () => void;
@@ -18,6 +25,68 @@ export const ContinueGameScreen: React.FC<ContinueGameScreenProps> = ({
 }) => {
   const [games, setGames] = useState<GameState[]>(() => loadAllSavedGames());
   const [unreadable] = useState(countUnreadableSavedGames);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (file.size > MAX_MATCH_BYTES) {
+      alert('That file is too big to be a Rummy Scorecard match.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onerror = () => alert("Couldn't read that file. Please pick it again.");
+    reader.onload = async () => {
+      const result = readMatchFile(String(reader.result ?? ''));
+      if (!result.ok) {
+        alert(result.message);
+        return;
+      }
+      let imported: Awaited<ReturnType<typeof importMatch>>;
+      try {
+        imported = await importMatch(result.game, (phoneRounds, fileRounds) =>
+          window.confirm(
+            `This phone already has "${result.game.title}" (${phoneRounds} rounds). Replace it with the copy in this file (${fileRounds} rounds)?`
+          )
+        );
+      } catch (err) {
+        console.error('Importing a match failed', err);
+        alert("Couldn't save the match. Your phone may be out of space.");
+        return;
+      }
+      if (imported.outcome === 'cancelled') return;
+      if (imported.outcome === 'refused') {
+        alert(imported.message);
+        return;
+      }
+      if (imported.outcome === 'kept_phone_copy') {
+        alert(`This phone already has this match further along (${imported.game.rounds.length} rounds), so that copy is opened.`);
+      }
+      try {
+        onResumeGame(imported.game);
+      } catch (err) {
+        console.error('Opening the imported match failed', err);
+        alert('The match was saved. Open it from the Continue Game list.');
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const importButton = (
+    <>
+      <button
+        type="button"
+        onClick={() => fileInputRef.current?.click()}
+        className="min-h-[44px] w-full flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-[var(--color-border)] text-xs font-semibold text-[var(--color-primary)] hover:border-[var(--color-primary)] transition"
+      >
+        <Download className="w-4 h-4" /> Import match from another phone
+      </button>
+      {/* No accept filter: chat apps often save .json files with a generic type, which Android's picker would grey out. The contents are checked instead. */}
+      <input ref={fileInputRef} type="file" aria-label="Import a match file" onChange={handleImportFile} className="hidden" />
+    </>
+  );
 
   const handleDelete = async (e: React.MouseEvent, gameId: string, title: string) => {
     e.stopPropagation(); // Don't trigger resume
@@ -82,6 +151,7 @@ export const ContinueGameScreen: React.FC<ContinueGameScreenProps> = ({
             >
               Start New Game
             </button>
+            <div className="max-w-xs mx-auto pt-2">{importButton}</div>
           </div>
         ) : (
           games.map(game => {
@@ -168,6 +238,7 @@ export const ContinueGameScreen: React.FC<ContinueGameScreenProps> = ({
             );
           })
         )}
+        {games.length > 0 && importButton}
       </div>
     </div>
   );

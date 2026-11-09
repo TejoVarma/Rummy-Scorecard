@@ -29,3 +29,5 @@
 | 25 | [The project story, for interviews](25-the-project-story-for-interviews.md) | 6.3 |
 | 26 | [The whole system, explained (tech, design and why)](26-the-whole-system-explained.md) | Overview |
 | 27 | [The final review: five reviewers, one app](27-the-final-review.md) | 6.1 |
+| 28 | [Capital letters on the keyboard (autocapitalize)](28-capital-letters-on-the-keyboard.md) | Bug fix |
+| 29 | [Moving a match to another phone (match file)](29-moving-a-match-to-another-phone.md) | Feature |

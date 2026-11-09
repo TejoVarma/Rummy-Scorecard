@@ -11,6 +11,7 @@ import { Handshake, Share2, AlertCircle, Check, Scale, Equal, Edit3 } from 'luci
 import { Capacitor } from '@capacitor/core';
 import { Share } from '@capacitor/share';
 import { useBackButton, BACK_PRIORITY } from '../../hooks/useBackButton';
+import { isShareCancelled } from '../../services/share';
 
 interface PoolShareModalProps {
   isOpen: boolean;
@@ -149,8 +150,8 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2000);
       }
-    } catch (err: any) {
-      if (err?.name !== 'AbortError') {
+    } catch (err) {
+      if (!isShareCancelled(err)) {
         console.warn('Share deal failed, attempting clipboard fallback:', err);
         try {
           if (typeof navigator !== 'undefined' && navigator.clipboard) {

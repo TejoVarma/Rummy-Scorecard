@@ -55,7 +55,7 @@ export function analyzePlayerDrops(
   const canFullCount = score + fullCount < poolLimit;
   const openDropsRemaining = Math.max(0, Math.floor(remainingMargin / safeOpenDrop));
 
-  let status: DropStatus = 'safe';
+  let status: DropStatus;
   if (!canOpenDrop) {
     status = 'compulsory';
   } else if (!canTwoOpenDrops || !canMiddleDrop) {

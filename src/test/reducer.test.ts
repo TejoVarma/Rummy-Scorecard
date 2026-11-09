@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { gameReducer, INITIAL_STATE } from '../state/gameReducer';
 import { DEFAULT_RULES } from '../domain/scoring';
+import { RoundRecord } from '../domain/types';
 
 describe('gameReducer integration tests', () => {
   it('initializes game and runs a round', () => {
@@ -469,9 +470,9 @@ describe('gameReducer integration tests', () => {
     });
 
     // Simulate legacy round without reEnteredInRound field
-    const legacyRound = { ...state.rounds[0] };
-    delete (legacyRound as any).reEnteredInRound;
-    state = { ...state, rounds: [legacyRound as any] };
+    const legacyRound: Partial<RoundRecord> = { ...state.rounds[0] };
+    delete legacyRound.reEnteredInRound;
+    state = { ...state, rounds: [legacyRound as RoundRecord] };
 
     // Re-entering p2 must not throw TypeError: lastRound.reEnteredInRound is not iterable
     expect(() => {

@@ -8,7 +8,7 @@ interface ReEntryModalProps {
   isOpen: boolean;
   onClose: () => void;
   state: GameState;
-  reEnteringPlayerId: PlayerId | null;
+  reEnteringPlayerId: PlayerId;
   onConfirmReEntry: (playerId: PlayerId, customScore?: number) => void;
 }
 
@@ -19,8 +19,6 @@ export const ReEntryModal: React.FC<ReEntryModalProps> = ({
   reEnteringPlayerId,
   onConfirmReEntry,
 }) => {
-  if (!reEnteringPlayerId) return null;
-
   const { players, seats, rules, rounds, currentDealerIndex } = state;
   const player = players[reEnteringPlayerId];
   const currentDealerId = seats[currentDealerIndex];

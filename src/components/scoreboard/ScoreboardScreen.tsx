@@ -7,6 +7,7 @@ import { useBackButton, BACK_PRIORITY } from '../../hooks/useBackButton';
 import { Capacitor } from '@capacitor/core';
 import { Share } from '@capacitor/share';
 import { PoolShareModal } from './PoolShareModal';
+import { isShareCancelled } from '../../services/share';
 
 interface ScoreboardScreenProps {
   state: GameState;
@@ -191,8 +192,8 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
         document.body.removeChild(link);
         URL.revokeObjectURL(downloadUrl);
       }
-    } catch (err: any) {
-      if (err?.name !== 'AbortError') {
+    } catch (err) {
+      if (!isShareCancelled(err)) {
         // Fallback to text share
         try {
           if (Capacitor.isNativePlatform()) {
@@ -207,8 +208,8 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
             await navigator.clipboard.writeText(summary);
             alert('Scorecard text copied to clipboard!');
           }
-        } catch (shareErr: any) {
-          if (shareErr?.name !== 'AbortError') {
+        } catch (shareErr) {
+          if (!isShareCancelled(shareErr)) {
             console.warn('Text share fallback failed:', shareErr);
           }
         }

@@ -49,10 +49,10 @@ describe('elimination domain tests', () => {
         {
           roundNumber: 1,
           dealerPlayerId: 'p1',
-          scores: {} as any,
+          scores: {},
           cumulativeScores: { p1: 40, p2: 50, p3: 205 },
           seatsSnapshot: seats,
-          playersSnapshot: {} as any,
+          playersSnapshot: {},
           eliminatedInRound: ['p3'],
           reEnteredInRound: [],
           timestamp: 1000,
@@ -69,10 +69,10 @@ describe('elimination domain tests', () => {
         {
           roundNumber: 1,
           dealerPlayerId: 'p1',
-          scores: {} as any,
+          scores: {},
           cumulativeScores: { p1: 40, p2: 50, p3: 205 },
           seatsSnapshot: seats,
-          playersSnapshot: {} as any,
+          playersSnapshot: {},
           eliminatedInRound: ['p3'],
           reEnteredInRound: [],
           timestamp: 1000,
@@ -81,10 +81,10 @@ describe('elimination domain tests', () => {
         {
           roundNumber: 2,
           dealerPlayerId: 'p2',
-          scores: {} as any,
+          scores: {},
           cumulativeScores: { p1: 64, p2: 50, p3: 205 },
           seatsSnapshot: seats,
-          playersSnapshot: {} as any,
+          playersSnapshot: {},
           eliminatedInRound: [], // nobody eliminated in round 2
           reEnteredInRound: [],
           timestamp: 2000,
@@ -102,11 +102,11 @@ describe('elimination domain tests', () => {
         {
           roundNumber: 1,
           dealerPlayerId: 'p1',
-          scores: {} as any,
+          scores: {},
           // Highest active score is 200. Re-entry score = 200 + 1 = 201 (>= 201 poolLimit)
           cumulativeScores: { p1: 200, p2: 80, p3: 205 },
           seatsSnapshot: seats,
-          playersSnapshot: {} as any,
+          playersSnapshot: {},
           eliminatedInRound: ['p3'],
           reEnteredInRound: [],
           timestamp: 1000,
@@ -122,10 +122,10 @@ describe('elimination domain tests', () => {
         {
           roundNumber: 1,
           dealerPlayerId: 'p1',
-          scores: {} as any,
+          scores: {},
           cumulativeScores: { p1: 40, p2: 50, p3: 205 },
           seatsSnapshot: seats,
-          playersSnapshot: {} as any,
+          playersSnapshot: {},
           eliminatedInRound: ['p3'],
           reEnteredInRound: [],
           timestamp: 1000,
@@ -141,10 +141,10 @@ describe('elimination domain tests', () => {
         {
           roundNumber: 1,
           dealerPlayerId: 'p1',
-          scores: {} as any,
+          scores: {},
           cumulativeScores: { p1: 40, p2: 50, p3: 51 }, // p3 re-entered with score 51!
           seatsSnapshot: seats,
-          playersSnapshot: {} as any,
+          playersSnapshot: {},
           eliminatedInRound: ['p3'],
           reEnteredInRound: ['p3'], // already re-entered!
           timestamp: 1000,
@@ -160,10 +160,10 @@ describe('elimination domain tests', () => {
         {
           roundNumber: 1,
           dealerPlayerId: 'p1',
-          scores: {} as any,
+          scores: {},
           cumulativeScores: { p1: 40, p2: 50, p3: 205 },
           seatsSnapshot: seats,
-          playersSnapshot: {} as any,
+          playersSnapshot: {},
           eliminatedInRound: ['p3'],
           reEnteredInRound: [],
           timestamp: 1000,

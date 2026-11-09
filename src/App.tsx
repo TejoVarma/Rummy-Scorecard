@@ -163,6 +163,7 @@ export function App() {
       {/* Re-Entry Dialog Modal */}
       {reEntryTargetPlayerId && (
         <ReEntryModal
+          key={reEntryTargetPlayerId}
           isOpen={Boolean(reEntryTargetPlayerId)}
           onClose={() => setReEntryTargetPlayerId(null)}
           state={state}

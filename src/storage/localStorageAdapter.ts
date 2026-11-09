@@ -85,23 +85,23 @@ export async function loadActiveGameAsync(): Promise<GameState | null> {
       if (isValidGameState(parsed)) return parsed;
     }
     return loadActiveGame();
-  } catch (e) {
+  } catch {
     return loadActiveGame();
   }
 }
 
 export function isValidGameState(obj: unknown): obj is GameState {
   if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return false;
-  const candidate = obj as Record<string, any>;
+  const candidate = obj as Record<string, unknown>;
 
   if (typeof candidate.gameId !== 'string' || !candidate.gameId) return false;
   if (typeof candidate.title !== 'string') return false;
   if (typeof candidate.createdAt !== 'number') return false;
-  if (!['setup', 'playing', 'completed'].includes(candidate.status)) return false;
+  if (!['setup', 'playing', 'completed'].includes(candidate.status as string)) return false;
   if (typeof candidate.currentDealerIndex !== 'number' || candidate.currentDealerIndex < 0) return false;
 
   // Validate rules
-  if (!candidate.rules || typeof candidate.rules !== 'object' || Array.isArray(candidate.rules)) return false;
+  if (!isPlainObject(candidate.rules)) return false;
   const { poolLimit, openDrop, middleDrop, fullCount } = candidate.rules;
   if (
     typeof poolLimit !== 'number' ||
@@ -113,9 +113,10 @@ export function isValidGameState(obj: unknown): obj is GameState {
   }
 
   // Validate players dictionary
-  if (!candidate.players || typeof candidate.players !== 'object' || Array.isArray(candidate.players)) return false;
-  for (const [id, player] of Object.entries(candidate.players)) {
-    if (!player || typeof player !== 'object' || (player as any).id !== id || typeof (player as any).name !== 'string') {
+  const players = candidate.players;
+  if (!isPlainObject(players)) return false;
+  for (const [id, player] of Object.entries(players)) {
+    if (!isPlainObject(player) || player.id !== id || typeof player.name !== 'string') {
       return false;
     }
   }
@@ -123,7 +124,7 @@ export function isValidGameState(obj: unknown): obj is GameState {
   // Validate seats
   if (!Array.isArray(candidate.seats) || candidate.seats.length === 0) return false;
   for (const seatId of candidate.seats) {
-    if (typeof seatId !== 'string' || !candidate.players[seatId]) return false;
+    if (typeof seatId !== 'string' || !players[seatId]) return false;
   }
 
   if (candidate.currentDealerIndex >= candidate.seats.length) return false;
@@ -292,7 +293,8 @@ export function importAllData(jsonStr: string): { success: boolean; message: str
 
     if (Array.isArray(parsed.savedPlayers)) {
       const validPlayers = parsed.savedPlayers.filter(
-        (p: any) => p && typeof p.id === 'string' && typeof p.name === 'string'
+        (p: unknown): p is SavedRosterPlayer =>
+          isPlainObject(p) && typeof p.id === 'string' && typeof p.name === 'string'
       );
       savePlayerRoster(validPlayers);
       restoredPlayers = validPlayers.length;
@@ -314,7 +316,7 @@ export function importAllData(jsonStr: string): { success: boolean; message: str
       success: true,
       message: `Successfully restored ${restoredGames} matches and ${restoredPlayers} players!`,
     };
-  } catch (err: any) {
-    return { success: false, message: err?.message || 'Failed to parse backup file' };
+  } catch (err) {
+    return { success: false, message: err instanceof Error ? err.message : 'Failed to parse backup file' };
   }
 }

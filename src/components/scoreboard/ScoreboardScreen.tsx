@@ -2,12 +2,18 @@ import React, { useState, useRef, useMemo } from 'react';
 import { GameState, PlayerId, DealSplit } from '../../domain/types';
 import { getEligibleForReEntryPlayers, analyzePlayerDrops } from '../../domain/elimination';
 import { Confetti } from '../common/Confetti';
-import { Settings, Trophy, Share2, Trash2, ArrowLeft, UserPlus, Loader2, Handshake } from 'lucide-react';
+import { Settings, Trophy, Share2, Trash2, ArrowLeft, UserPlus, Loader2, Handshake, Image as ImageIcon, FileText } from 'lucide-react';
 import { useBackButton, BACK_PRIORITY } from '../../hooks/useBackButton';
-import { Capacitor } from '@capacitor/core';
-import { Share } from '@capacitor/share';
 import { PoolShareModal } from './PoolShareModal';
-import { isShareCancelled } from '../../services/share';
+import {
+  buildScorecardText,
+  captureElement,
+  isShareCancelled,
+  scorecardFileName,
+  shareImage,
+  shareText,
+} from '../../services/share';
+import { Modal } from '../common/Modal';
 
 interface ScoreboardScreenProps {
   state: GameState;
@@ -33,7 +39,9 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
   const { title, rules, seats, players, rounds, currentDealerIndex, winnerPlayerId, dealSplit } = state;
   const currentDealerId = seats[currentDealerIndex];
   const [selectedRoundIndex, setSelectedRoundIndex] = useState<number | null>(null);
-  const [isSharingImage, setIsSharingImage] = useState(false);
+  const [isShareMenuOpen, setIsShareMenuOpen] = useState(false);
+  const [sharingAs, setSharingAs] = useState<'image' | 'text' | null>(null);
+  const scoreTableScrollRef = useRef<HTMLDivElement>(null);
   const [isPoolShareOpen, setIsPoolShareOpen] = useState(false);
   const scorecardCaptureRef = useRef<HTMLDivElement>(null);
 
@@ -119,103 +127,30 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
     return null;
   }, [lastRound]);
 
-  // Generate and share or download image of current scoreboard matrix
-  const handleShareScorecard = async () => {
-    if (!scorecardCaptureRef.current || isSharingImage) return;
-    setIsSharingImage(true);
-
-    const safeShareTitle = title.replace(/[\r\n]/g, ' ').trim();
-    const poolInfo = entryAmount > 0 ? ` | Prize Pool: ₹${totalPoolAmount}` : '';
-    const dealText = dealSplit
-      ? `\n🤝 *Match Settled by Deal:*\n` +
-        Object.entries(dealSplit.payouts)
-          .map(([id, amt]) => `• ${players[id]?.name || 'Player'}: ₹${amt}`)
-          .join('\n') +
-        '\n'
-      : '';
-    const summary =
-      `🎴 *Rummy Scorecard: ${safeShareTitle}*\nPool: ${rules.poolLimit}${poolInfo} | Rounds: ${rounds.length}\n${dealText}\n` +
-      seats
-        .map(id => {
-          const score = latestScores[id] ?? 0;
-          const pName = players[id]?.name || 'Player';
-          const isOut = score >= rules.poolLimit;
-          return `${pName}: ${score} pts${isOut ? ' (Out)' : ''}`;
-        })
-        .join('\n');
-
+  const handleShare = async (kind: 'image' | 'text') => {
+    if (sharingAs) return;
+    setSharingAs(kind);
+    const shareTitle = `${title.replace(/[\r\n]+/g, ' ').trim()} Scorecard`;
     try {
-      // 1. Native Android / iOS app sharing via Capacitor Share plugin
-      if (Capacitor.isNativePlatform()) {
-        await Share.share({
-          title: `${safeShareTitle} Scorecard`,
-          text: summary,
-          dialogTitle: 'Share Rummy Scorecard',
-        });
-        return;
-      }
-
-      // 2. Web browser: generate image screenshot and share/download
-      const { toBlob } = await import('html-to-image');
-      const rootStyles = getComputedStyle(document.documentElement);
-      const bgColor = rootStyles.getPropertyValue('--color-bg').trim() || '#0f172a';
-
-      const blob = await toBlob(scorecardCaptureRef.current, {
-        pixelRatio: 2,
-        backgroundColor: bgColor,
-        cacheBust: true,
-      });
-
-      if (!blob) throw new Error('Image generation failed');
-
-      const safeTitle = title.trim().replace(/[^a-zA-Z0-9_-]/g, '_') || 'scorecard';
-      const fileName = `${safeTitle}-round-${rounds.length}.png`;
-      const file = new File([blob], fileName, { type: 'image/png' });
-
-      if (typeof navigator !== 'undefined' && navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          title: `${safeShareTitle} Scorecard`,
-          text: `Rummy Scorecard: ${safeShareTitle} (Pool ${rules.poolLimit})`,
-          files: [file],
-        });
-      } else if (typeof navigator !== 'undefined' && navigator.share) {
-        // Fallback for mobile browsers when file sharing is unavailable
-        await navigator.share({ title: `${safeShareTitle} Scorecard`, text: summary });
+      if (kind === 'text') {
+        await shareText(shareTitle, buildScorecardText(state));
       } else {
-        // Desktop browser download fallback
-        const downloadUrl = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.download = fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(downloadUrl);
+        if (!scorecardCaptureRef.current) throw new Error('Scoreboard is not on screen');
+        const blob = await captureElement(scorecardCaptureRef.current, scoreTableScrollRef.current);
+        await shareImage(blob, scorecardFileName(state), shareTitle);
       }
+      setIsShareMenuOpen(false);
     } catch (err) {
       if (!isShareCancelled(err)) {
-        // Fallback to text share
-        try {
-          if (Capacitor.isNativePlatform()) {
-            await Share.share({
-              title: `${safeShareTitle} Scorecard`,
-              text: summary,
-              dialogTitle: 'Share Rummy Scorecard',
-            });
-          } else if (typeof navigator !== 'undefined' && navigator.share) {
-            await navigator.share({ title: `${safeShareTitle} Scorecard`, text: summary });
-          } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
-            await navigator.clipboard.writeText(summary);
-            alert('Scorecard text copied to clipboard!');
-          }
-        } catch (shareErr) {
-          if (!isShareCancelled(shareErr)) {
-            console.warn('Text share fallback failed:', shareErr);
-          }
-        }
+        console.error(`Sharing the scorecard as ${kind} failed`, err);
+        alert(
+          kind === 'image'
+            ? "Couldn't create the scorecard image. Try Share as Text instead."
+            : "Couldn't share the scorecard. Please try again."
+        );
       }
     } finally {
-      setIsSharingImage(false);
+      setSharingAs(null);
     }
   };
 
@@ -243,16 +178,12 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
         <div className="flex items-center gap-1.5">
           <button
             type="button"
-            onClick={handleShareScorecard}
-            disabled={isSharingImage}
-            title="Share Scorecard Image"
-            className="p-1.5 rounded hover:bg-black/10 transition disabled:opacity-50"
+            onClick={() => setIsShareMenuOpen(true)}
+            title="Share Scorecard"
+            aria-label="Share Scorecard"
+            className="p-1.5 rounded hover:bg-black/10 transition"
           >
-            {isSharingImage ? (
-              <Loader2 className="w-4 h-4 animate-spin text-white" />
-            ) : (
-              <Share2 className="w-4 h-4 text-white" />
-            )}
+            <Share2 className="w-4 h-4 text-white" />
           </button>
           <button
             type="button"
@@ -396,7 +327,10 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
         )}
 
         {/* Score Matrix Table - NO horizontal scroll for <= 6 players */}
-        <div className={`flex-1 ${isCompactFit ? 'overflow-y-auto overflow-x-hidden' : 'overflow-auto'} relative bg-[var(--color-bg)]`}>
+        <div
+          ref={scoreTableScrollRef}
+          className={`flex-1 ${isCompactFit ? 'overflow-y-auto overflow-x-hidden' : 'overflow-auto'} relative bg-[var(--color-bg)]`}
+        >
           <table className={`w-full border-collapse ${isCompactFit ? 'table-fixed' : 'min-w-max'}`}>
             {/* Sticky Player Headers */}
             <thead className="sticky top-0 z-30 bg-[#1f2937] dark:bg-[#18181b] text-white border-b border-[var(--color-border)] shadow-sm">
@@ -695,6 +629,32 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
           </>
         )}
       </div>
+
+      <Modal isOpen={isShareMenuOpen} onClose={() => !sharingAs && setIsShareMenuOpen(false)} title="Share scorecard">
+        <div className="grid grid-cols-2 gap-3">
+          {([
+            { kind: 'image', label: 'Image', hint: 'Picture of the full scoreboard', Icon: ImageIcon },
+            { kind: 'text', label: 'Text', hint: 'Totals as a message', Icon: FileText },
+          ] as const).map(({ kind, label, hint, Icon }) => (
+            <button
+              key={kind}
+              type="button"
+              onClick={() => handleShare(kind)}
+              disabled={sharingAs !== null}
+              aria-label={`Share as ${label}`}
+              className="min-h-[96px] p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] hover:border-[var(--color-primary)] disabled:opacity-50 transition flex flex-col items-center justify-center gap-1.5 text-center"
+            >
+              {sharingAs === kind ? (
+                <Loader2 className="w-6 h-6 animate-spin text-[var(--color-primary)]" />
+              ) : (
+                <Icon className="w-6 h-6 text-[var(--color-primary)]" />
+              )}
+              <span className="font-semibold text-sm">{label}</span>
+              <span className="text-[11px] text-[var(--color-muted)] leading-tight">{hint}</span>
+            </button>
+          ))}
+        </div>
+      </Modal>
 
       {isPoolShareOpen && (
         <PoolShareModal

@@ -17,7 +17,14 @@ interface ShareMenuProps {
 }
 
 export const ShareMenu: React.FC<ShareMenuProps> = ({ isOpen, sharingAs, onClose, onShare }) => (
-  <Modal isOpen={isOpen} onClose={() => !sharingAs && onClose()} title="Share scorecard">
+  <Modal
+    isOpen={isOpen}
+    onClose={() => {
+      // While a share is being prepared, Back does nothing rather than leaving the screen.
+      if (!sharingAs) onClose();
+    }}
+    title="Share scorecard"
+  >
     <div className="grid grid-cols-2 gap-3">
       {OPTIONS.map(({ kind, label, hint, Icon }) => (
         <button

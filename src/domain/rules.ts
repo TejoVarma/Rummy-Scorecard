@@ -38,10 +38,13 @@ export function validateStartGame({ rules, players, initialSeats, initialDealerI
   return validateRules(rules);
 }
 
+export function countReEntries(state: GameState): number {
+  return state.seats.reduce((sum, id) => sum + (state.players[id]?.reEntryCount ?? 0), 0);
+}
+
+/** The prize pool: one stake per player who started, plus one per re-entry. The only place this is worked out. */
 export function totalPool(state: GameState): number {
-  const entry = state.rules.entryAmount ?? 0;
-  const reEntries = state.seats.reduce((sum, id) => sum + (state.players[id]?.reEntryCount ?? 0), 0);
-  return entry * (state.seats.length + reEntries);
+  return (state.rules.entryAmount ?? 0) * (state.seats.length + countReEntries(state));
 }
 
 /** A deal can be made once, mid-game, among the players still in, and must share out the whole pool. */

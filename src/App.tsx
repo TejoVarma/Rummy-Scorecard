@@ -83,7 +83,11 @@ export function App() {
     if (announceAfterRound && last) {
       const text = buildAnnouncement(state);
       if (text) {
-        speak(text).catch(e => {
+        speak(text)
+          .then(() => {
+            speechFailureShown.current = false;
+          })
+          .catch(e => {
           console.error('Text-to-speech failed', e);
           if (!speechFailureShown.current) {
             speechFailureShown.current = true;

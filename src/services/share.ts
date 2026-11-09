@@ -2,6 +2,7 @@ import { Capacitor } from '@capacitor/core';
 import { Share } from '@capacitor/share';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { GameState } from '../domain/types';
+import { totalPool } from '../domain/rules';
 
 // Closing the share sheet is not an error: browsers reject with an AbortError,
 // and Capacitor's Android Share plugin rejects with the message "Share canceled".
@@ -19,12 +20,11 @@ export function buildScorecardText(state: GameState): string {
   const { title, rules, seats, players, rounds, dealSplit } = state;
   const latest = rounds.length > 0 ? rounds[rounds.length - 1].cumulativeScores : {};
   const entryAmount = rules.entryAmount ?? 0;
-  const reEntries = seats.reduce((sum, id) => sum + (players[id]?.reEntryCount ?? 0), 0);
-  const totalPool = entryAmount * (seats.length + reEntries);
+  const pool = totalPool(state);
 
   const lines = [
     `🎴 *Rummy Scorecard: ${singleLine(title)}*`,
-    `Pool: ${rules.poolLimit}${entryAmount > 0 ? ` | Prize Pool: ₹${totalPool}` : ''} | Rounds: ${rounds.length}`,
+    `Pool: ${rules.poolLimit}${entryAmount > 0 ? ` | Prize Pool: ₹${pool}` : ''} | Rounds: ${rounds.length}`,
   ];
 
   if (dealSplit) {
@@ -52,6 +52,7 @@ export async function shareText(title: string, text: string): Promise<void> {
     await navigator.share({ title, text });
     return;
   }
+  if (!navigator.clipboard) throw new Error('Sharing is not available here');
   await navigator.clipboard.writeText(text);
   alert('Scorecard copied. Paste it into any chat.');
 }
@@ -78,7 +79,7 @@ export async function captureElement(node: HTMLElement, scrollArea: HTMLElement 
       width: node.scrollWidth,
       height: node.scrollHeight,
     });
-    if (!blob) throw new Error('The scorecard image came out empty');
+    if (!blob || blob.size === 0) throw new Error('The scorecard image came out empty');
     return blob;
   } finally {
     [node, scrollArea].forEach((el, i) => {
@@ -94,7 +95,11 @@ function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = () => reject(reader.error ?? new Error('Could not read the image'));
-    reader.onload = () => resolve(String(reader.result).split(',')[1] ?? '');
+    reader.onload = () => {
+      const data = String(reader.result).split(',')[1];
+      if (data) resolve(data);
+      else reject(new Error('The image came out empty'));
+    };
     reader.readAsDataURL(blob);
   });
 }

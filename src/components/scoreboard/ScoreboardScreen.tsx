@@ -7,6 +7,7 @@ import { Trophy, UserPlus, Handshake } from 'lucide-react';
 import { useBackButton, BACK_PRIORITY } from '../../hooks/useBackButton';
 import { PoolShareModal } from './PoolShareModal';
 import { ScoreTable } from './ScoreTable';
+import { countReEntries, totalPool } from '../../domain/rules';
 import { ScoreboardHeader } from './ScoreboardHeader';
 import { ScoreboardActions } from './ScoreboardActions';
 import { ShareMenu, ShareKind } from './ShareMenu';
@@ -58,7 +59,8 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
   useBackButton(
     () => setSelectedRoundIndex(null),
     selectedRoundIndex !== null,
-    BACK_PRIORITY.NESTED_MODAL,
+    // Below any open dialog, so Back closes the dialog first, then the round details.
+    BACK_PRIORITY.SCREEN + 5,
     'scoreboard_round_details'
   );
 
@@ -91,8 +93,8 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
 
   // Pool Stake & Total Amount calculation
   const entryAmount = rules.entryAmount ?? 0;
-  const totalReEntries = seats.reduce((sum, id) => sum + (players[id]?.reEntryCount ?? 0), 0);
-  const totalPoolAmount = entryAmount * (seats.length + totalReEntries);
+  const totalReEntries = countReEntries(state);
+  const totalPoolAmount = totalPool(state);
 
   const lastRound = rounds.length > 0 ? rounds[rounds.length - 1] : null;
   const isLastRoundEdited = Boolean(lastRound?.isEdited);

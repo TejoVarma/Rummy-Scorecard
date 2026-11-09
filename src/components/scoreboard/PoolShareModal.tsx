@@ -10,6 +10,7 @@ import {
 } from '../../domain/dealSplit';
 import { Handshake, Share2, AlertCircle, Check, Scale, Equal, Edit3, Layers } from 'lucide-react';
 import { analyzePlayerDrops } from '../../domain/elimination';
+import { countReEntries, totalPool, validateDeal } from '../../domain/rules';
 import { Capacitor } from '@capacitor/core';
 import { Share } from '@capacitor/share';
 import { useBackButton, BACK_PRIORITY } from '../../hooks/useBackButton';
@@ -60,8 +61,8 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
 
   // Pool calculation
   const entryAmount = rules.entryAmount ?? 0;
-  const totalReEntries = seats.reduce((sum, id) => sum + (players[id]?.reEntryCount ?? 0), 0);
-  const totalPoolAmount = dealSplit?.totalPool ?? entryAmount * (seats.length + totalReEntries);
+  const totalReEntries = countReEntries(state);
+  const totalPoolAmount = dealSplit?.totalPool ?? totalPool(state);
 
   const [mode, setMode] = useState<DealMode>(dealSplit?.mode || 'proportional');
   const [customPayouts, setCustomPayouts] = useState<Record<PlayerId, string>>({});
@@ -192,6 +193,12 @@ export const PoolShareModal: React.FC<PoolShareModalProps> = ({
       timestamp: Date.now(),
     };
 
+    // The app's rules check the same thing; checking here keeps the dialog open with a reason.
+    const problem = validateDeal(state, newDeal);
+    if (problem) {
+      alert(`This deal can't be accepted: ${problem}`);
+      return;
+    }
     onAcceptDeal(newDeal);
     setShowConfirmAccept(false);
     onClose();

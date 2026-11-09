@@ -26,7 +26,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onToggleAnnounce,
   onStartNewMatch,
 }) => {
-  const { themeId, setThemeId, colorMode, toggleColorMode } = useTheme();
+  const { themeId, setThemeId, colorMode, setColorMode } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleExportData = async () => {
@@ -94,7 +94,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
-              onClick={() => toggleColorMode()}
+              onClick={() => setColorMode('dark')}
               className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded text-xs font-medium border transition ${
                 colorMode === 'dark'
                   ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]'
@@ -105,7 +105,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </button>
             <button
               type="button"
-              onClick={() => toggleColorMode()}
+              onClick={() => setColorMode('light')}
               className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded text-xs font-medium border transition ${
                 colorMode === 'light'
                   ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]'

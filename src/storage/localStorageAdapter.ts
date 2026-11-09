@@ -126,10 +126,70 @@ export function isValidGameState(obj: unknown): obj is GameState {
     if (typeof seatId !== 'string' || !candidate.players[seatId]) return false;
   }
 
+  if (candidate.currentDealerIndex >= candidate.seats.length) return false;
+
   // Validate rounds
   if (!Array.isArray(candidate.rounds)) return false;
+  for (const round of candidate.rounds) {
+    if (!isValidRound(round)) return false;
+  }
 
   return true;
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+// The scoreboard reads every round's cumulative scores while drawing, so a
+// malformed round must be rejected here rather than crash the screen.
+function isValidRound(round: unknown): boolean {
+  if (!isPlainObject(round)) return false;
+  if (!isPlainObject(round.scores) || !isPlainObject(round.cumulativeScores)) return false;
+  if (!Object.values(round.cumulativeScores).every(Number.isFinite)) return false;
+  if (!Array.isArray(round.seatsSnapshot)) return false;
+  return true;
+}
+
+const CRASHED_GAME_BACKUP_KEY = 'rummy_crashed_game_backup';
+
+/**
+ * Takes the active match out of play after it crashed the app: keeps a raw copy
+ * under a backup key, removes it from the saved list and clears it everywhere.
+ */
+export async function quarantineActiveGame(): Promise<void> {
+  const raw = localStorage.getItem(ACTIVE_GAME_KEY);
+  if (raw) {
+    try {
+      localStorage.setItem(CRASHED_GAME_BACKUP_KEY, raw);
+    } catch (e) {
+      // Storage may be full; clearing the match still matters more than the copy.
+      console.error('Could not back up the crashed match', e);
+    }
+    removeFromSavedList(raw);
+  }
+  localStorage.removeItem(ACTIVE_GAME_KEY);
+  try {
+    await Preferences.remove({ key: ACTIVE_GAME_KEY });
+  } catch (e) {
+    console.error('Failed to clear active game from Preferences', e);
+  }
+}
+
+function removeFromSavedList(rawActiveGame: string): void {
+  try {
+    const { gameId } = JSON.parse(rawActiveGame);
+    const list = JSON.parse(localStorage.getItem(SAVED_GAMES_LIST_KEY) ?? '[]');
+    if (!gameId || !Array.isArray(list)) return;
+    const remaining = list.filter((g: { gameId?: unknown }) => g?.gameId !== gameId);
+    const serialized = JSON.stringify(remaining);
+    localStorage.setItem(SAVED_GAMES_LIST_KEY, serialized);
+    Preferences.set({ key: SAVED_GAMES_LIST_KEY, value: serialized }).catch(e =>
+      console.error('Failed to sync saved games list to Preferences', e)
+    );
+  } catch {
+    // The active game or list is unreadable; the raw copy is already backed up.
+  }
 }
 
 export function loadActiveGame(): GameState | null {

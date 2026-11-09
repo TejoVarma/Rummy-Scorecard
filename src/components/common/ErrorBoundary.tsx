@@ -1,5 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RotateCcw } from 'lucide-react';
+import { quarantineActiveGame } from '../../storage/localStorageAdapter';
 
 interface Props {
   children: ReactNode;
@@ -28,11 +29,11 @@ export class ErrorBoundary extends Component<Props, State> {
     window.location.reload();
   };
 
-  private handleReset = () => {
+  private handleReset = async () => {
     try {
-      localStorage.removeItem('rummy_active_game');
-    } catch {
-      // Ignore
+      await quarantineActiveGame();
+    } catch (e) {
+      console.error('Failed to clear the crashed match', e);
     }
     window.location.reload();
   };
@@ -65,8 +66,11 @@ export class ErrorBoundary extends Component<Props, State> {
                 onClick={this.handleReset}
                 className="w-full py-2 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 text-xs font-medium transition"
               >
-                Reset Active Match & Reload
+                Clear this match & reload
               </button>
+              <p className="text-[11px] text-slate-500 leading-snug">
+                If reloading doesn't help, this removes the current match so the app can open. A copy is kept on the phone.
+              </p>
             </div>
           </div>
         </div>

@@ -42,7 +42,7 @@ Exit: the app builds and runs on a phone at the new SDK, and CI is green with li
 
 | Step | What | You'll learn |
 |---|---|---|
-| 3.1 | **Share Image + Share Text on the phone.** Render the scorecard to a PNG (`html-to-image`, already installed), write it to the cache folder (`@capacitor/filesystem`), and open the share sheet with the file (`@capacitor/share` `files`). The Share button asks "Image or Text". | Turning DOM into an image, Base64 and blobs, how Android shares files (FileProvider), and native vs web code paths |
+| ✅ 3.1 | **Share Image + Share Text on the phone** (v1.4; also fixed the share sheet reopening after a cancel). Render the scorecard to a PNG (`html-to-image`, already installed), write it to the cache folder (`@capacitor/filesystem`), and open the share sheet with the file (`@capacitor/share` `files`). The Share button asks "Image or Text". | Turning DOM into an image, Base64 and blobs, how Android shares files (FileProvider), and native vs web code paths |
 | 3.2 | **Announce totals.** A text-to-speech plugin (the version is chosen in the research step to match the Capacitor version), with a browser `speechSynthesis` fallback. Text: "Round 6. Ravi 45. Amit 120. Kiran out." A Settings switch "Announce after each round" (saved). A 🔊 replay button on the scoreboard. Announcements also run after an edit. | Capacitor plugins, text-to-speech, and a pure "message builder" function with unit tests |
 
 Exit: tested on a real phone. The image arrives in WhatsApp. The voice speaks after submit and on replay, and is silent when switched off.

@@ -4,6 +4,7 @@ import { GameState } from '../domain/types';
 const ACTIVE_GAME_KEY = 'rummy_active_game_v1';
 const SAVED_GAMES_LIST_KEY = 'rummy_saved_games_list_v1';
 const SAVED_PLAYERS_KEY = 'rummy_saved_players_v1';
+const ANNOUNCE_KEY = 'rummy_announce_after_round_v1';
 
 export async function saveActiveGame(state: GameState): Promise<void> {
   try {
@@ -318,5 +319,21 @@ export function importAllData(jsonStr: string): { success: boolean; message: str
     };
   } catch (err) {
     return { success: false, message: err instanceof Error ? err.message : 'Failed to parse backup file' };
+  }
+}
+
+export function loadAnnounceAfterRound(): boolean {
+  try {
+    return localStorage.getItem(ANNOUNCE_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+export function saveAnnounceAfterRound(on: boolean): void {
+  try {
+    localStorage.setItem(ANNOUNCE_KEY, String(on));
+  } catch (e) {
+    console.error('Failed to save the announce setting', e);
   }
 }

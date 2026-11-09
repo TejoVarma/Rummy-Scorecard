@@ -1,6 +1,15 @@
-import { useReducer, useEffect, useState, useCallback } from 'react';
+import { useReducer, useEffect, useState, useCallback, useRef } from 'react';
 import { gameReducer, INITIAL_STATE } from './state/gameReducer';
-import { loadActiveGame, saveActiveGame, clearActiveGame, deleteGameFromList } from './storage/localStorageAdapter';
+import {
+  loadActiveGame,
+  saveActiveGame,
+  clearActiveGame,
+  deleteGameFromList,
+  loadAnnounceAfterRound,
+  saveAnnounceAfterRound,
+} from './storage/localStorageAdapter';
+import { buildAnnouncement } from './domain/announce';
+import { speak } from './services/speech';
 import { HomeScreen } from './components/home/HomeScreen';
 import { ContinueGameScreen } from './components/continue/ContinueGameScreen';
 import { PlayerListScreen } from './components/players/PlayerListScreen';
@@ -34,6 +43,39 @@ export function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [reEntryTargetPlayerId, setReEntryTargetPlayerId] = useState<PlayerId | null>(null);
   const [showExitToast, setShowExitToast] = useState(false);
+  const [announceAfterRound, setAnnounceAfterRound] = useState(loadAnnounceAfterRound);
+  const lastSeenRound = useRef<{ gameId: string; round: string } | null>(null);
+
+  const handleToggleAnnounce = useCallback((on: boolean) => {
+    setAnnounceAfterRound(on);
+    saveAnnounceAfterRound(on);
+  }, []);
+
+  const announceScores = useCallback(async () => {
+    const text = buildAnnouncement(state);
+    if (!text) return;
+    try {
+      await speak(text);
+    } catch (e) {
+      console.error('Text-to-speech failed', e);
+      alert("Couldn't read the scores aloud. Check that a text-to-speech voice is installed on this phone.");
+    }
+  }, [state]);
+
+  // Speak only when a round is submitted or edited in the game already on screen,
+  // not when a game is opened, resumed or started.
+  useEffect(() => {
+    const last = state.rounds[state.rounds.length - 1];
+    const seen = { gameId: state.gameId, round: last ? `${state.rounds.length}@${last.timestamp}` : '' };
+    const previous = lastSeenRound.current;
+    lastSeenRound.current = seen;
+
+    if (!previous || previous.gameId !== seen.gameId || previous.round === seen.round) return;
+    if (announceAfterRound && last) {
+      const text = buildAnnouncement(state);
+      if (text) speak(text).catch(e => console.error('Text-to-speech failed', e));
+    }
+  }, [state, announceAfterRound]);
 
   // Subscribe to Android exit toast alerts from the back button manager
   useEffect(() => {
@@ -143,6 +185,7 @@ export function App() {
             setIsInputModalOpen(true);
           }}
           onOpenSettings={() => setIsSettingsOpen(true)}
+          onAnnounceScores={announceScores}
           onPromptReEntry={id => setReEntryTargetPlayerId(id)}
           onDeleteGame={handleDeleteGame}
           onAcceptDeal={handleAcceptDeal}
@@ -177,6 +220,8 @@ export function App() {
         <SettingsModal
           isOpen={isSettingsOpen}
           onClose={() => setIsSettingsOpen(false)}
+          announceAfterRound={announceAfterRound}
+          onToggleAnnounce={handleToggleAnnounce}
           onStartNewMatch={state.status !== 'setup' ? () => setCurrentScreen('new_game') : undefined}
         />
       )}

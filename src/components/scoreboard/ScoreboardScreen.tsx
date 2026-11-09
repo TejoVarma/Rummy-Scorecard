@@ -2,7 +2,7 @@ import React, { useState, useRef, useMemo } from 'react';
 import { GameState, PlayerId, DealSplit } from '../../domain/types';
 import { getEligibleForReEntryPlayers, analyzePlayerDrops } from '../../domain/elimination';
 import { Confetti } from '../common/Confetti';
-import { Settings, Trophy, Share2, Trash2, ArrowLeft, UserPlus, Loader2, Handshake, Image as ImageIcon, FileText } from 'lucide-react';
+import { Settings, Trophy, Share2, Trash2, ArrowLeft, UserPlus, Loader2, Handshake, Image as ImageIcon, FileText, Volume2 } from 'lucide-react';
 import { useBackButton, BACK_PRIORITY } from '../../hooks/useBackButton';
 import { PoolShareModal } from './PoolShareModal';
 import {
@@ -21,6 +21,7 @@ interface ScoreboardScreenProps {
   onOpenScoreInput: () => void;
   onOpenEditScore: () => void;
   onOpenSettings: () => void;
+  onAnnounceScores: () => void;
   onPromptReEntry: (playerId: PlayerId) => void;
   onDeleteGame: () => void;
   onAcceptDeal: (dealSplit: DealSplit) => void;
@@ -32,6 +33,7 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
   onOpenScoreInput,
   onOpenEditScore,
   onOpenSettings,
+  onAnnounceScores,
   onPromptReEntry,
   onDeleteGame,
   onAcceptDeal,
@@ -176,6 +178,17 @@ export const ScoreboardScreen: React.FC<ScoreboardScreenProps> = ({
         </div>
 
         <div className="flex items-center gap-1.5">
+          {rounds.length > 0 && (
+            <button
+              type="button"
+              onClick={onAnnounceScores}
+              title="Announce scores"
+              aria-label="Announce scores"
+              className="p-1.5 rounded hover:bg-black/10 transition"
+            >
+              <Volume2 className="w-4 h-4 text-white" />
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setIsShareMenuOpen(true)}

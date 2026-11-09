@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { Modal } from '../common/Modal';
 import { useTheme } from '../../themes/ThemeContext';
 import { THEMES, ThemeId } from '../../themes/themeConfig';
-import { Sun, Moon, RefreshCw, Palette, Download, Upload, ShieldCheck } from 'lucide-react';
+import { Sun, Moon, RefreshCw, Palette, Download, Upload, ShieldCheck, Volume2 } from 'lucide-react';
 import { exportAllData, importAllData } from '../../storage/localStorageAdapter';
 import { Share } from '@capacitor/share';
 import { Capacitor } from '@capacitor/core';
@@ -10,6 +10,8 @@ import { Capacitor } from '@capacitor/core';
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  announceAfterRound: boolean;
+  onToggleAnnounce: (on: boolean) => void;
   // Left undefined when there's no match in progress, which hides the button.
   onStartNewMatch?: () => void;
 }
@@ -17,6 +19,8 @@ interface SettingsModalProps {
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
   onClose,
+  announceAfterRound,
+  onToggleAnnounce,
   onStartNewMatch,
 }) => {
   const { themeId, setThemeId, colorMode, toggleColorMode } = useTheme();
@@ -105,6 +109,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </button>
           </div>
         </div>
+
+        <label className="flex items-center justify-between gap-3 py-1 cursor-pointer">
+          <span className="flex items-center gap-2 text-sm text-[var(--color-text)]">
+            <Volume2 className="w-4 h-4 text-[var(--color-primary)]" />
+            <span>
+              Announce scores after each round
+              <span className="block text-[11px] text-[var(--color-muted)]">Reads the totals aloud in English</span>
+            </span>
+          </span>
+          <input
+            type="checkbox"
+            role="switch"
+            checked={announceAfterRound}
+            onChange={e => onToggleAnnounce(e.target.checked)}
+            className="w-5 h-5 accent-[var(--color-primary)] cursor-pointer"
+          />
+        </label>
 
         {/* Theme Palette */}
         <div className="space-y-1.5">

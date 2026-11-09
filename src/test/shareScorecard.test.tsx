@@ -52,6 +52,7 @@ function renderBoard(state: GameState) {
       onOpenScoreInput={() => {}}
       onOpenEditScore={() => {}}
       onOpenSettings={() => {}}
+      onAnnounceScores={() => {}}
       onPromptReEntry={() => {}}
       onDeleteGame={() => {}}
       onAcceptDeal={() => {}}

@@ -50,6 +50,7 @@ describe('pool deal before the first round', () => {
         onOpenScoreInput={() => {}}
         onOpenEditScore={() => {}}
         onOpenSettings={() => {}}
+        onAnnounceScores={() => {}}
         onPromptReEntry={() => {}}
         onDeleteGame={() => {}}
         onAcceptDeal={() => {}}

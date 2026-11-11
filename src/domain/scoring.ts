@@ -27,6 +27,7 @@ export function getPointsForInputType(
     case 'middle_drop':
       return rules.middleDrop;
     case 'full_count':
+    case 'penalty':
       return rules.fullCount;
     case 'out':
       return rules.poolLimit;
@@ -41,7 +42,8 @@ export function getPointsForInputType(
 /**
  * Checks a round before it's saved: every player still in has a score, each score
  * matches its button under these rules, typed hand scores are 0 to full count,
- * and exactly one player made the show.
+ * and the round has a winner: exactly one Show, unless someone showed wrong (Penalty).
+ * A wrong show can stop the hand, so a round with a Penalty may have no Show at all.
  */
 export function validateRoundScores(
   scores: Record<string, { type: ScoreInputType; points: number } | undefined>,
@@ -66,8 +68,9 @@ export function validateRoundScores(
   }
 
   const showCount = activePlayerIds.filter(id => scores[id]?.type === 'show').length;
-  if (showCount === 0) {
-    return { valid: false, error: 'One player must be marked with Show (0 pts).' };
+  const hasPenalty = activePlayerIds.some(id => scores[id]?.type === 'penalty');
+  if (showCount === 0 && !hasPenalty) {
+    return { valid: false, error: 'Mark the winner with Show, or a wrong show with Penalty.' };
   }
   if (showCount > 1) {
     return { valid: false, error: 'Only one player can have Show in a single round.' };

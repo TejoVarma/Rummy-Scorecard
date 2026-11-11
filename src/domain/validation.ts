@@ -9,7 +9,7 @@ const isStringList = (v: unknown): v is string[] => Array.isArray(v) && v.every(
 const optional = (v: unknown, check: (x: unknown) => boolean) => v === undefined || check(v);
 const valuesAreNumbers = (v: unknown) => isPlainObject(v) && Object.values(v).every(isFiniteNumber);
 
-const SCORE_TYPES = new Set(['show', 'open_drop', 'middle_drop', 'full_count', 'custom', 'out']);
+const SCORE_TYPES = new Set(['show', 'open_drop', 'middle_drop', 'full_count', 'penalty', 'custom', 'out']);
 
 // The screens read every round while drawing, so anything malformed is rejected here
 // rather than allowed to crash a screen. Fields added in later versions are optional.

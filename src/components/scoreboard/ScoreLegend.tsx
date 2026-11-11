@@ -7,6 +7,7 @@ export const CELL_CODES = {
   open_drop: { code: 'D', label: 'Drop', short: 'Drop' },
   middle_drop: { code: 'MD', label: 'Middle drop', short: 'Mid drop' },
   full_count: { code: 'FC', label: 'Full count', short: 'Full' },
+  penalty: { code: 'P', label: 'Penalty (wrong show)', short: 'Penalty' },
   out: { code: 'X', label: 'Out', short: 'Out' },
   reEntry: { code: 'RE', label: 'Re-entry (with the score they came back on)', short: 'Re-entry' },
 } as const;

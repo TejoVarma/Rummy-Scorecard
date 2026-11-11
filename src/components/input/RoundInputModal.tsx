@@ -12,6 +12,7 @@ const SCORE_OPTIONS: Array<{ type: Exclude<ScoreInputType, 'custom'>; label: str
   { type: 'middle_drop', label: 'M Drop', color: '#ca8a04' },
   { type: 'full_count', label: 'Full', color: '#7c3aed' },
   { type: 'out', label: 'Out', color: '#dc2626' },
+  { type: 'penalty', label: 'Penalty', color: '#db2777' },
 ];
 
 interface RoundInputModalProps {

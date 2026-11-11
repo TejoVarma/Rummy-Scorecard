@@ -33,3 +33,4 @@
 | 29 | [Moving a match to another phone (match file)](29-moving-a-match-to-another-phone.md) | Feature |
 | 30 | [Announce only who is still playing](30-announce-only-who-is-still-playing.md) | Bug fix |
 | 31 | [Re-entering two players together](31-re-entering-players-together.md) | Bug fix + feature |
+| 32 | [Penalty for a wrong show](32-penalty-for-a-wrong-show.md) | Bug fix + feature |

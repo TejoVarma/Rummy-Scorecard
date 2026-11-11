@@ -22,7 +22,7 @@ interface ScoreTableProps {
 const CELL = 'w-full max-w-[48px] mx-auto py-1.5 rounded-lg font-bold text-sm text-center';
 const TD = 'py-1 px-0.5 text-center border-b border-[var(--color-border)] border-r border-[var(--color-border)] last:border-r-0';
 
-const CODED_TYPES = ['show', 'open_drop', 'middle_drop', 'full_count'] as const;
+const CODED_TYPES = ['show', 'open_drop', 'middle_drop', 'full_count', 'penalty'] as const;
 
 function ScoreCell({ score, reEntered, rowColour }: { score: PlayerRoundScore; reEntered: boolean; rowColour: string }) {
   if (score.type === 'out') {

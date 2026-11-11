@@ -56,13 +56,13 @@ test('a typed hand score is accepted and capped at full count', async ({ page })
   expect(await totals(page)).toEqual(['0', '80']);
 });
 
-test('a round cannot be submitted without exactly one Show', async ({ page }) => {
+test('a round cannot be submitted without a Show or a Penalty', async ({ page }) => {
   await startGame(page, ['Ravi', 'Amit']);
   await page.getByRole('button', { name: 'ENTER SCORE' }).click();
   await playerCard(page, 'Ravi').getByRole('button', { name: 'Drop', exact: true }).click();
   await playerCard(page, 'Amit').getByRole('button', { name: 'Drop', exact: true }).click();
   await page.getByRole('button', { name: 'SUBMIT' }).click();
-  await expect(page.getByText(/one player must be marked with show/i)).toBeVisible();
+  await expect(page.getByText(/mark the winner with show, or a wrong show with penalty/i)).toBeVisible();
 });
 
 test('editing the last round updates the totals once', async ({ page }) => {
@@ -157,4 +157,17 @@ test('two players out in the same round re-enter together at one score, seated i
   expect(name(dealer - 2)).toBe('Kiran');
   expect((await totals(page)).sort()).toEqual(['0', '72', '73', '73']);
   await expect(page.getByRole('button', { name: /re-enter/i })).toHaveCount(0);
+});
+
+test('a wrong show stops the hand: Penalty gets full count, the rest get what the table agreed', async ({ page }) => {
+  await startGame(page, ['Ravi', 'Amit', 'Kiran']);
+  await page.getByRole('button', { name: 'ENTER SCORE' }).click();
+  await playerCard(page, 'Ravi').getByRole('button', { name: 'Penalty', exact: true }).click();
+  await playerCard(page, 'Amit').getByRole('textbox', { name: 'Score for Amit' }).fill('20');
+  await playerCard(page, 'Kiran').getByRole('textbox', { name: 'Score for Kiran' }).fill('20');
+  await page.getByRole('button', { name: 'SUBMIT' }).click();
+
+  expect(await totals(page)).toEqual(['80', '20', '20']);
+  await expect(page.getByRole('img', { name: /penalty/i })).toHaveText('P');
+  await expect(page.getByText(/congrats/i)).toHaveCount(0);
 });

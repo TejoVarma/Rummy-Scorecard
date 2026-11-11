@@ -22,6 +22,7 @@ export type ScoreInputType =
   | 'open_drop'      // 24 points
   | 'middle_drop'    // 48 points
   | 'full_count'     // 80 points
+  | 'penalty'        // full count, for a wrong show
   | 'custom'         // numeric hand points (e.g. 7, 22, 53)
   | 'out';           // Eliminated / Out
 
